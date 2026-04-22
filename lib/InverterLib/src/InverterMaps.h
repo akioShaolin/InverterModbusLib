@@ -49,28 +49,14 @@ enum ModbusDataType {
 //   - Dados intercalados: stride > registradores por elemento
 
 // scale - fator de escala para converter o valor lido do Modbus para a unidade correta (exceto ASCII)
-
-struct ModbusField {
-    uint16_t address;
-    ModbusDataType type;
-    uint16_t length; // Número de registradores (16 bits cada)
-    uint16_t stride; // Número de registradores entre os campos (para arrays)
-    float scale;
-    bool readable;
-    bool writable;
-};
-
-enum Manufacturer {
-    WEG,
-    GOODWE,
-    FOXESS,
-    HUAWEI,
-};
-
 enum FieldAccessMode {
-    SIMPLE_FIELD,       // Address / length / stride resolvem
-    SPECIAL_FIELD,      // Requer lógica personalizada para leitura/escrita
-    NOT_AVAILABLE       // Campo não disponível nesse modelo
+    FIELD_SIMPLE,       // Address / length / stride resolvem
+    FIELD_SPECIAL       // Requer lógica personalizada para leitura/escrita
+};
+
+enum HandlerId {
+    DEFAULT_HANDLER,
+    HANDLER_GOODWE_STRINGS
 };
 
 struct ModbusField {
@@ -81,15 +67,12 @@ struct ModbusField {
     float scale;
     bool readable;
     bool writable;
-    FieldAccessMode mode;
-    uint16_t handlerId; // ID para identificar qual lógica personalizada usar no caso de SPECIAL_FIELD 
+
+    FieldAccessMode mode = FIELD_SIMPLE;
+    HandlerId handlerId = DEFAULT_HANDLER;
 };
 
-constexpr ModbusField INVALID_FIELD = { 0xFFFF, NONE, 0, 0, 1.0f, false, false };
-
-
-
-
+constexpr ModbusField INVALID_FIELD = { 0xFFFF, NONE, 0, 0, 1.0f, false, false, FIELD_SIMPLE, DEFAULT_HANDLER };
 
 struct ModbusInverterMap {
     // Identificação
@@ -99,13 +82,13 @@ struct ModbusInverterMap {
     ModbusField boot;
     ModbusField shutdown;
     ModbusField enablePowerLimit;
-    ModbusField setPowerLimit;
-    ModbusField setPowerLimitPercent;
+    ModbusField PowerLimit;
+    ModbusField PowerLimitPercent;
     ModbusField enableExportLimit;
-    ModbusField setExportLimit;
-    ModbusField setExportLimitPercent;
+    ModbusField ExportLimit;
+    ModbusField ExportLimitPercent;
     ModbusField enablePowerFactor;
-    ModbusField setPowerFactor;
+    ModbusField PowerFactorSetpoint;
     ModbusField powerFactorExcitationMode;
 
     // Tempo
@@ -142,7 +125,8 @@ struct ModbusInverterMap {
     ModbusField batteryVoltage;
     ModbusField batteryCurrent;
     ModbusField batteryPower;
-    ModbusField batteryCharge;
+    ModbusField batterySoC;
+    ModbusField batterySoH;
 
     ModbusField epsVoltage;
     ModbusField epsCurrent;

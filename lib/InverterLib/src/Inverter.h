@@ -119,7 +119,6 @@ public:
     bool getBatteryVoltage(BatteryValues& voltage); // Retorna vetor
     bool getBatteryCurrent(BatteryValues& current); // Retorna vetor
     bool getBatteryPower(BatteryValues& power);     // Retorna vetor
-    bool getBatteryCharge(BatteryValues& charge);   // Retorna vetor
     bool getBatterySoC(BatteryValues& soc);       // Retorna vetor
     bool getBatterySoH(BatteryValues& soh);       // Retorna vetor
 
@@ -132,14 +131,15 @@ public:
 
 private:
     InverterModel _model;
-    const InverterDescriptor _descriptor;
-
-    Grid _grid;
-    EPS _eps;
+    const InverterDescriptor* _descriptor;
     const ModbusInverterMap* _map;
 
-    float readField(const ModbusField& field);
-    bool writeField(const ModbusField& field, float value);
+    String _serial;
+
+    // Resolve 90% dos casos
+    bool readField(const ModbusField& field, float& value);
+    bool readField(const ModbusField& field, StringValues& values);
+    bool readField(const ModbusField& field, PhaseData& data);
 
     uint16_t readHoldingRegister(uint16_t reg);
     bool writeHoldingRegister(uint16_t reg, uint16_t value);

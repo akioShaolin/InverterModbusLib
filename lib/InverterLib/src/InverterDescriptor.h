@@ -28,4 +28,6 @@ struct InverterDescriptor {
     uint16_t maxPowerW; // Potência máxima em watts, pode ser 0 se não for aplicável ou desconhecida
 };
 
+const InverterDescriptor* getDescriptor(InverterModel model);
+
 #endif

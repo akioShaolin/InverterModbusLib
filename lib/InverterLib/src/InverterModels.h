@@ -1,3 +1,6 @@
+#ifndef INVERTER_MODELS_H
+#define INVERTER_MODELS_H
+
 #include <Arduino.h>
 
 enum InverterModel {
@@ -156,3 +159,5 @@ enum InverterModel {
         SUN2000_215KTL_H3,
         SUN2000_250KTL_H1,
 };
+
+#endif

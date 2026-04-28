@@ -72,6 +72,6 @@ struct InverterDescriptor {
     StatusFormat statusFormat;
 };
 
-const InverterDescriptor* getDescriptor(InverterModel model);
+InverterDescriptor getDescriptor(InverterModel model);
 
 #endif

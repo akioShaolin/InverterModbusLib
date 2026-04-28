@@ -5,9 +5,7 @@ ModbusConfig::ModbusConfig() : _id(1), _baud(9600), _serialConfig(SERIAL_8N1) {}
 void ModbusConfig::applyTo(ModbusRTU& mb, HardwareSerial& serial) {
     // Não iniciar o modbus e o serial varias vezes. Ajustar isso aqui depois
     serial.begin(_baud, _serialConfig);
-
     mb.begin(&serial);
-    mb.slave(_id);
 
 }
 

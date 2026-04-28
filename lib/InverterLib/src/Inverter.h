@@ -52,7 +52,8 @@ struct BatteryValues {
 
 class Inverter {
 public:
-    ModbusConfig modbus;
+    void attachModbus(ModbusRTU& mb);
+    void attachConfig(ModbusConfig& config);
 
     Inverter(InverterModel model);
 
@@ -131,23 +132,28 @@ public:
     bool getEPSCurrent(PhaseData& phase);            // RO - Retorna struct {grid,r,s,t}
     bool getEPSActivePower(PhaseData& phase);        // RO - Retorna struct {grid,r,s,t}
 
-    bool readHoldingRegisters(uint16_t startReg, uint16_t* buffer, uint16_t count);
-    bool writeHoldingRegisters(uint16_t startReg, const uint16_t* buffer, uint16_t count);
-
 private:
+    ModbusRTU* _mb = nullptr;
+    ModbusConfig* _modbus = nullptr;
+
     InverterModel _model;
-    const InverterDescriptor* _descriptor;
-    const ModbusInverterMap* _map;
+    InverterDescriptor _descriptor;
+    ModbusInverterMap _map;
 
     String _serial;
 
     // Resolve 90% dos casos
+    bool readField(const ModbusField& field, char* value);
     bool readField(const ModbusField& field, float& value);
+    bool readField(const ModbusField& field, uint16_t& value);
+    bool readField(const ModbusField& field, uint32_t& value);
+    bool readField(const ModbusField& field, int16_t& value);
+    bool readField(const ModbusField& field, int32_t& value);
     bool readField(const ModbusField& field, StringValues& values);
     bool readField(const ModbusField& field, PhaseData& data);
 
-    uint16_t readHoldingRegister(uint16_t reg);
-    bool writeHoldingRegister(uint16_t reg, uint16_t value);
+    bool readHoldingRegister(uint16_t reg, uint16_t* value, uint16_t count = 1);
+    bool writeHoldingRegister(uint16_t reg, uint16_t value, uint16_t count = 1);
 };
 
 #endif

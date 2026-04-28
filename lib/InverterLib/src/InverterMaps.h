@@ -134,6 +134,6 @@ struct ModbusInverterMap {
     
 };
 
-const ModbusInverterMap* getInverterMap(InverterModel model);
+ModbusInverterMap getInverterMap(InverterModel model);
 
 #endif

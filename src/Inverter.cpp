@@ -56,15 +56,60 @@ static bool _mb_success = false;
     false ou um valor de erro apropriado, e não tentar acessar o Modbus.::
 */
 
+bool Inverter::readScaledFloat(const ModbusField& field, float& value) {
+    switch(field.type) {
+        case U16: {
+            uint16_t raw;
+            if (!readField(field, &raw)) return false;
+            value = (float)raw * field.scale;
+            break;
+        }
+
+        case U32: {
+            uint32_t raw;
+            if (!readField(field, &raw)) return false;
+            value = (float)raw * field.scale;
+            break;
+        }
+        
+        case FLOAT32: {
+            float raw;
+            if (!readField(field, &raw)) return false;
+            value = raw * field.scale;
+            break;
+        }
+
+        case I16: {
+            int16_t raw;
+            if (!readField(field, &raw)) return false;
+            value = (float)raw * field.scale;
+            break;
+        }
+
+        case I32: {
+            int32_t raw;
+            if (!readField(field, &raw)) return false;
+            value = (float)raw * field.scale;
+            break;
+        }
+
+        default:
+            return false; // Tipo de dado não suportado para este campo
+
+    }
+    return true;
+}
+
 bool _mb_cb(Modbus::ResultCode event, uint16_t, void*) {
     _mb_done = true;
     _mb_success = (event == Modbus::EX_SUCCESS);
     return true;
 }
 
-Inverter::Inverter(InverterModel model) : _model(model) {
+Inverter::Inverter(InverterModel model) : _model(model), _modbus(1, 9600, SERIAL_8N1) {
     _descriptor = getDescriptor(model);
     _map = getInverterMap(model);
+    
 }
 
 void Inverter::attachModbus(ModbusRTU& mb) {
@@ -72,13 +117,23 @@ void Inverter::attachModbus(ModbusRTU& mb) {
 }
 
 void Inverter::attachConfig(ModbusConfig& config) {
-    _modbus = &config;
+    _modbus = config;
+    _customConfigSet = true;
 }
 
 bool Inverter::begin() {
-    if (_mb == nullptr || _modbus == nullptr) return false;
+    if (_mb == nullptr) return false;
     if (_map.serial.address == 0xFFFF || _descriptor.nominalPowerW == 0) return false;  //São campos obrigatórios. A falta deles invalida a struct
+
+    if (!_customConfigSet) {
+        memcpy(&_modbus, _descriptor.config, sizeof(ModbusConfig));
+    }
+
     return true;
+}
+
+void Inverter::setSlaveId(uint8_t id) {
+    _modbus.setId(id);
 }
 
 bool Inverter::getSerial(String& serial) {
@@ -96,23 +151,21 @@ bool Inverter::getSerial(String& serial) {
             serial = String(buffer); // Transforma o número em string
             return true;
         }
-    } else {
-        return false;
-        // Lógica para outros tipos de dados, se necessário
     }
     return false;
 }
 
 bool Inverter::boot() {
     if (_map.serial.address == 0xFFFF || !_map.boot.writable) return false;
-    return writeField(_map.boot, &_descriptor.bootInfo.bootValue);
+    uint16_t v = pgm_read_word(&_descriptor.bootMode->bootValue);
+    return writeField(_map.boot, v);
 }
 
 bool Inverter::setBoot(bool boot) {
     if (boot) {
-        return Inverter::boot();
+        return Inverter::boot(); // já existe boot em algum lugar, então é preciso especificar o Inverter::
     }
-    return Inverter::shutdown();
+    return shutdown();
 }
 
 bool Inverter::shutdown() {
@@ -121,33 +174,52 @@ bool Inverter::shutdown() {
         if(!_map.boot.writable) {
             return false;
         } else {
-            return writeField(_map.boot, &_descriptor.bootInfo.shutdownValue);
+            uint16_t v = pgm_read_word(&_descriptor.bootMode->shutdownValue);
+            return writeField(_map.boot, v);
         }
     } else {
-        return writeField(_map.shutdown, &_descriptor.bootInfo.shutdownValue);
+        uint16_t v = pgm_read_word(&_descriptor.bootMode->shutdownValue);
+        return writeField(_map.shutdown, v);
     }
     return false;
 }
 
 bool Inverter::setPowerLimitEnabled(bool enabled) {
-    if (_map.serial.address == 0xFFFF || !_map.enablePowerLimit.writable) return false;
-    // Aqui entraria a lógica real de escrita para habilitar/desabilitar o limite de potência usando Modbus
-    // Por enquanto, apenas simulação
-    return true;
+    if (_map.serial.address == 0xFFFF) return false;
+    if (!_map.enablePowerLimit.writable) return false;
+    
+    uint16_t v = 1;
+    return writeField(_map.enablePowerLimit, v);
 }
 
 bool Inverter::setPowerLimit(float watts) {
-    if (_map.serial.address == 0xFFFF || !_map.PowerLimit.writable) return false;
-    // Aqui entraria a lógica real de escrita para definir o limite de potência usando Modbus
-    // Por enquanto, apenas simulação
-    return true;
+    if (_map.serial.address == 0xFFFF) return false;
+    if (_descriptor.nominalPowerW == 0) return false;
+
+    if (_map.PowerLimit.writable) {
+        return writeField(_map.PowerLimit, roundf(watts / _map.PowerLimit.scale));
+    }
+
+    if(_map.PowerLimitPercent.writable) {
+        float percent = (watts / (float)_descriptor.nominalPowerW) * 100.0f;
+        if (!setPowerLimitPercent(percent)) return false;
+    }
+    return false;
 }
 
 bool Inverter::setPowerLimitPercent(float percent) {
-    if (_map.serial.address == 0xFFFF || !_map.PowerLimitPercent.writable) return false;
-    // Aqui entraria a lógica real de escrita para definir o limite de potência como percentual usando Modbus
-    // Por enquanto, apenas simulação
-    return true;
+    if (_map.serial.address == 0xFFFF)
+
+    if (_map.PowerLimitPercent.writable) {
+        return writeField(_map.PowerLimitPercent, roundf(percent / _map.PowerLimitPercent.scale));
+    }
+
+    if (_map.PowerLimit.writable) {
+        float watts = ((float)_descriptor.nominalPowerW * percent) / 100.0f;
+        return setPowerLimitPercent(watts);
+    }
+   
+    return false;
 }
 
 bool Inverter::setExportLimitEnabled(bool enabled) {
@@ -201,64 +273,36 @@ bool Inverter::isPowerLimitEnabled(bool& enabled) {
 
 bool Inverter::getPowerLimit(float& watts) {
     if (_map.serial.address == 0xFFFF) return false;
-    if(!_map.PowerLimit.readable) {
-        if (!_map.PowerLimitPercent.readable) {
-            return false;
-        } else {
-            float percent;
-            if (!getPowerLimitPercent(percent)) return false;
-            watts = (_descriptor.nominalPowerW * percent) / 100.0;
-        }
-    } else {
-        switch(_map.PowerLimit.type) {
-            case U16: {
-                uint16_t raw;
-                if (!readField(_map.PowerLimit, &raw)) return false;
-                watts = (float)raw * _map.PowerLimit.scale;
-                break;
-            }
-
-            case U32: {
-                uint32_t raw;
-                if (!readField(_map.PowerLimit, &raw)) return false;
-                watts = (float)raw * _map.PowerLimit.scale;
-                break;
-            }
-            
-            case FLOAT32: {
-                float raw;
-                if (!readField(_map.PowerLimit, &raw)) return false;
-                watts = raw * _map.PowerLimit.scale;
-                break;
-            }
-
-            case I16: {
-                int16_t raw;
-                if (!readField(_map.PowerLimit, &raw)) return false;
-                watts = (float)raw * _map.PowerLimit.scale;
-                break;
-            }
-
-            case I32: {
-                int32_t raw;
-                if (!readField(_map.PowerLimit, &raw)) return false;
-                watts = (float)raw * _map.PowerLimit.scale;
-                break;
-            }
-
-            default:
-                return false; // Tipo de dado não suportado para este campo
-
-        }
+    if(_map.PowerLimit.readable) {
+        return readScaledFloat(_map.PowerLimit, watts);
     }
-    return true;
+
+    if (_map.PowerLimitPercent.readable) {
+        float percent;
+        if (!getPowerLimitPercent(percent)) return false;
+        watts = (_descriptor.nominalPowerW * percent) / 100.0f;
+        return true;
+    }
+
+    return false;
 }
 
 bool Inverter::getPowerLimitPercent(float& percent) {
-    if (_map.serial.address == 0xFFFF || !_map.PowerLimitPercent.readable) return false;
-    // Aqui entraria a lógica real de escrita para definir o fator de potência usando Modbus
-    // Por enquanto, apenas simulação
-    return true;
+    if (_map.serial.address == 0xFFFF) return false;
+    if (_descriptor.nominalPowerW == 0) return false;
+
+    if (_map.PowerLimitPercent.readable) {
+        return readScaledFloat(_map.PowerLimitPercent, percent);
+    }
+
+    if (_map.PowerLimit.readable) {
+        float watts;
+        if (!getPowerLimit(watts)) return false;
+        percent = (watts / _descriptor.nominalPowerW) * 100.0f;
+        return true;
+    }
+    
+    return false;    
 }
 
 bool Inverter::isExportLimitEnabled(bool& enabled) {
@@ -548,7 +592,6 @@ bool Inverter::getBatterySoH(BatteryValues& soh) {
     return true;
 }
 
-
 bool Inverter::getEPSVoltage(PhaseData& phase) {
     if (_map.serial.address == 0xFFFF || !_map.epsVoltage.readable) return false;
     // Aqui entraria a lógica real de escrita para definir o fator de potência usando Modbus
@@ -575,9 +618,9 @@ bool Inverter::getEPSActivePower(PhaseData& phase) {
 bool Inverter::readField(const ModbusField& field, char* value) {
     if (field.type != ASCII || !field.readable) return false;
     if (value == nullptr) return false;
-    if (field.length <= 0 || field.length > INV_MAX_STRING_CHARS) return false;
+    if (field.length <= 0 || field.length > INV_MAX_STRING_CHARS / 2 + 1) return false;
 
-    uint16_t buffer[INV_MAX_STRING_CHARS / 2]; // 2 Caracteres ASCII por registrador de 16 bits
+    uint16_t buffer[INV_MAX_STRING_CHARS / 2 + 1]; // 2 Caracteres ASCII por registrador de 16 bits, mais um nulo ao final
     
     if (field.stride == 1) {
         // Caso simples: os caracteres estão em registradores consecutivos
@@ -645,7 +688,7 @@ bool Inverter::readField(const ModbusField& field, int16_t* value) {
     if(!readField16Raw(field, raw)) return false;
 
     for (uint16_t i = 0; i < field.length; i++) {
-        memcpy(&value[i], &raw[i], sizeof(int16_t));
+        value[i] = (int16_t)raw[i];
     }
     return true;
 }
@@ -658,7 +701,7 @@ bool Inverter::readField(const ModbusField& field, int32_t* value) {
     if(!readField32Raw(field, raw)) return false;
 
     for (uint16_t i = 0; i < field.length; i++) {
-        memcpy(&value[i], &raw[i], sizeof(int32_t));
+        value[i] = (int32_t)raw[i];
     }
     return true;
 }
@@ -671,7 +714,7 @@ bool Inverter::readField(const ModbusField& field, int64_t* value) {
     if(!readField64Raw(field, raw)) return false;
 
     for (uint16_t i = 0; i < field.length; i++) {
-        memcpy(&value[i], &raw[i], sizeof(int64_t));
+        value[i] = (int64_t)raw[i];
     }
     return true;
 }
@@ -705,7 +748,7 @@ bool Inverter::readField16Raw(const ModbusField& field, uint16_t* value) {
 bool Inverter::readField32Raw(const ModbusField& field, uint32_t* value) {
     if (!field.readable) return false;
     if (value == nullptr) return false;
-    if (field.length == 0 || field.length > INV_MAX_U32_VALUES * 2) return false;
+    if (field.length == 0 || field.length > INV_MAX_U32_VALUES) return false;
 
     uint16_t buffer[INV_MAX_U32_VALUES * 2];
 
@@ -731,7 +774,7 @@ bool Inverter::readField32Raw(const ModbusField& field, uint32_t* value) {
 bool Inverter::readField64Raw(const ModbusField& field, uint64_t* value) {
     if (!field.readable) return false;
     if (value == nullptr) return false;
-    if (field.length == 0 || field.length > INV_MAX_U64_VALUES * 4) return false;
+    if (field.length == 0 || field.length > INV_MAX_U64_VALUES) return false;
 
     uint16_t buffer[INV_MAX_U64_VALUES * 4];
 
@@ -754,98 +797,128 @@ bool Inverter::readField64Raw(const ModbusField& field, uint64_t* value) {
     return true;
 }
 
+bool Inverter::writeField(const ModbusField& field, float value) {
+    return writeField(field, &value, 1);
+}
+
+bool Inverter::writeField(const ModbusField& field, uint16_t value){
+    return writeField(field, &value, 1);
+}
+
+bool Inverter::writeField(const ModbusField& field, uint32_t value){
+    return writeField(field, &value, 1);
+}
+
+bool Inverter::writeField(const ModbusField& field, int16_t value){
+    return writeField(field, &value, 1);
+}
+
+bool Inverter::writeField(const ModbusField& field, int32_t value){
+    return writeField(field, &value, 1);
+}
+
 bool Inverter::writeField(const ModbusField& field, float* value, uint8_t count) {
     if (field.type != FLOAT32 || !field.writable) return false;
     if (value == nullptr) return false;
-    return writeField32Raw(field, (uint32_t*)value, count);
+    if (count == 0 || count > INV_MAX_FLOAT_VALUES) return false;
+
+    uint32_t raw [INV_MAX_FLOAT_VALUES];
+
+    for (uint8_t i = 0; i < count; i++) {
+        memcpy(&raw[i], &value[i], sizeof(uint32_t));
+    }
+
+    return writeField32Raw(field, raw, count);
 }
 
 bool Inverter::writeField(const ModbusField& field, uint16_t* value, uint8_t count) {
     if (field.type != U16 || !field.writable) return false;
     if (value == nullptr) return false;
-    return writeField16Raw(field, (uint16_t*)value, count);
+    if (count == 0 || count > INV_MAX_U16_VALUES) return false;
+    return writeField16Raw(field, value, count);
 }   
 
 bool Inverter::writeField(const ModbusField& field, uint32_t* value, uint8_t count) {
     if (field.type != U32 || !field.writable) return false;
     if (value == nullptr) return false;
-    return writeField32Raw(field, (uint32_t*)value, count);
+    if (count == 0 || count > INV_MAX_U32_VALUES) return false;
+    return writeField32Raw(field, value, count);
 }  
 
 bool Inverter::writeField(const ModbusField& field, int16_t* value, uint8_t count) {
     if (field.type != I16 || !field.writable) return false;
     if (value == nullptr) return false;
-    return writeField16Raw(field, (uint16_t*)value, count);
+    if (count == 0 || count > INV_MAX_U16_VALUES) return false;
+
+    uint16_t raw [INV_MAX_U16_VALUES];
+
+    for (uint8_t i = 0; i < count; i++) {
+        raw[i] = (uint16_t)value[i];
+    }
+
+    return writeField16Raw(field, raw, count);
 }    
 
 bool Inverter::writeField(const ModbusField& field, int32_t* value, uint8_t count) {
     if (field.type != I32 || !field.writable) return false;
     if (value == nullptr) return false;
-    return writeField32Raw(field, (uint32_t*)value, count);
+    if (count == 0 || count > INV_MAX_U32_VALUES) return false;
+
+    uint32_t raw [INV_MAX_U32_VALUES];
+
+    for (uint8_t i = 0; i < count; i++) {
+        raw[i] = (uint32_t)value[i];
+    }
+
+    return writeField32Raw(field, raw, count);
 }
 
 bool Inverter::writeField16Raw(const ModbusField& field, uint16_t* value, uint8_t count) {
     if (value == nullptr) return false;
     if (count == 0 || count > INV_MAX_U16_VALUES) return false;
-    if (field.length == 1) {
-        return writeHoldingRegister(field.address, value, 1);
-    } 
-    else if (field.stride == 1) {
+    if (count == 1 || field.stride == 1) {
         return writeHoldingRegister(field.address, value, count);
     } 
-    else {
-        for (uint16_t i = 0; i < count; i++) {
-            if (!writeHoldingRegister(field.address + i * field.stride, &value[i], 1)) {
-                return false;
-            }
+
+    for (uint16_t i = 0; i < count; i++) {
+        if (!writeHoldingRegister(field.address + i * field.stride, &value[i], 1)) {
+            return false;
         }
-        return true;
     }
+    return true;
 }
 
 bool Inverter::writeField32Raw(const ModbusField& field, uint32_t* value, uint8_t count) { 
     if (value == nullptr) return false;
     if (count == 0 || count > INV_MAX_U32_VALUES) return false;
 
-    if (field.length == 2) {
-        uint16_t buffer[2]; // 2 registradores de 16 bits por valor de 32 bits
+    uint16_t buffer[INV_MAX_U32_VALUES * 2]; // 2 registradores de 16 bits por valor de 32 bits
+
+    if (count == 1 || field.stride == 2) {
         for (uint16_t i = 0; i < count; i++) {
             buffer[i * 2] = (uint16_t)(value[i] >> 16);
             buffer[i * 2 + 1] = (uint16_t)(value[i] & 0xFFFF);
         }
         return writeHoldingRegister(field.address, buffer, count * 2);
     } 
-    else if (field.stride == 2) {
-        uint16_t buffer[4]; // 2 registradores de 16 bits por valor de 32 bits
-        for (uint16_t i = 0; i < count; i++) {
-            buffer[i * 2] = (uint16_t)(value[i] >> 16);
-            buffer[i * 2 + 1] = (uint16_t)(value[i] & 0xFFFF);
-        }
-        return writeHoldingRegister(field.address, buffer, count * 2);
-    } 
-    else {
-        for (uint16_t i = 0; i < count; i++) {
-            uint16_t high = (uint16_t)(value[i] >> 16);
-            uint16_t low = (uint16_t)(value[i] & 0xFFFF);
-            if (!writeHoldingRegister(field.address + i * field.stride, &high, 1)) {
-                return false;
-            }
-            if (!writeHoldingRegister(field.address + i * field.stride + 1, &low, 1)) {
-                return false;
-            }
-        }
-        return true;
+    for (uint16_t i = 0; i < count; i++) {
+        uint16_t high = (uint16_t)(value[i] >> 16);
+        uint16_t low = (uint16_t)(value[i] & 0xFFFF);
+
+        if (!writeHoldingRegister(field.address + i * field.stride, &high, 1)) return false;
+        if (!writeHoldingRegister(field.address + i * field.stride + 1, &low, 1)) return false;
     }
+    return true;
 }
 
 bool Inverter::readHoldingRegister(uint16_t startReg, uint16_t* buffer, uint16_t count) {
-    if (_mb == nullptr || _modbus == nullptr) return false;
+    if (_mb == nullptr) return false;
     // Implementar EventCode para essa função
 
     _mb_done = false;
     _mb_success = false;
 
-    bool requestAccepted = _mb->readHreg(_modbus->getId(), startReg, buffer, count, _mb_cb);
+    bool requestAccepted = _mb->readHreg(_modbus.getId(), startReg, buffer, count, _mb_cb);
 
     if (!requestAccepted) {
         return false; // Não conseguiu enviar
@@ -870,7 +943,7 @@ bool Inverter::readHoldingRegister(uint16_t startReg, uint16_t* buffer, uint16_t
 }
 
 bool Inverter::writeHoldingRegister(uint16_t startReg, uint16_t* buffer, uint16_t count) {
-    if (_mb == nullptr || _modbus == nullptr) return false;
+    if (_mb == nullptr) return false;
 
     _mb_done = false;
     _mb_success = false;
@@ -878,9 +951,9 @@ bool Inverter::writeHoldingRegister(uint16_t startReg, uint16_t* buffer, uint16_
     bool requestAccepted;
 
     if (count == 1) {
-        requestAccepted = _mb->writeHreg(_modbus->getId(), startReg, buffer[0], _mb_cb);
+        requestAccepted = _mb->writeHreg(_modbus.getId(), startReg, buffer[0], _mb_cb);
     } else {
-        requestAccepted = _mb->writeHreg(_modbus->getId(), startReg, buffer, count, _mb_cb);
+        requestAccepted = _mb->writeHreg(_modbus.getId(), startReg, buffer, count, _mb_cb);
     }
 
     if (!requestAccepted) {

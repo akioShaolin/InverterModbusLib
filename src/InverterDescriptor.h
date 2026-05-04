@@ -12,14 +12,21 @@
 
 #include <Arduino.h>
 #include "InverterModels.h"
+#include "ModbusConfig.h"
 
 constexpr uint8_t MAX_STRINGS = 28;
 constexpr uint8_t MAX_BATTERIES = 12;
 
-enum PhaseType {
-    PHASE_NONE = 0x00,
+enum InverterPhaseType {
+    NO_PHASED = 0x00,
     SINGLE_PHASE = 0x01,
     THREE_PHASE = 0x03
+};
+
+enum EpsPhaseType {
+    NO_EPS = 0x00,
+    EPS_SINGLE_PHASE = 0x01,
+    EPS_THREE_PHASE = 0x03
 };
 
 enum InverterTopology {
@@ -46,9 +53,14 @@ struct BatteryInfo {
     uint8_t batteryToPort[MAX_BATTERIES];  // Distribuição das Baterias pelas Entradas
 };
     
-struct BootInfo {
-    uint16_t bootValue = 0x01;        // Valores padrão para boot e shutdown
-    uint16_t shutdownValue = 0x00;
+struct BootMode {
+    uint16_t bootValue;
+    uint16_t shutdownValue;
+};
+
+struct ExportLimitMode {
+    uint16_t exportLimitEnable;
+    uint16_t exportLimitDisable;
 };
 
 enum class AlarmFormat {
@@ -66,17 +78,23 @@ enum class StatusFormat {
 };
 
 struct InverterDescriptor {
-    PhaseType inverterPhaseType;
+    // Identificação elétrica do equipamento
     InverterTopology topology;
     InverterGridConnection gridConnection;
-
+    InverterPhaseType inverterPhaseType;
+    EpsPhaseType epsPhaseType;
     uint32_t nominalPowerW; // Potência máxima em watts, pode ser 0 se não for aplicável ou desconhecida
 
-    BootInfo bootInfo;    
+    // Comunicação
+    const ModbusConfig* config;
+
+    // Recursos disponíveis
     PVInfo pvInfo;
     BatteryInfo batteryInfo;
-    PhaseType EpsPhaseType;
-
+    const BootMode* bootMode;    
+    const ExportLimitMode* exportLimitMode;
+    
+    // Formatos de interpretação de alarmes e status
     AlarmFormat alarmFormat;
     StatusFormat statusFormat;
 };

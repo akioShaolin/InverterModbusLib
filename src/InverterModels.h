@@ -143,6 +143,8 @@ enum InverterModel {
         GW3300_XS_30,
         GW5000_DNS,
         GW5K_DNS_G40,
+        GW8500_MS,
+        GW10K_MS,
     //Huawei
         SUN2000_2KTL,
         SUN2000_3KTL,

@@ -74,6 +74,8 @@ public:
 
     bool begin();                                   // ✓
 
+    void setSlaveId(uint8_t id);
+
     // Identificação
     bool getSerial(String& serial);                  // RO retorna uma string contendo o numero serial  ✓
     // Controle
@@ -81,8 +83,8 @@ public:
     bool setBoot(bool boot);                         // WO - true para ligar, false para desligar WO ✓
     bool shutdown();                                 // WO ✓
     bool setPowerLimitEnabled(bool enabled);         // WO
-    bool setPowerLimit(float watts);                 // WO
-    bool setPowerLimitPercent(float percent);        // WO
+    bool setPowerLimit(float watts);                 // WO ✓
+    bool setPowerLimitPercent(float percent);        // WO ✓
     bool setExportLimitEnabled(bool enabled);        // WO
     bool setExportLimit(float watts);                // WO
     bool setExportLimitPercent(float percent);       // WO
@@ -149,13 +151,16 @@ public:
 
 private:
     ModbusRTU* _mb = nullptr;
-    ModbusConfig* _modbus = nullptr;
+    ModbusConfig _modbus;
+    bool _customConfigSet = false;
 
     InverterModel _model;
     InverterDescriptor _descriptor;
     ModbusInverterMap _map;
 
     String _serial;
+
+    bool readScaledFloat(const ModbusField& field, float& value);           // ✓
 
     // Resolve 90% dos casos
     bool readField(const ModbusField& field, char* value);                  // ✓
@@ -171,6 +176,11 @@ private:
     bool readField32Raw(const ModbusField& field, uint32_t* buffer);        // ✓
     bool readField64Raw(const ModbusField& field, uint64_t* buffer);        // ✓
 
+    bool writeField(const ModbusField& field, float value); // 
+    bool writeField(const ModbusField& field, uint16_t value);       // 
+    bool writeField(const ModbusField& field, uint32_t value);       // 
+    bool writeField(const ModbusField& field, int16_t value);        // 
+    bool writeField(const ModbusField& field, int32_t value);        // 
     bool writeField(const ModbusField& field, float* value, uint8_t count = 1); // 
     bool writeField(const ModbusField& field, uint16_t* value, uint8_t count = 1);       // 
     bool writeField(const ModbusField& field, uint32_t* value, uint8_t count = 1);       // 

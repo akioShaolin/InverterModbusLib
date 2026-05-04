@@ -9,7 +9,13 @@
 
 #include "ModbusConfig.h"
 
-ModbusConfig::ModbusConfig() : _id(1), _baud(9600), _serialConfig(SERIAL_8N1) {}
+ModbusConfig::ModbusConfig(uint8_t id, uint32_t baud, SerialConfig config) 
+    :_id(id),
+    _baud(baud),
+    _serialConfig(config),
+    _deRePin(-1),
+    _timeout(1000)
+{}
 
 void ModbusConfig::applyTo(ModbusRTU& mb, HardwareSerial& serial) {
     // Não iniciar o modbus e o serial varias vezes. Ajustar isso aqui depois
@@ -54,6 +60,10 @@ void ModbusConfig::setDeRePin(int8_t pin) {
     _deRePin = pin;
 }
 
+void ModbusConfig::setTimeout(uint16_t timeout) {
+    _timeout = timeout;
+}
+
 uint8_t ModbusConfig::getId() const {
     return _id;
 }
@@ -68,4 +78,8 @@ SerialConfig ModbusConfig::getSerialConfig() const {
 
 int8_t ModbusConfig::getDeRePin() const {
     return _deRePin;
+}
+
+uint16_t ModbusConfig::getTimeout() const {
+    return _timeout;
 }

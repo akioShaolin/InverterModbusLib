@@ -74,7 +74,7 @@ public:
 
     bool begin();                                   // ✓
 
-    void setSlaveId(uint8_t id);
+    void setSlaveId(uint8_t id);                    // ✓
 
     // Identificação
     bool getSerial(String& serial);                  // RO retorna uma string contendo o numero serial  ✓
@@ -82,19 +82,19 @@ public:
     bool boot();                                     // WO ✓
     bool setBoot(bool boot);                         // WO - true para ligar, false para desligar WO ✓
     bool shutdown();                                 // WO ✓
-    bool setPowerLimitEnabled(bool enabled);         // WO
+    bool setPowerLimitEnabled(bool enabled);         // WO ✓
     bool setPowerLimit(float watts);                 // WO ✓
     bool setPowerLimitPercent(float percent);        // WO ✓
-    bool setExportLimitEnabled(bool enabled);        // WO
-    bool setExportLimit(float watts);                // WO
-    bool setExportLimitPercent(float percent);       // WO
+    bool setExportLimitEnabled(bool enabled);        // WO ✓
+    bool setExportLimit(float watts);                // WO ✓
+    bool setExportLimitPercent(float percent);       // WO ✓
     bool setPowerFactorEnabled(bool enabled);        // WO
     bool setPowerFactor(float pf);                   // WO - 0~1 para indutivo, 1 para unity, > 1 para capacitivo
 
     bool isBooted(bool& isBooted);                   // RO - retorna true se o inversor estiver ligado, false caso contrário   
     bool isPowerLimitEnabled(bool& enabled);         // RO
-    bool getPowerLimit(float& watts);                // RO    
-    bool getPowerLimitPercent(float& percent);       // RO    
+    bool getPowerLimit(float& watts);                // RO    ✓ 
+    bool getPowerLimitPercent(float& percent);       // RO    ✓ 
     bool isExportLimitEnabled(bool& enabled);        // RO
     bool getExportLimit(float& watts);               // RO
     bool getExportLimitPercent(float& percent);      // RO
@@ -102,6 +102,7 @@ public:
     bool getPowerFactorSetpoint(float& pf);          // RO    
 
     // Tempo
+    bool getDatetime(Datetime& dt);                  // RO  ✓
     bool getYear(uint16_t& year);                    // RO
     bool getMonth(uint16_t& month);                  // RO
     bool getDay(uint16_t& day);                      // RO
@@ -110,6 +111,7 @@ public:
     bool getSecond(uint16_t& second);                // RO
     bool getEpochTime(uint32_t& epoch);              // RO
 
+    bool setDatetime(Datetime dt);                   // WO
     bool setYear(uint16_t year);                     // WO
     bool setMonth(uint16_t month);                   // WO
     bool setDay(uint16_t day);                       // WO
@@ -176,22 +178,22 @@ private:
     bool readField32Raw(const ModbusField& field, uint32_t* buffer);        // ✓
     bool readField64Raw(const ModbusField& field, uint64_t* buffer);        // ✓
 
-    bool writeField(const ModbusField& field, float value); // 
-    bool writeField(const ModbusField& field, uint16_t value);       // 
-    bool writeField(const ModbusField& field, uint32_t value);       // 
-    bool writeField(const ModbusField& field, int16_t value);        // 
-    bool writeField(const ModbusField& field, int32_t value);        // 
-    bool writeField(const ModbusField& field, float* value, uint8_t count = 1); // 
-    bool writeField(const ModbusField& field, uint16_t* value, uint8_t count = 1);       // 
-    bool writeField(const ModbusField& field, uint32_t* value, uint8_t count = 1);       // 
-    bool writeField(const ModbusField& field, int16_t* value, uint8_t count = 1);        // 
-    bool writeField(const ModbusField& field, int32_t* value, uint8_t count = 1);        // 
+    bool writeField(const ModbusField& field, float value); // ✓
+    bool writeField(const ModbusField& field, uint16_t value);       // ✓
+    bool writeField(const ModbusField& field, uint32_t value);       // ✓
+    bool writeField(const ModbusField& field, int16_t value);        // ✓
+    bool writeField(const ModbusField& field, int32_t value);        // ✓
+    bool writeField(const ModbusField& field, float* value, uint8_t count = 1); // ✓
+    bool writeField(const ModbusField& field, uint16_t* value, uint8_t count = 1);       // ✓
+    bool writeField(const ModbusField& field, uint32_t* value, uint8_t count = 1);       // ✓
+    bool writeField(const ModbusField& field, int16_t* value, uint8_t count = 1);        // ✓
+    bool writeField(const ModbusField& field, int32_t* value, uint8_t count = 1);        // ✓
 
-    bool writeField16Raw(const ModbusField& field, uint16_t* value, uint8_t count = 1);  // 
-    bool writeField32Raw(const ModbusField& field, uint32_t* value, uint8_t count = 1);  // 
+    bool writeField16Raw(const ModbusField& field, uint16_t* value, uint8_t count = 1);  // ✓
+    bool writeField32Raw(const ModbusField& field, uint32_t* value, uint8_t count = 1);  // ✓
 
     bool readHoldingRegister(uint16_t reg, uint16_t* value, uint16_t count = 1);    // ✓
-    bool writeHoldingRegister(uint16_t reg, uint16_t* value, uint16_t count = 1);    
+    bool writeHoldingRegister(uint16_t reg, uint16_t* value, uint16_t count = 1);   // ✓
 };
 
 #endif

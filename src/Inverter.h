@@ -102,23 +102,24 @@ public:
     bool getPowerFactorSetpoint(float& pf);          // RO    
 
     // Tempo
+    // Arquivo InverterTime.cpp
     bool getDatetime(Datetime& dt);                  // RO  ✓
-    bool getYear(uint16_t& year);                    // RO
-    bool getMonth(uint16_t& month);                  // RO
-    bool getDay(uint16_t& day);                      // RO
-    bool getHour(uint16_t& hour);                    // RO
-    bool getMinute(uint16_t& minute);                // RO
-    bool getSecond(uint16_t& second);                // RO
-    bool getEpochTime(uint32_t& epoch);              // RO
+    bool getYear(uint16_t& year);                    // RO  ✓
+    bool getMonth(uint16_t& month);                  // RO  ✓
+    bool getDay(uint16_t& day);                      // RO  ✓
+    bool getHour(uint16_t& hour);                    // RO  ✓
+    bool getMinute(uint16_t& minute);                // RO  ✓
+    bool getSecond(uint16_t& second);                // RO  ✓
+    bool getEpochTime(uint32_t& epoch);              // RO  ✓
 
-    bool setDatetime(Datetime dt);                   // WO
-    bool setYear(uint16_t year);                     // WO
-    bool setMonth(uint16_t month);                   // WO
-    bool setDay(uint16_t day);                       // WO
-    bool setHour(uint16_t hour);                     // WO
-    bool setMinute(uint16_t minute);                 // WO
-    bool setSecond(uint16_t second);                 // WO
-    bool setEpochTime(uint32_t epoch);               // WO
+    bool setDatetime(Datetime dt);                   // WO  
+    bool setYear(uint16_t year);                     // WO  ✓
+    bool setMonth(uint16_t month);                   // WO  ✓
+    bool setDay(uint16_t day);                       // WO  ✓
+    bool setHour(uint16_t hour);                     // WO  ✓
+    bool setMinute(uint16_t minute);                 // WO  ✓
+    bool setSecond(uint16_t second);                 // WO  ✓
+    bool setEpochTime(uint32_t epoch);               // WO  ✓
 
     bool getTotalEnergy(float& kWh);                 // RO
     bool getDailyEnergy(float& kWh);                 // RO
@@ -163,8 +164,14 @@ private:
     String _serial;
 
     bool readScaledFloat(const ModbusField& field, float& value);           // ✓
+    bool isLeap(uint16_t y);                                                // ✓
+    Datetime epochToDatetime(uint32_t epoch);                               // ✓
+    bool isValidDatetime(const Datetime& dt);                               // ✓
+    uint32_t datetimeToEpoch(const Datetime& dt);                           // ✓
+
 
     // Resolve 90% dos casos
+    // Arquivo InverterCore.cpp
     bool readField(const ModbusField& field, char* value);                  // ✓
     bool readField(const ModbusField& field, float* value);                 // ✓
     bool readField(const ModbusField& field, uint16_t* value);              // ✓

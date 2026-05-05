@@ -1,5 +1,5 @@
 /*
- * inverterLib - Solar Inverter Library for Arduino
+ * InverterModbusLib - Solar Inverter Library for Arduino
  * ------------------------------------------------
  * Modbus RTU (RS485)communication layer for inverter integration
  *

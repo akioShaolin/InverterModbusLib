@@ -1,5 +1,5 @@
 /*
- * inverterLib - Solar Inverter Library for Arduino
+ * InverterModbusLib - Solar Inverter Library for Arduino
  * ------------------------------------------------
  * Modbus RTU (RS485)communication layer for inverter integration
  *
@@ -267,17 +267,69 @@ bool Inverter::writeField(const ModbusField& field, int32_t value){
 }
 
 bool Inverter::writeField(const ModbusField& field, float* value, uint8_t count) {
-    if (field.type != FLOAT32 || !field.writable) return false;
+    if (!field.writable) return false;
     if (value == nullptr) return false;
-    if (count == 0 || count > INV_MAX_FLOAT_VALUES) return false;
+    if (count == 0) return false;
+    if (field.scale == 0.0f) return false;
 
-    uint32_t raw [INV_MAX_FLOAT_VALUES];
+    switch (field.type) {
 
-    for (uint8_t i = 0; i < count; i++) {
-        memcpy(&raw[i], &value[i], sizeof(uint32_t));
+        case U16: {
+            if (count > INV_MAX_U16_VALUES) return false;
+            uint16_t raw [INV_MAX_U16_VALUES];
+            
+            for (uint8_t i = 0; i < count; i++) { 
+                raw[i] = (uint16_t)roundf(value[i] / field.scale);
+            }
+
+            return writeField(field, raw, count);
+        }
+
+        case U32: {
+            if (count > INV_MAX_U32_VALUES) return false;
+            uint32_t raw [INV_MAX_U32_VALUES];
+            
+            for (uint8_t i = 0; i < count; i++) { 
+                raw[i] = (uint32_t)roundf(value[i] / field.scale);
+            }
+
+            return writeField(field, raw, count);
+        }
+
+        case I16: {
+            if (count > INV_MAX_U16_VALUES) return false;
+            int16_t raw [INV_MAX_U16_VALUES];
+            
+            for (uint8_t i = 0; i < count; i++) { 
+                raw[i] = (int16_t)roundf(value[i] / field.scale);
+            }
+
+            return writeField(field, raw, count);
+        }
+
+        case I32: {
+            if (count > INV_MAX_U32_VALUES) return false;
+            int32_t raw [INV_MAX_U32_VALUES];
+            
+            for (uint8_t i = 0; i < count; i++) { 
+                raw[i] = (int32_t)roundf(value[i] / field.scale);
+            }
+
+            return writeField(field, raw, count);
+        }
+
+        case FLOAT32: {
+            if (count > INV_MAX_FLOAT_VALUES) return false;
+            // Converter para 32 bits
+            uint32_t raw [INV_MAX_FLOAT_VALUES];
+
+            for (uint8_t i = 0; i < count; i++) {
+                memcpy(&raw[i], &value[i], sizeof(uint32_t));
+            }
+
+            return writeField32Raw(field, raw, count);
+        }
     }
-
-    return writeField32Raw(field, raw, count);
 }
 
 bool Inverter::writeField(const ModbusField& field, uint16_t* value, uint8_t count) {

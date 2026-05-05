@@ -1,5 +1,5 @@
 /*
- * inverterLib - Solar Inverter Library for Arduino
+ * InverterModbusLib - Solar Inverter Library for Arduino
  * ------------------------------------------------
  * Modbus RTU (RS485)communication layer for inverter integration
  *
@@ -26,7 +26,7 @@ static const ModbusInverterMap map_SIW200 PROGMEM = {
     INVALID_FIELD,                                // Set Export Limit (W) (não disponível nesse modelo)
     { 0x0124, U16, 1, 1, 0.1f, true, true },      // Set Export Limit Percent(%)
     INVALID_FIELD,                                // Enable Power Factor (Não disponível nesse modelo)
-    { 0x0101, U16, 1, 1, 1.0f, true, true },      // Set Power Factor % [1, 20] LAGGING, [80, 100] LEADING
+    { 0x0101, U16, 1, 1, 1.0f, true, true, FIELD_SPECIAL, GOODWE_HANDLER },      // Set Power Factor % [1, 20] LAGGING, [80, 100] LEADING
     INVALID_FIELD,                                // Power Factor Excitation Mode (Não disponível nesse modelo)
     // Tempo
     { 0x0010, U16, 1, 1, 1.0f, true, false, FIELD_SPECIAL, GOODWE_HANDLER },     // Time Year MSB
@@ -139,7 +139,7 @@ static const ModbusInverterMap map_SIW400 PROGMEM = {
     INVALID_FIELD,                                // Set Export Limit (W) (não disponível nesse modelo)
     { 0x0124, U16, 1, 1, 0.1f, true, true },      // Set Export Limit Percent(%)
     INVALID_FIELD,                                // Enable Power Factor (Não disponível nesse modelo)
-    { 0x0101, U16, 1, 1, 1.0f, true, true },      // Set Power Factor % [1, 20] LAGGING, [80, 100] LEADING
+    { 0x0101, U16, 1, 1, 1.0f, true, true, FIELD_SPECIAL, GOODWE_HANDLER },      // Set Power Factor % [1, 20] LAGGING, [80, 100] LEADING
     INVALID_FIELD,                                // Power Factor Excitation Mode (Não disponível nesse modelo)
     // Tempo
     { 0x033B, U16, 1, 1, 1.0f, true, false, FIELD_SPECIAL, GOODWE_HANDLER },     // Time Year MSB
@@ -709,7 +709,7 @@ static const ModbusInverterMap map_GOODWE_NON_MT PROGMEM = {
     INVALID_FIELD,                                // Set Export Limit (W) (não disponível nesse modelo)
     { 0x0124, U16, 1, 1, 0.1f, true, true },      // Set Export Limit Percent(%)
     INVALID_FIELD,                                // Enable Power Factor (Não disponível nesse modelo)
-    { 0x0101, U16, 1, 1, 1.0f, true, true },      // Set Power Factor % [1, 20] LAGGING, [80, 100] LEADING
+    { 0x0101, U16, 1, 1, 1.0f, true, true, FIELD_SPECIAL, GOODWE_HANDLER },      // Set Power Factor % [1, 20] LAGGING, [80, 100] LEADING
     INVALID_FIELD,                                // Power Factor Excitation Mode (Não disponível nesse modelo)
     // Tempo
     { 0x0010, U16, 1, 1, 1.0f, true, false, FIELD_SPECIAL, GOODWE_HANDLER },     // Time Year MSB
@@ -764,7 +764,7 @@ static const ModbusInverterMap map_GOODWE_MT_ONLY PROGMEM = {
     INVALID_FIELD,                                // Set Export Limit (W) (não disponível nesse modelo)
     { 0x0124, U16, 1, 1, 0.1f, true, true },      // Set Export Limit Percent(%)
     INVALID_FIELD,                                // Enable Power Factor (Não disponível nesse modelo)
-    { 0x0101, U16, 1, 1, 1.0f, true, true },      // Set Power Factor % [1, 20] LAGGING, [80, 100] LEADING
+    { 0x0101, U16, 1, 1, 1.0f, true, true, FIELD_SPECIAL, GOODWE_HANDLER },      // Set Power Factor % [1, 20] LAGGING, [80, 100] LEADING
     INVALID_FIELD,                                // Power Factor Excitation Mode (Não disponível nesse modelo)
     // Tempo
     { 0x033B, U16, 1, 1, 1.0f, true, false, FIELD_SPECIAL, GOODWE_HANDLER },     // Time Year MSB

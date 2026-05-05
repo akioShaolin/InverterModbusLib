@@ -1,5 +1,5 @@
 /*
- * inverterLib - Solar Inverter Library for Arduino
+ * InverterModbusLib - Solar Inverter Library for Arduino
  * ------------------------------------------------
  * Modbus RTU (RS485)communication layer for inverter integration
  *
@@ -21,6 +21,49 @@ constexpr uint8_t INV_MAX_U32_VALUES =   3;
 constexpr uint8_t INV_MAX_U64_VALUES =   1;
 constexpr uint8_t INV_MAX_FLOAT_VALUES = 3;
 constexpr uint8_t INV_MAX_STRING_CHARS = 32;
+
+/*
+    Entrevista com a Copilot sobre a implementação da classe Inverter:
+
+    • Por que verificar o mapa antes de cada leitura/escrita?
+        Porque nem todos os modelos de inversores terão todos os campos disponíveis.
+        O mapa do inversor indica quais campos estão disponíveis para leitura e escrita,
+        e quais registradores Modbus correspondem a cada campo. Verificar o mapa antes
+        de tentar acessar um campo garante que o código não tente ler ou escrever em um
+        registrador que não existe ou que não é aplicável para aquele modelo de inversor,
+        o que poderia causar erros ou comportamento inesperado.
+
+    • Devo implementar a lógica de leitura e escrita de campos usando o mapa do inversor
+    dentro de cada método público (por exemplo, getSerial, boot, setBoot, etc.) ou criar
+    métodos privados auxiliares para lidar com a leitura e escrita de campos usando o mapa?
+        Criar métodos privados auxiliares para leitura e escrita de campos usando o mapa
+        do inversor é uma abordagem mais eficiente e organizada. Isso evita a repetição de
+        código em cada método público, centraliza a lógica de acesso aos registradores
+        Modbus e torna o código mais fácil de manter. Os métodos públicos podem então
+        simplesmente chamar esses métodos privados, passando o campo relevante do mapa do
+        inversor, e os métodos privados cuidam dos detalhes da leitura/escrita, aplicação
+        da escala, combinação de registradores quando necessário, etc.
+
+    • Ok, então primeiro vou criar as funções e depois eu me preocupo com a maneira como
+        vou obter os dados do Modbus. A ideia é que os métodos públicos sejam simples e
+        diretos, enquanto a complexidade de lidar com o Modbus e o mapa do inversor fique
+        encapsulada nos métodos privados. Dessa forma, se no futuro eu precisar mudar a
+        forma como acesso o Modbus ou como interpreto os dados, posso fazer isso em um só
+        lugar, sem precisar modificar cada método público individualmente.
+
+
+    ::Alguns dados são obtidos lendo diretamente o registrador correspondente, enquanto
+    outros podem exigir leitura de múltiplos registradores e combinação dos valores (por
+    exemplo, para valores de 32 bits ou floats). Para escrita, o processo é similar, mas
+    no sentido inverso: o valor a ser escrito pode precisar ser convertido para o formato
+    bruto esperado pelo registrador (por exemplo, aplicando a escala e convertendo para
+    inteiro).::
+
+    ::Outros precisam ser lidos em cambos distantes (2 regs aqui, 2 regs ali)::
+
+    ::Para campos que não estão disponíveis nesse modelo, os métodos públicos devem retornar
+    false ou um valor de erro apropriado, e não tentar acessar o Modbus.::
+    */
 
 /*enum A{
     AVERAGE,
@@ -54,6 +97,15 @@ enum Alarm {
     ALARM_UNKNOWN
 };
 
+enum PfExcitationMode {
+    LAGGING,            // +j
+    LEADING,            // -j
+    INDUCTIVE,          // +j
+    CAPACITIVE,         // -j
+    OVER_EXCITED,       // +j
+    UNDER_EXCITED       // -j
+};
+
 struct StringValues {
     uint8_t count; // Número de strings ativas
     float values[MAX_STRINGS];
@@ -68,7 +120,7 @@ struct BatteryValues {
 class Inverter {
 public:
     void attachModbus(ModbusRTU& mb);               // ✓
-    void attachConfig(ModbusConfig& config);        // ✓
+    void attachConfig(const ModbusConfig& config);        // ✓
 
     Inverter(InverterModel model);                  // ✓
 
@@ -80,7 +132,7 @@ public:
     bool getSerial(String& serial);                  // RO retorna uma string contendo o numero serial  ✓
     // Controle
     bool boot();                                     // WO ✓
-    bool setBoot(bool boot);                         // WO - true para ligar, false para desligar WO ✓
+    bool setBoot(bool boot);                         // WO ✓
     bool shutdown();                                 // WO ✓
     bool setPowerLimitEnabled(bool enabled);         // WO ✓
     bool setPowerLimit(float watts);                 // WO ✓
@@ -88,8 +140,9 @@ public:
     bool setExportLimitEnabled(bool enabled);        // WO ✓
     bool setExportLimit(float watts);                // WO ✓
     bool setExportLimitPercent(float percent);       // WO ✓
-    bool setPowerFactorEnabled(bool enabled);        // WO
-    bool setPowerFactor(float pf);                   // WO - 0~1 para indutivo, 1 para unity, > 1 para capacitivo
+    bool setPowerFactorEnabled(bool enabled);        // WO ✓
+    bool setPowerFactor(float pf);                   // WO ✓
+    bool setPowerFactorExcitationMode(PfExcitationMode excitationMode); // WO ✓
 
     bool isBooted(bool& isBooted);                   // RO - retorna true se o inversor estiver ligado, false caso contrário   
     bool isPowerLimitEnabled(bool& enabled);         // RO
@@ -168,7 +221,7 @@ private:
     Datetime epochToDatetime(uint32_t epoch);                               // ✓
     bool isValidDatetime(const Datetime& dt);                               // ✓
     uint32_t datetimeToEpoch(const Datetime& dt);                           // ✓
-
+    bool isInvalidField(const ModbusField& field);                          // ✓
 
     // Resolve 90% dos casos
     // Arquivo InverterCore.cpp

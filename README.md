@@ -1,4 +1,4 @@
-# 🔌 Universal Inverter Modbus Library
+# 🔌 InverterModbusLib
 
 ## 🇧🇷 Português
 
@@ -59,6 +59,21 @@ Já suporta:
 * múltiplos tipos de dados (U16, U32, FLOAT, ASCII)
 * arrays e dados intercalados
 * tratamento de campos não disponíveis
+
+---
+
+🚨 Comportamentos conhecidos
+
+Boot/Shutdown em registrador único
+
+Alguns inversores utilizam apenas um único registrador para controle de estado (ligar/desligar).
+
+Nestes casos:
+
+O registrador deve ser mapeado em *_map.boot*
+Não deve ser mapeado em *_map.shutdown*
+
+A biblioteca trata automaticamente as operações de boot e shutdown utilizando os valores definidos em ```bash BootMode```.
 
 ---
 
@@ -159,6 +174,21 @@ Current features:
 * multiple data types (U16, U32, FLOAT, ASCII)
 * support for arrays and interleaved data
 * handling of unavailable fields
+
+---
+
+### 🚨 Known behaviors
+
+Single register for boot/shutdown
+
+Some inverters use a single register to control power state (start/stop).
+
+In these cases:
+
+The register must be mapped to *_map.boot*
+It must not be mapped to *_map.shutdown*
+
+The library automatically handles boot and shutdown operations using the values defined in ```bash BootMode```.
 
 ---
 

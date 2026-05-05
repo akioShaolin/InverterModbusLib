@@ -24,3 +24,5 @@ This folder is reserved for detailed documentation of the inverterLib project.
 - [ ] Document data types (U16, U32, FLOAT32, ASCII)
 - [ ] Create communication setup guide
 - [ ] Add real-world examples
+
+- [API](API.md)

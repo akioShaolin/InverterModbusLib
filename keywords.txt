@@ -1,6 +1,7 @@
 # Syntax Coloring Map For inverterLib
 
 # Classes (KEYWORD1)
+InverterModbusLib KEYWORD1
 Inverter    KEYWORD1
 InverterModel   KEYWORD1
 InverterDescriptor  KEYWORD1

@@ -1,5 +1,5 @@
 /*
- * inverterLib - Solar Inverter Library for Arduino
+ * InverterModbusLib - Solar Inverter Library for Arduino
  * ------------------------------------------------
  * Modbus RTU (RS485)communication layer for inverter integration
  *
@@ -149,7 +149,7 @@ bool Inverter::getYear(uint16_t& year) {
         uint16_t y;
         if (!readField(_map.time_year, &y)) return false;
 
-        if (_map.time_year.mode == GOODWE_HANDLER) {
+        if (_map.time_year.handlerId == GOODWE_HANDLER) {
             y = y >> 8;
         }
 
@@ -177,7 +177,7 @@ bool Inverter::getMonth(uint16_t& month) {
         uint16_t m;
         if (!readField(_map.time_month, &m)) return false;
 
-        if (_map.time_month.mode == GOODWE_HANDLER) {
+        if (_map.time_month.handlerId == GOODWE_HANDLER) {
             m = m & 0xFF;
         }
         
@@ -205,7 +205,7 @@ bool Inverter::getDay(uint16_t& day) {
         uint16_t d;
         if (!readField(_map.time_day, &d)) return false;
 
-        if (_map.time_day.mode == GOODWE_HANDLER) {
+        if (_map.time_day.handlerId == GOODWE_HANDLER) {
             d = d >> 8;
         }
 
@@ -233,7 +233,7 @@ bool Inverter::getHour(uint16_t& hour) {
         uint16_t h;
         if (!readField(_map.time_hour, &h)) return false;
 
-        if (_map.time_hour.mode == GOODWE_HANDLER) {
+        if (_map.time_hour.handlerId == GOODWE_HANDLER) {
             h = h & 0xFF;
         }
         
@@ -261,7 +261,7 @@ bool Inverter::getMinute(uint16_t& minute) {
         uint16_t m;
         if (!readField(_map.time_minute, &m)) return false;
 
-        if (_map.time_minute.mode == GOODWE_HANDLER) {
+        if (_map.time_minute.handlerId == GOODWE_HANDLER) {
             m = m >> 8;
         }
 
@@ -289,7 +289,7 @@ bool Inverter::getSecond(uint16_t& second) {
         uint16_t s;
         if (!readField(_map.time_second, &s)) return false;
 
-        if (_map.time_second.mode == GOODWE_HANDLER) {
+        if (_map.time_second.handlerId == GOODWE_HANDLER) {
             s = s & 0xFF;
         }
         
@@ -337,7 +337,7 @@ bool Inverter::setYear(uint16_t year) {
 
     // Caso 1: registrador direto
     if (_map.time_year.writable) {
-        if (_map.time_year.mode == GOODWE_HANDLER) {
+        if (_map.time_year.handlerId == GOODWE_HANDLER) {
             uint16_t reg;
 
             // ler valor atual (contém month junto)
@@ -377,7 +377,7 @@ bool Inverter::setMonth(uint16_t month) {
 
     // Caso 1: registrador direto
     if (_map.time_month.writable) {
-        if (_map.time_month.mode == GOODWE_HANDLER) {
+        if (_map.time_month.handlerId == GOODWE_HANDLER) {
             uint16_t reg;
 
             // ler valor atual (contém year junto)
@@ -417,7 +417,7 @@ bool Inverter::setDay(uint16_t day) {
 
     // Caso 1: registrador direto
     if (_map.time_day.writable) {
-        if (_map.time_day.mode == GOODWE_HANDLER) {
+        if (_map.time_day.handlerId == GOODWE_HANDLER) {
             uint16_t reg;
 
             // ler valor atual (contém hour junto)
@@ -457,7 +457,7 @@ bool Inverter::setHour(uint16_t hour) {
 
     // Caso 1: registrador direto
     if (_map.time_hour.writable) {
-        if (_map.time_hour.mode == GOODWE_HANDLER) {
+        if (_map.time_hour.handlerId == GOODWE_HANDLER) {
             uint16_t reg;
 
             // ler valor atual (contém day junto)
@@ -497,7 +497,7 @@ bool Inverter::setMinute(uint16_t minute) {
 
     // Caso 1: registrador direto
     if (_map.time_minute.writable) {
-        if (_map.time_minute.mode == GOODWE_HANDLER) {
+        if (_map.time_minute.handlerId == GOODWE_HANDLER) {
             uint16_t reg;
 
             // ler valor atual (contém second junto)
@@ -537,7 +537,7 @@ bool Inverter::setSecond(uint16_t second) {
 
     // Caso 1: registrador direto
     if (_map.time_second.writable) {
-        if (_map.time_second.mode == GOODWE_HANDLER) {
+        if (_map.time_second.handlerId == GOODWE_HANDLER) {
             uint16_t reg;
 
             // ler valor atual (contém minute junto)

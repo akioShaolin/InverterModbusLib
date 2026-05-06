@@ -6,8 +6,54 @@
  * Copyright (c) 2026, Pedro Akio Sakuma
  * Licensed under BSD 3-Clause License
  */
+/*
+InverterCore.cpp
+├── Conversão escalada
+│   ├── readScaledFloat()
+│   └── readScaledFloat(vector)
+│
+├── Leitura tipada
+│   ├── readField(char*)
+│   ├── readField(float*)
+│   ├── readField(uint16_t*)
+│   ├── readField(uint32_t*)
+│   ├── readField(uint64_t*)
+│   ├── readField(int16_t*)
+│   ├── readField(int32_t*)
+│   └── readField(int64_t*)
+│
+├── Leitura raw
+│   ├── readField16Raw()
+│   ├── readField32Raw()
+│   └── readField64Raw()
+│
+├── Escrita tipada
+│   ├── writeField(float)
+│   ├── writeField(uint16_t)
+│   ├── writeField(uint32_t)
+│   ├── writeField(int16_t)
+│   ├── writeField(int32_t)
+│   ├── writeField(float*)
+│   ├── writeField(uint16_t*)
+│   ├── writeField(uint32_t*)
+│   ├── writeField(int16_t*)
+│   └── writeField(int32_t*)
+│
+├── Escrita raw
+│   ├── writeField16Raw()
+│   └── writeField32Raw()
+│
+└── Acesso Modbus direto
+    ├── readHoldingRegister()
+    └── writeHoldingRegister()
+*/
 
 #include "Inverter.h"
+
+// Private methods para leitura e escrita de registradores Modbus, aplicando a escala correta,
+// lidando com tipos de dados diferentes (inteiros, floats, etc.) e combinando registradores
+// quando necessário. Esses métodos vão usar as informações do ModbusField para fazer a
+// leitura/escrita correta.
 
 static bool _mb_done = false;
 static bool _mb_success = false;
@@ -18,51 +64,105 @@ bool _mb_cb(Modbus::ResultCode event, uint16_t, void*) {
     return true;
 }
 
+// ======================================================
+// Scaled Conversion
+// ======================================================
+
 bool Inverter::readScaledFloat(const ModbusField& field, float& value) {
+    return readScaledFloat(field, &value, 1);
+}
+
+bool Inverter::readScaledFloat(const ModbusField& field, float* value, uint8_t count) {
+    if (value == nullptr) return false;
+    if (count == 0) return false;
+    if (!field.readable) return false;
+    if (field.length == 0) return false;
+
     switch(field.type) {
         case U16: {
-            uint16_t raw;
-            if (!readField(field, &raw)) return false;
-            value = (float)raw * field.scale;
-            break;
+            if (field.length > count) return false;
+            if (field.length > INV_MAX_U16_VALUES) return false;
+
+            uint16_t raw[INV_MAX_U16_VALUES];
+
+            if (!readField(field, raw)) return false;
+
+            for(uint8_t i = 0; i < field.length; i++) {
+                value[i] = (float)raw[i] * field.scale;
+            }
+
+            return true;
         }
 
         case U32: {
-            uint32_t raw;
-            if (!readField(field, &raw)) return false;
-            value = (float)raw * field.scale;
-            break;
+            if (field.length > count) return false;
+            if (field.length > INV_MAX_U32_VALUES) return false;
+
+            uint32_t raw[INV_MAX_U32_VALUES];
+
+            if (!readField(field, raw)) return false;
+
+            for (uint8_t i = 0; i < field.length; i++) {
+                value[i] = (float)raw[i] * field.scale;
+            }
+            
+            return true;
         }
         
         case FLOAT32: {
-            float raw;
-            if (!readField(field, &raw)) return false;
-            value = raw * field.scale;
-            break;
+            if (field.length > count) return false;
+            if (field.length > INV_MAX_FLOAT_VALUES) return false;
+
+            float raw[INV_MAX_FLOAT_VALUES];
+
+            if (!readField(field, raw)) return false;
+
+            for (uint8_t i = 0; i < field.length; i++) {
+                value[i] = raw[i] * field.scale;
+            }
+            
+            return true;
         }
 
         case I16: {
-            int16_t raw;
-            if (!readField(field, &raw)) return false;
-            value = (float)raw * field.scale;
-            break;
+            if (field.length > count) return false;
+            if (field.length > INV_MAX_U16_VALUES) return false;
+
+            int16_t raw[INV_MAX_U16_VALUES];
+
+            if (!readField(field, raw)) return false;
+            
+            for(uint8_t i = 0; i < field.length; i++) {
+                value[i] = (float)raw[i] * field.scale;
+            }
+
+            return true;
         }
 
         case I32: {
-            int32_t raw;
-            if (!readField(field, &raw)) return false;
-            value = (float)raw * field.scale;
-            break;
+            if (field.length > count) return false;
+            if (field.length > INV_MAX_U32_VALUES) return false;
+
+            int32_t raw[INV_MAX_U32_VALUES];
+
+            if (!readField(field, raw)) return false;
+            
+            for (uint8_t i = 0; i < field.length; i++) {
+                value[i] = (float)raw[i] * field.scale;
+            }
+            
+            return true;
         }
 
         default:
             return false; // Tipo de dado não suportado para este campo
 
     }
-    return true;
 }
 
-// Private methods para leitura e escrita de registradores Modbus, aplicando a escala correta, lidando com tipos de dados diferentes (inteiros, floats, etc.) e combinando registradores quando necessário. Esses métodos vão usar as informações do ModbusField para fazer a leitura/escrita correta.
+// ======================================================
+// Typed Read
+// ======================================================
 
 bool Inverter::readField(const ModbusField& field, char* value) {
     if (field.type != ASCII || !field.readable) return false;
@@ -168,6 +268,10 @@ bool Inverter::readField(const ModbusField& field, int64_t* value) {
     return true;
 }
 
+// ======================================================
+// Raw Read
+// ======================================================
+
 bool Inverter::readField16Raw(const ModbusField& field, uint16_t* value) {
     if (!field.readable) return false;
     if (value == nullptr) return false;
@@ -246,6 +350,10 @@ bool Inverter::readField64Raw(const ModbusField& field, uint64_t* value) {
     return true;
 }
 
+// ======================================================
+// Typed Write
+// ======================================================
+
 bool Inverter::writeField(const ModbusField& field, float value) {
     return writeField(field, &value, 1);
 }
@@ -270,7 +378,6 @@ bool Inverter::writeField(const ModbusField& field, float* value, uint8_t count)
     if (!field.writable) return false;
     if (value == nullptr) return false;
     if (count == 0) return false;
-    if (field.scale == 0.0f) return false;
 
     switch (field.type) {
 
@@ -279,7 +386,9 @@ bool Inverter::writeField(const ModbusField& field, float* value, uint8_t count)
             uint16_t raw [INV_MAX_U16_VALUES];
             
             for (uint8_t i = 0; i < count; i++) { 
-                raw[i] = (uint16_t)roundf(value[i] / field.scale);
+                float r = roundf(value[i]);
+                if (r < 0.0f || r > UINT16_MAX) return false;
+                raw[i] = (uint16_t)r;
             }
 
             return writeField(field, raw, count);
@@ -290,7 +399,9 @@ bool Inverter::writeField(const ModbusField& field, float* value, uint8_t count)
             uint32_t raw [INV_MAX_U32_VALUES];
             
             for (uint8_t i = 0; i < count; i++) { 
-                raw[i] = (uint32_t)roundf(value[i] / field.scale);
+                float r = roundf(value[i]);
+                if (r < 0.0f || r > UINT32_MAX) return false;
+                raw[i] = (uint32_t)r;
             }
 
             return writeField(field, raw, count);
@@ -301,7 +412,9 @@ bool Inverter::writeField(const ModbusField& field, float* value, uint8_t count)
             int16_t raw [INV_MAX_U16_VALUES];
             
             for (uint8_t i = 0; i < count; i++) { 
-                raw[i] = (int16_t)roundf(value[i] / field.scale);
+                float r = roundf(value[i]);
+                if (r < INT16_MIN || r > INT16_MAX) return false;
+                raw[i] = (int16_t)r;
             }
 
             return writeField(field, raw, count);
@@ -312,7 +425,9 @@ bool Inverter::writeField(const ModbusField& field, float* value, uint8_t count)
             int32_t raw [INV_MAX_U32_VALUES];
             
             for (uint8_t i = 0; i < count; i++) { 
-                raw[i] = (int32_t)roundf(value[i] / field.scale);
+                float r = roundf(value[i]);
+                if (r < INT32_MIN || r > INT32_MAX) return false;
+                raw[i] = (int32_t)r;
             }
 
             return writeField(field, raw, count);
@@ -324,11 +439,14 @@ bool Inverter::writeField(const ModbusField& field, float* value, uint8_t count)
             uint32_t raw [INV_MAX_FLOAT_VALUES];
 
             for (uint8_t i = 0; i < count; i++) {
-                memcpy(&raw[i], &value[i], sizeof(uint32_t));
+                memcpy(&raw[i], &value[i], sizeof(float));
             }
 
             return writeField32Raw(field, raw, count);
         }
+
+        default:
+            return false;
     }
 }
 
@@ -374,6 +492,10 @@ bool Inverter::writeField(const ModbusField& field, int32_t* value, uint8_t coun
     return writeField32Raw(field, raw, count);
 }
 
+// ======================================================
+// Raw Write
+// ======================================================
+
 bool Inverter::writeField16Raw(const ModbusField& field, uint16_t* value, uint8_t count) {
     if (value == nullptr) return false;
     if (count == 0 || count > INV_MAX_U16_VALUES) return false;
@@ -411,6 +533,10 @@ bool Inverter::writeField32Raw(const ModbusField& field, uint32_t* value, uint8_
     }
     return true;
 }
+
+// ======================================================
+// Direct Modbus Access
+// ======================================================
 
 bool Inverter::readHoldingRegister(uint16_t startReg, uint16_t* buffer, uint16_t count) {
     if (_mb == nullptr) return false;

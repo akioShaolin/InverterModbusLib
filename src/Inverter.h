@@ -65,18 +65,10 @@ constexpr uint8_t INV_MAX_STRING_CHARS = 32;
     false ou um valor de erro apropriado, e não tentar acessar o Modbus.::
     */
 
-/*enum A{
-    AVERAGE,
-    ESTIMATED,
-    SUM,
-};*/
-
 struct PhaseData {
-    float grid = NAN;
-    float r = NAN;
-    float s = NAN;
-    float t = NAN;
-    bool isEstimated;
+    float r;
+    float s;
+    float t;
 };
 
 enum InverterStatus {
@@ -109,7 +101,6 @@ enum PfExcitationMode {
 struct StringValues {
     uint8_t count; // Número de strings ativas
     float values[MAX_STRINGS];
-    bool isEstimated;
 };
 
 struct BatteryValues {
@@ -119,141 +110,165 @@ struct BatteryValues {
 
 class Inverter {
 public:
-    void attachModbus(ModbusRTU& mb);               // ✓
-    void attachConfig(const ModbusConfig& config);        // ✓
 
-    Inverter(InverterModel model);                  // ✓
-
-    bool begin();                                   // ✓
-
-    void setSlaveId(uint8_t id);                    // ✓
-
-    // Identificação
-    bool getSerial(String& serial);                  // RO retorna uma string contendo o numero serial  ✓
-    // Controle
-    bool boot();                                     // WO ✓
-    bool setBoot(bool boot);                         // WO ✓
-    bool shutdown();                                 // WO ✓
-    bool setPowerLimitEnabled(bool enabled);         // WO ✓
-    bool setPowerLimit(float watts);                 // WO ✓
-    bool setPowerLimitPercent(float percent);        // WO ✓
-    bool setExportLimitEnabled(bool enabled);        // WO ✓
-    bool setExportLimit(float watts);                // WO ✓
-    bool setExportLimitPercent(float percent);       // WO ✓
-    bool setPowerFactorEnabled(bool enabled);        // WO ✓
-    bool setPowerFactor(float pf);                   // WO ✓
-    bool setPowerFactorExcitationMode(PfExcitationMode excitationMode); // WO ✓
-
-    bool isBooted(bool& isBooted);                   // RO - retorna true se o inversor estiver ligado, false caso contrário   
-    bool isPowerLimitEnabled(bool& enabled);         // RO
-    bool getPowerLimit(float& watts);                // RO    ✓ 
-    bool getPowerLimitPercent(float& percent);       // RO    ✓ 
-    bool isExportLimitEnabled(bool& enabled);        // RO
-    bool getExportLimit(float& watts);               // RO
-    bool getExportLimitPercent(float& percent);      // RO
-    bool isPowerFactorEnabled(bool& enabled);        // RO
-    bool getPowerFactorSetpoint(float& pf);          // RO    
-
+    // Setters
+    // Arquivo InverterControl.cpp
+    // ------------------------------------------------------
+    Inverter(InverterModel model);                   //
+    void attachModbus(ModbusRTU& mb);                //
+    void attachConfig(const ModbusConfig& config);   //  
+    bool begin();                                    //
+    void setSlaveId(uint8_t id);                     //
+    bool boot();                                     //
+    bool setBoot(bool enable);                       //
+    bool shutdown();                                 //
+    bool setPowerLimitEnabled(bool enabled);         //
+    bool setPowerLimit(float watts);                 //
+    bool setPowerLimitPercent(float percent);        //
+    bool setExportLimitEnabled(bool enabled);        //
+    bool setExportLimit(float watts);                //
+    bool setExportLimitPercent(float percent);       //
+    bool setPowerFactorEnabled(bool enabled);        //
+    bool setPowerFactor(float pf);                   //
+    bool setPowerFactorExcitationMode(PfExcitationMode excitationMode); //
+    // ------------------------------------------------------
+  
     // Tempo
     // Arquivo InverterTime.cpp
-    bool getDatetime(Datetime& dt);                  // RO  ✓
-    bool getYear(uint16_t& year);                    // RO  ✓
-    bool getMonth(uint16_t& month);                  // RO  ✓
-    bool getDay(uint16_t& day);                      // RO  ✓
-    bool getHour(uint16_t& hour);                    // RO  ✓
-    bool getMinute(uint16_t& minute);                // RO  ✓
-    bool getSecond(uint16_t& second);                // RO  ✓
-    bool getEpochTime(uint32_t& epoch);              // RO  ✓
+    // ------------------------------------------------------
+    // Leitura de data/hora
+    bool getDatetime(Datetime& dt);                  //
+    bool getYear(uint16_t& year);                    //
+    bool getMonth(uint16_t& month);                  //
+    bool getDay(uint16_t& day);                      //
+    bool getHour(uint16_t& hour);                    //
+    bool getMinute(uint16_t& minute);                //
+    bool getSecond(uint16_t& second);                //
+    bool getEpochTime(uint32_t& epoch);              //
+    // Escrita de data/hora
+    bool setDatetime(Datetime dt);                   //
+    bool setYear(uint16_t year);                     //
+    bool setMonth(uint16_t month);                   //
+    bool setDay(uint16_t day);                       //
+    bool setHour(uint16_t hour);                     //
+    bool setMinute(uint16_t minute);                 //
+    bool setSecond(uint16_t second);                 //
+    bool setEpochTime(uint32_t epoch);               //
+    // ------------------------------------------------------
 
-    bool setDatetime(Datetime dt);                   // WO  
-    bool setYear(uint16_t year);                     // WO  ✓
-    bool setMonth(uint16_t month);                   // WO  ✓
-    bool setDay(uint16_t day);                       // WO  ✓
-    bool setHour(uint16_t hour);                     // WO  ✓
-    bool setMinute(uint16_t minute);                 // WO  ✓
-    bool setSecond(uint16_t second);                 // WO  ✓
-    bool setEpochTime(uint32_t epoch);               // WO  ✓
-
-    bool getTotalEnergy(float& kWh);                 // RO
-    bool getDailyEnergy(float& kWh);                 // RO
-
-    bool getActivePower(float& watts);               // RO   
-    bool getReactivePower(float& voltAmperReactive); // RO
-    bool getApparentPower(float& voltAmper);         // RO
-    bool getPowerFactor(float &pf);                  // RO
-
-    bool getGridVoltage(PhaseData& phase);           // RO - Retorna struct {r,s,t}
-    bool getGridCurrent(PhaseData& phase);           // RO - Retorna struct {r,s,t}
-    bool getGridFrequency(PhaseData& phase);         // RO - Retorna struct {grid,r,s,t}
-
-    bool getTemperature(float& temperature);         // RO
-    bool getInsulationResistance(float& kiloOhms);   // RO
-    bool getInverterStatus(InverterStatus& status);  // RO - Retorna item de enum de acordo com o status do inversor
-    bool getAlarm(Alarm& alarm);                     // RO - Retorna item de enum de acordo com o alarme ativo no inversor
-
-    bool getStringVoltage(StringValues& voltage);    // RO - Retorna vetor
-    bool getStringCurrent(StringValues& current);    // RO - Retorna vetor
-    bool getStringPower(StringValues& power);        // RO - Retorna vetor
-
-    bool getBatteryVoltage(BatteryValues& voltage);  // RO - Retorna vetor
-    bool getBatteryCurrent(BatteryValues& current);  // RO - Retorna vetor
-    bool getBatteryPower(BatteryValues& power);      // RO - Retorna vetor
-    bool getBatterySoC(BatteryValues& soc);          // RO - Retorna vetor
-    bool getBatterySoH(BatteryValues& soh);          // RO - Retorna vetor
-
-    bool getEPSVoltage(PhaseData& phase);            // RO - Retorna struct {grid,r,s,t}
-    bool getEPSCurrent(PhaseData& phase);            // RO - Retorna struct {grid,r,s,t}
-    bool getEPSActivePower(PhaseData& phase);        // RO - Retorna struct {grid,r,s,t}
+    // Getters
+    // Arquivo InverterDeviceInfo.cpp
+    // ------------------------------------------------------
+    // Identificação
+    bool getSerial(String& serial);                  //
+    // Comandos / Limites
+    bool isBooted(bool& isBooted);                   //
+    bool isPowerLimitEnabled(bool& enabled);         //
+    bool getPowerLimit(float& watts);                //
+    bool getPowerLimitPercent(float& percent);       //
+    bool isExportLimitEnabled(bool& enabled);        //
+    bool getExportLimit(float& watts);               //
+    bool getExportLimitPercent(float& percent);      //
+    bool isPowerFactorEnabled(bool& enabled);        //
+    bool getPowerFactorSetpoint(float& pf);          //
+    // Medições AC
+    bool getActivePower(float& watts);               // 
+    bool getReactivePower(float& voltAmperReactive); //
+    bool getApparentPower(float& voltAmper);         //
+    bool getPowerFactor(float &pf);                  //
+    bool getGridVoltage(PhaseData& phase);           //
+    bool getGridCurrent(PhaseData& phase);           //
+    bool getGridFrequency(PhaseData& phase);         //
+    // Energia
+    bool getTotalEnergy(float& kWh);                 //
+    bool getDailyEnergy(float& kWh);                 //
+    // Strings FV
+    bool getStringVoltage(StringValues& voltage);    //
+    bool getStringCurrent(StringValues& current);    //
+    bool getStringPower(StringValues& power);        //
+    // Bateria
+    bool getBatteryVoltage(BatteryValues& voltage);  //
+    bool getBatteryCurrent(BatteryValues& current);  //
+    bool getBatteryPower(BatteryValues& power);      //
+    bool getBatterySoC(BatteryValues& soc);          //
+    bool getBatterySoH(BatteryValues& soh);          //    
+    // EPS
+    bool getEPSVoltage(PhaseData& phase);            //
+    bool getEPSCurrent(PhaseData& phase);            //
+    bool getEPSActivePower(PhaseData& phase);        //    
+    // Diagnóstico e Saúde
+    bool getTemperature(float& temperature);         //
+    bool getInsulationResistance(float& kiloOhms);   //
+    // Status/Alarmes
+    bool getInverterStatus(InverterStatus& status);  //
+    bool getAlarm(Alarm& alarm);                     //
+    // ------------------------------------------------------
 
 private:
-    ModbusRTU* _mb = nullptr;
-    ModbusConfig _modbus;
-    bool _customConfigSet = false;
 
-    InverterModel _model;
-    InverterDescriptor _descriptor;
-    ModbusInverterMap _map;
+    // Variáveis privadas
+    // ------------------------------------------------------
+    ModbusRTU* _mb = nullptr;                        //
+    ModbusConfig _modbus;                            //
+    bool _customConfigSet = false;                   //
+    InverterModel _model;                            //
+    InverterDescriptor _descriptor;                  //
+    ModbusInverterMap _map;                          //
+    String _serial;                                  //
+    // ------------------------------------------------------
 
-    String _serial;
+    // Arquivo InverterControl.cpp
+    // ------------------------------------------------------
+    // Helpers internos
+    bool isInvalidField(const ModbusField& field);   //
+    // ------------------------------------------------------
 
-    bool readScaledFloat(const ModbusField& field, float& value);           // ✓
-    bool isLeap(uint16_t y);                                                // ✓
-    Datetime epochToDatetime(uint32_t epoch);                               // ✓
-    bool isValidDatetime(const Datetime& dt);                               // ✓
-    uint32_t datetimeToEpoch(const Datetime& dt);                           // ✓
-    bool isInvalidField(const ModbusField& field);                          // ✓
+    // Arquivo InverterTime.cpp
+    // ------------------------------------------------------
+    // Conversões e validações internas
+    bool isLeap(uint16_t y);                         //
+    Datetime epochToDatetime(uint32_t epoch);        //
+    bool isValidDatetime(const Datetime& dt);        //
+    uint32_t datetimeToEpoch(const Datetime& dt);    //
+    // ------------------------------------------------------
 
-    // Resolve 90% dos casos
+    // Centro das operações Modbus
     // Arquivo InverterCore.cpp
-    bool readField(const ModbusField& field, char* value);                  // ✓
-    bool readField(const ModbusField& field, float* value);                 // ✓
-    bool readField(const ModbusField& field, uint16_t* value);              // ✓
-    bool readField(const ModbusField& field, uint32_t* value);              // ✓
-    bool readField(const ModbusField& field, uint64_t* value);              // ✓
-    bool readField(const ModbusField& field, int16_t* value);               // ✓
-    bool readField(const ModbusField& field, int32_t* value);               // ✓
-    bool readField(const ModbusField& field, int64_t* value);               // ✓
-
-    bool readField16Raw(const ModbusField& field, uint16_t* buffer);        // ✓
-    bool readField32Raw(const ModbusField& field, uint32_t* buffer);        // ✓
-    bool readField64Raw(const ModbusField& field, uint64_t* buffer);        // ✓
-
-    bool writeField(const ModbusField& field, float value); // ✓
-    bool writeField(const ModbusField& field, uint16_t value);       // ✓
-    bool writeField(const ModbusField& field, uint32_t value);       // ✓
-    bool writeField(const ModbusField& field, int16_t value);        // ✓
-    bool writeField(const ModbusField& field, int32_t value);        // ✓
-    bool writeField(const ModbusField& field, float* value, uint8_t count = 1); // ✓
-    bool writeField(const ModbusField& field, uint16_t* value, uint8_t count = 1);       // ✓
-    bool writeField(const ModbusField& field, uint32_t* value, uint8_t count = 1);       // ✓
-    bool writeField(const ModbusField& field, int16_t* value, uint8_t count = 1);        // ✓
-    bool writeField(const ModbusField& field, int32_t* value, uint8_t count = 1);        // ✓
-
-    bool writeField16Raw(const ModbusField& field, uint16_t* value, uint8_t count = 1);  // ✓
-    bool writeField32Raw(const ModbusField& field, uint32_t* value, uint8_t count = 1);  // ✓
-
-    bool readHoldingRegister(uint16_t reg, uint16_t* value, uint16_t count = 1);    // ✓
-    bool writeHoldingRegister(uint16_t reg, uint16_t* value, uint16_t count = 1);   // ✓
+    // ------------------------------------------------------
+    // Conversão escalada
+    bool readScaledFloat(const ModbusField& field, float& value);                       //
+    bool readScaledFloat(const ModbusField& field, float* value, uint8_t count = 1);    //
+    // Leitura tipada
+    bool readField(const ModbusField& field, char* value);                              //
+    bool readField(const ModbusField& field, float* value);                             //
+    bool readField(const ModbusField& field, uint16_t* value);                          //
+    bool readField(const ModbusField& field, uint32_t* value);                          //
+    bool readField(const ModbusField& field, uint64_t* value);                          //
+    bool readField(const ModbusField& field, int16_t* value);                           //
+    bool readField(const ModbusField& field, int32_t* value);                           //
+    bool readField(const ModbusField& field, int64_t* value);                           //
+    // Leitura raw
+    bool readField16Raw(const ModbusField& field, uint16_t* buffer);                    //
+    bool readField32Raw(const ModbusField& field, uint32_t* buffer);                    //
+    bool readField64Raw(const ModbusField& field, uint64_t* buffer);                    //
+    // Escrita tipada
+    bool writeField(const ModbusField& field, float value);                             //
+    bool writeField(const ModbusField& field, uint16_t value);                          //
+    bool writeField(const ModbusField& field, uint32_t value);                          //
+    bool writeField(const ModbusField& field, int16_t value);                           //
+    bool writeField(const ModbusField& field, int32_t value);                           //
+    bool writeField(const ModbusField& field, float* value, uint8_t count = 1);         //
+    bool writeField(const ModbusField& field, uint16_t* value, uint8_t count = 1);      //
+    bool writeField(const ModbusField& field, uint32_t* value, uint8_t count = 1);      //
+    bool writeField(const ModbusField& field, int16_t* value, uint8_t count = 1);       //
+    bool writeField(const ModbusField& field, int32_t* value, uint8_t count = 1);       //
+    // Escrita raw
+    bool writeField16Raw(const ModbusField& field, uint16_t* value, uint8_t count = 1); //
+    bool writeField32Raw(const ModbusField& field, uint32_t* value, uint8_t count = 1); //
+    // Acesso Modbus direto
+    bool readHoldingRegister(uint16_t reg, uint16_t* value, uint16_t count = 1);        //
+    bool writeHoldingRegister(uint16_t reg, uint16_t* value, uint16_t count = 1);       //
+    // ------------------------------------------------------
 };
 
 #endif

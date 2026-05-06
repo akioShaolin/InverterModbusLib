@@ -75,6 +75,14 @@ Não deve ser mapeado em *_map.shutdown*
 
 A biblioteca trata automaticamente as operações de boot e shutdown utilizando os valores definidos em ```bash BootMode```.
 
+• Para os inversores já testados, os mapas realizam automaticamente a normalização das unidades utilizadas pela biblioteca. Exemplo: um inversor pode reportar potência em kW e outro em W; os campos scale realizam a conversão necessária, mesmo que a documentação original utilize unidades diferentes.
+• Os endereços dos registradores são tratados como 0-based internamente. Dependendo da documentação do fabricante, podem existir divergências de endereçamento (0-based vs 1-based).
+• Caso o inversor utilizar apenas um único registrador para controle de estado (liga / desliga), mapeie apenas no _map.boot
+• switch no campo principal, mas o fallback depende de outro campo. (em ExportLimit, o fallback leva a ExportLimitPercent. Não é feita a verificação de FIELD_SIMPLE ou SPECIAL)
+• Valores de energia podem ser expostos como float para conveniência da API. (getTotalEnergy)
+• Para operações acumulativas de longo prazo, recomenda-se utilizar os valores brutos inteiros (uint32_t/int32_t) para evitar perda progressiva de precisão.
+• Em inversores monofásicos, apenas a fase r possui valor válido para leitura de tensão da rede. As fases s e t permanecem zeradas. Em inversores trifásicos que disponibilizam apenas um registrador de frequência, o valor válido será atribuído somente à fase r.
+
 ---
 
 ### 🤝 Colaboração com fabricantes

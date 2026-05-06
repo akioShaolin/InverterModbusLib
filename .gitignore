@@ -1,6 +1,4 @@
-.pio
+.pio/
 .vscode/
-.vscode/.advpl
-.vscode/extensions.json
-.vscode/settings.json
-maps
+maps/
+src/main.cpp

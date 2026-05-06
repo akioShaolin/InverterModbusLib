@@ -10,7 +10,7 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
 #include <ModbusRTU.h>
-#include <InverterLib.h>
+#include <InverterModbusLib.h>
 
 #define DE_RE_PIN 12  // Defina o pino DE_RE
 
@@ -87,7 +87,7 @@ void handleRead() {
     return;
   }
 
-  modbusCfg.setId(slaveId);
+  selectedInverter->setSlaveId(slaveId);
 
   String serial;
   bool ok = selectedInverter->getSerial(serial);

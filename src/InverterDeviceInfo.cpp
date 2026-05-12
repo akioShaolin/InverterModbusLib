@@ -359,7 +359,7 @@ bool Inverter::getReactivePower(float& voltAmperReactive) {
     switch (_map.reactivePower.mode) {
 
         case FIELD_SIMPLE:
-            if (_map.reactivePower.readable) return false;
+            if (!_map.reactivePower.readable) return false;
             return readScaledFloat(_map.reactivePower, voltAmperReactive);
             
         default:
@@ -416,7 +416,7 @@ bool Inverter::getGridVoltage(PhaseData& phase) {
 
         case FIELD_SIMPLE: {
             if (!_map.gridVoltage.readable) return false;
-            if (!_map.gridVoltage.length == 0 || _map.gridVoltage.length > 3) return false;
+            if (_map.gridVoltage.length == 0 || _map.gridVoltage.length > 3) return false;
 
             float v[INV_MAX_FLOAT_VALUES];
 
@@ -445,7 +445,7 @@ bool Inverter::getGridCurrent(PhaseData& phase) {
 
         case FIELD_SIMPLE: {
             if (!_map.gridCurrent.readable) return false;
-            if (_map.gridCurrent.length || _map.gridCurrent.length > 3) return false;
+            if (_map.gridCurrent.length == 0 || _map.gridCurrent.length > 3) return false;
 
             float v[INV_MAX_FLOAT_VALUES];
 
@@ -543,9 +543,9 @@ bool Inverter::getStringVoltage(StringValues& voltage) {
 
             float v[MAX_STRINGS];
 
-            if (!readScaledFloat(_map.stringVoltage, v, _map.stringVoltage.length)) return false;
+            if (!readScaledFloat(_map.stringVoltage, v, _descriptor.pvInfo.stringCount)) return false;
 
-            voltage.count = _map.stringVoltage.length;
+            voltage.count = _descriptor.pvInfo.stringCount;
 
             for(uint8_t i = 0; i < MAX_STRINGS; i++) {
                 voltage.values[i] = (i < voltage.count) ? v[i] : 0.0f;
@@ -570,9 +570,9 @@ bool Inverter::getStringCurrent(StringValues& current) {
 
             float v[MAX_STRINGS];
 
-            if (!readScaledFloat(_map.stringCurrent, v, _map.stringCurrent.length)) return false;
+            if (!readScaledFloat(_map.stringCurrent, v, _descriptor.pvInfo.stringCount)) return false;
 
-            current.count = _map.stringCurrent.length;
+            current.count = _descriptor.pvInfo.stringCount;
 
             for(uint8_t i = 0; i < MAX_STRINGS; i++) {
                 current.values[i] = (i < current.count) ? v[i] : 0.0f;
@@ -597,9 +597,9 @@ bool Inverter::getStringPower(StringValues& power) {
 
             float v[MAX_STRINGS];
 
-            if (!readScaledFloat(_map.stringPower, v, _map.stringPower.length)) return false;
+            if (!readScaledFloat(_map.stringPower, v, _descriptor.pvInfo.stringCount)) return false;
 
-            power.count = _map.stringPower.length;
+            power.count = _descriptor.pvInfo.stringCount;
 
             for(uint8_t i = 0; i < MAX_STRINGS; i++) {
                 power.values[i] = (i < power.count) ? v[i] : 0.0f;
@@ -895,7 +895,7 @@ bool Inverter::getInsulationResistance(float& kiloOhms) {
 // ou códigos proprietários distintos.
 
 // #############################################################################################################
-bool Inverter::getInverterStatus(InverterStatus& status) {
+bool Inverter::getInverterStatus(uint16_t status) {//InverterStatus& status) {
     if (_map.serialNumber.address == 0xFFFF) return false;
     
     switch (_map.inverterStatus.mode) {
@@ -907,7 +907,7 @@ bool Inverter::getInverterStatus(InverterStatus& status) {
 
             if (!readField(_map.inverterStatus, &raw)) return false;
 
-            status = (InverterStatus)raw;
+            status = raw;//(InverterStatus)raw;
             return true;
         }
             
@@ -916,7 +916,7 @@ bool Inverter::getInverterStatus(InverterStatus& status) {
     }
 }
 
-bool Inverter::getAlarm(Alarm& alarm) {
+bool Inverter::getAlarm(uint16_t alarm) {//Alarm& alarm) {
     if (_map.serialNumber.address == 0xFFFF) return false;
     
     switch (_map.alarm.mode) {
@@ -927,7 +927,7 @@ bool Inverter::getAlarm(Alarm& alarm) {
             uint16_t raw;
             if (!readField(_map.alarm, &raw)) return false;
 
-            alarm = (Alarm)raw;
+            alarm = raw;//(Alarm)raw;
             return true;
         }
             

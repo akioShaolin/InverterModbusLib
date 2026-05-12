@@ -422,8 +422,8 @@ void handleApiGet() {
   else if (fn == "getEPSActivePower") { PhaseData v; ok = inverter->getEPSActivePower(v); result = ok ? phaseText(v, "W") : "Falha"; }
   else if (fn == "getTemperature") { float v; ok = inverter->getTemperature(v); result = ok ? String(v, 3) + " °C" : "Falha"; }
   else if (fn == "getInsulationResistance") { float v; ok = inverter->getInsulationResistance(v); result = ok ? String(v, 3) + " kΩ" : "Falha"; }
-  else if (fn == "getInverterStatus") { InverterStatus v; ok = inverter->getInverterStatus(v); result = ok ? String((int)v) : "Falha"; }
-  else if (fn == "getAlarm") { Alarm v; ok = inverter->getAlarm(v); result = ok ? String((int)v) : "Falha"; }
+  else if (fn == "getInverterStatus") { uint16_t v; ok = inverter->getInverterStatus(v); result = ok ? String(v) : "Falha"; }
+  else if (fn == "getAlarm") { uint16_t v; ok = inverter->getAlarm(v); result = ok ? String(v) : "Falha"; }
   else { result = "Função desconhecida."; }
 
   server.send(200, "text/html", result);
@@ -475,7 +475,7 @@ void handleApiSet() {
   else if (fn == "setEpochTime") { group = "setTime"; ok = inverter->setEpochTime(u); }
   else { server.send(400, "text/plain", "Unknown function"); return;}
 
-  server.send(200, "text/html", ok ? "OK" : "Failed");
+  server.send(200, "text/html", ok ? "OK" : "Falha");
   return;
 }
 
@@ -518,8 +518,8 @@ void setup() {
   server.on("/config", handleConfig);
   server.on("/config/apply", handleConfigApply);
   server.on("/api/config", handleApiConfig);
-  server.on("api/get", handleApiGet);
-  server.on("api/set", handleApiSet);
+  server.on("/api/get", handleApiGet);
+  server.on("/api/set", handleApiSet);
   server.begin();
 }
 

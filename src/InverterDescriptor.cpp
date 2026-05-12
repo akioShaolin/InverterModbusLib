@@ -13,7 +13,7 @@
 constexpr BootMode defaultBootMode PROGMEM = {0x01, 0x00};
 constexpr BootMode hwBootMode PROGMEM =      {0x01, 0x01};
 constexpr BootMode gwBootMode PROGMEM =      {0x00, 0x00};
-constexpr BootMode fx_RVH3BootMode PROGMEM = {0xCE, 0xCF};
+constexpr BootMode fx_RVH3BootMode PROGMEM = {0xCF, 0xCE};
 
 constexpr ExportLimitMode defaultExportLimitMode PROGMEM = {0x01, 0x00};
 constexpr ExportLimitMode fx_RVH3ExportLimitMode PROGMEM = {0xAA, 0x55};

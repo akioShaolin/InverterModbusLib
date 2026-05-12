@@ -187,45 +187,45 @@ static const ModbusInverterMap map_SIW400G_T050_T100 PROGMEM = {
     // Identificação
     { 0x9C74, ASCII, 16, 1, 1.0f, true, false }, // Serial. Scale é ignorado para ASCII; usar 1.0f apenas como valor neutro
     // Controle
-    { 0xA717, U16, 1, 1, 1.0f, true, true },     // Boot. CE - Shutdown, CF - Boot
+    { 0xA716, U16, 1, 1, 1.0f, true, true },     // Boot. CE - Shutdown, CF - Boot
     INVALID_FIELD,                               // Shutdown (Não disponível nesse modelo)
-    { 0x9D6C, U16, 1, 1, 1.0f, true, true },     // Enable Power Limit (0 - Disable, 1 - Enable)
+    { 0x9D6B, U16, 1, 1, 1.0f, true, true },     // Enable Power Limit (0 - Disable, 1 - Enable)
     INVALID_FIELD,                               // Set Power Limit (W) (não disponível nesse modelo)
-    { 0x9D6D, U16, 1, 1, 0.1f, true, true },     // Set Power Limit Percent (%)
-    { 0xA887, U16, 1, 1, 1.0f, true, true },     // Enable Export Limit (55 - Disable, AA - Enable)
+    { 0x9D6C, U16, 1, 1, 0.1f, true, true },     // Set Power Limit Percent (%)
+    { 0xA886, U16, 1, 1, 1.0f, true, true },     // Enable Export Limit (55 - Disable, AA - Enable)
     INVALID_FIELD,                               // Set Export Limit (W) (não disponível nesse modelo)
-    { 0xA889, U16, 1, 1, 0.1f, true, true },     // Set Export Limit Percent(%)
-    { 0x9D68, U16, 1, 1, 1.0f, true, true },     // Enable Power Factor (0 - Disable, 1 - Enable)
-    { 0x9D74, U16, 1, 1, 0.001f, true, true },   // Set Power Factor
-    { 0x9D75, U16, 1, 1, 1.0f, true, true },     // Power Factor Excitation Mode (0 - Inductive, 1 - Capacitive)
+    { 0xA888, U16, 1, 1, 0.1f, true, true },     // Set Export Limit Percent(%)
+    { 0x9D6A, U16, 1, 1, 1.0f, true, true },     // Enable Power Factor (0 - Disable, 1 - Enable)
+    { 0x9D73, U16, 1, 1, 0.001f, true, true },   // Set Power Factor
+    { 0x9D74, U16, 1, 1, 1.0f, true, true },     // Power Factor Excitation Mode (0 - Inductive, 1 - Capacitive)
     // Tempo
-    { 0xA710, U16, 1, 1, 1.0f, true, false },     // Time Year
-    { 0xA711, U16, 1, 1, 1.0f, true, false },     // Time Month
-    { 0xA712, U16, 1, 1, 1.0f, true, false },     // Time Day
-    { 0xA713, U16, 1, 1, 1.0f, true, false },     // Time Hour
-    { 0xA714, U16, 1, 1, 1.0f, true, false },     // Time Minute
-    { 0xA715, U16, 1, 1, 1.0f, true, false },     // Time Second
+    { 0xA710, U16, 1, 1, 1.0f, true, true },     // Time Year
+    { 0xA711, U16, 1, 1, 1.0f, true, true },     // Time Month
+    { 0xA712, U16, 1, 1, 1.0f, true, true },     // Time Day
+    { 0xA713, U16, 1, 1, 1.0f, true, true },     // Time Hour
+    { 0xA714, U16, 1, 1, 1.0f, true, true },     // Time Minute
+    { 0xA715, U16, 1, 1, 1.0f, true, true },     // Time Second
     INVALID_FIELD,                                // Time Epoch (não disponível nesse modelo)
     // Status
-    { 0xA2B7, U32, 1, 2, 0.1f, true, false },     // Total Energy (kWh)
-    { 0xA2B6, U16, 1, 1, 0.1f, true, false },     // Daily Energy (kWh)    
+    { 0xA2B6, U32, 1, 2, 0.1f, true, false },     // Total Energy (kWh)
+    { 0xA2B5, U16, 1, 1, 0.1f, true, false },     // Daily Energy (kWh)    
 
-    { 0x9C8F, I16, 1, 1, 100.0f, true, false },   // Active Power (kW)
-    { 0x9C90, I16, 1, 1, 100.0f, true, false },   // Apparent Power (kVA)
-    { 0x9C91, I16, 1, 1, 100.0f, true, false },   // Reactive Power (kVAr)
-    { 0x9C92, I16, 1, 1, 0.001f, true, false },   // Power Factor
+    { 0x9C8E, I16, 1, 1, 100.0f, true, false },   // Active Power (kW)
+    { 0x9C8F, I16, 1, 1, 100.0f, true, false },   // Apparent Power (kVA)
+    { 0x9C90, I16, 1, 1, 100.0f, true, false },   // Reactive Power (kVAr)
+    { 0x9C91, I16, 1, 1, 0.001f, true, false },   // Power Factor
 
-    { 0x9C9B, U16, 3, 3, 0.1f, true, false },     // Grid Voltage R, S, T (V)
-    { 0x9C9A, I16, 3, 3, 0.1f, true, false },     // Grid Current R, S, T (A)
-    { 0x9C93, U32, 1, 2, 0.01f, true, false },    // Frequency (Hz)
+    { 0x9C9A, U16, 3, 3, 0.1f, true, false },     // Grid Voltage R, S, T (V)
+    { 0x9C99, I16, 3, 3, 0.1f, true, false },     // Grid Current R, S, T (A)
+    { 0x9C92, U32, 1, 2, 0.01f, true, false },    // Frequency (Hz)
 
-    { 0x9C99, I16, 1, 1, 0.1f, true, false },     // Temperature (°C)
-    { 0xA00E, U16, 1, 1, 1.0f, true, false },     // Insulation Resistance (kΩ)
-    { 0x9C8B, U16, 1, 1, 1.0f, true, false },     // Inverter Status
-    { 0x9C8D, U32, 1, 2, 1.0f, true, false },     // Alarm
+    { 0x9C98, I16, 1, 1, 0.1f, true, false },     // Temperature (°C)
+    { 0xA00D, U16, 1, 1, 1.0f, true, false },     // Insulation Resistance (kΩ)
+    { 0x9C8A, U16, 1, 1, 1.0f, true, false },     // Inverter Status
+    { 0x9C8C, U32, 1, 2, 1.0f, true, false },     // Alarm
 
-    { 0xA019, U16, 24, 2, 1.0f, true, false },    // String Voltage (V)
-    { 0xA01A, U16, 24, 2, 0.01f, true, false },   // String Current (A)
+    { 0xA018, U16, 24, 2, 0.1f, true, false },    // String Voltage (V)
+    { 0xA019, U16, 24, 2, 0.01f, true, false },   // String Current (A)
     INVALID_FIELD,                                // String Power (W) (não disponível nesse modelo)
 
     INVALID_FIELD,                                // Battery Voltage (V) (não disponível nesse modelo)
@@ -357,12 +357,12 @@ static const ModbusInverterMap map_SIW500H PROGMEM = {
     { 0x9D08, U16, 1, 1, 1.0f, false, true },     // Boot. Write 1
     { 0x9D09, U16, 1, 1, 1.0f, false, true },     // Shutdown. Write 1
     INVALID_FIELD,                                // Enable Power Limit (Não disponível nesse modelo)
-    INVALID_FIELD,                                // Set Power Limit (W) (não disponível nesse modelo)
-    INVALID_FIELD,                                // Set Power Limit Percent (%)
+    { 0x9CB8, U16, 1, 1, 0.1f, true, true },      // Set Power Limit (W)
+    { 0x9CBD, U16, 1, 1, 0.1f, true, true },      // Set Power Limit Percent (%)
     { 0xB937, U16, 1, 1, 1.0f, true, true  },     // Enable Export Limit (0-Off, 1-DI, 5-Zero, 6-Power limited, 7-Power limited percent)
-    { 0xB938, U32, 1, 2, 0.001f, true, true  },   // Set Export Limit (kW)
+    { 0xB938, U32, 1, 2, 1.0f, true, true  },     // Set Export Limit (W)
     { 0xB93A, U16, 1, 1, 0.1f, true, true  },     // Set Export Limit Percent(%)
-    { 0x89E8, U16, 1, 1, 1.0f, true, true },      // Enable Power Factor (Não disponível nesse modelo)
+    INVALID_FIELD,                                // Enable Power Factor
     { 0x9CBA, U16, 1, 1, 0.001f, true, true },    // Set Power Factor
     INVALID_FIELD,                                // Power Factor Excitation Mode (Não disponível nesse modelo)
     // Tempo
@@ -372,18 +372,18 @@ static const ModbusInverterMap map_SIW500H PROGMEM = {
     INVALID_FIELD,                                // Time Hour (não disponível nesse modelo)
     INVALID_FIELD,                                // Time Minute (não disponível nesse modelo)
     INVALID_FIELD,                                // Time Second (não disponível nesse modelo)
-    { 0x9C40, U32, 1, 2, 1.0f, true, false },     // Time Epoch
+    { 0x9C40, U32, 1, 2, 1.0f, true, true },      // Time Epoch
     // Status
     { 0x7D6A, U32, 1, 2, 0.01f, true, false },    // Total Energy (kWh) - MSB em 0x0222 e LSB em 0x0223 
     { 0x7D72, U32, 1, 2, 0.01f, true, false },    // Daily Energy (kWh)  
 
-    { 0x7D50, I32, 1, 2, 0.001f, true, false },   // Active Power (W)
+    { 0x7D50, I32, 1, 2, 1.0f, true, false },     // Active Power (W)
     INVALID_FIELD,                                // Apparent Power (kVA) (não disponível nesse modelo)
-    { 0x7D52, I32, 1, 2, 0.001f, true, false },   // Reactive Power (kVAr)
+    { 0x7D52, I32, 1, 2, 1.0f, true, false },     // Reactive Power (VAr)
     { 0x7D54, I16, 1, 1, 0.001f, true, false },   // Power Factor
 
     { 0x7D45, U16, 3, 1, 0.1f, true, false },     // Grid Voltage R, S, T (V)
-    { 0x7D48, I16, 3, 2, 0.001f, true, false },   // Grid Current R, S, T (A)
+    { 0x7D48, I32, 3, 2, 0.001f, true, false },   // Grid Current R, S, T (A)
     { 0x7D55, U16, 1, 1, 0.01f, true, false },    // Frequency (Hz)
 
     { 0x7D57, I16, 1, 1, 0.1f, true, false },     // Temperature (°C)
@@ -393,10 +393,10 @@ static const ModbusInverterMap map_SIW500H PROGMEM = {
 
     { 0x7D10, I16, 24, 2, 0.1f, true, false },    // String Voltage (V)
     { 0x7D11, I16, 24, 2, 0.01f, true, false},    // String Current (A)
-    INVALID_FIELD,                                // String Power (W) (não disponível nesse modelo)
+    INVALID_FIELD,                               // String Power (W) (não disponível nesse modelo)
                              
     { 0x908B, I16, 1, 1, 0.1f, true, false},      // Battery Voltage (V)                
-    { 0x909D, I16, 1, 1, 0.1, true, false },      // Battery Current (A) (não disponível nesse modelo)
+    { 0x909D, I16, 1, 1, 0.1f, true, false },     // Battery Current (A) (não disponível nesse modelo)
     { 0x9089, I32, 1, 2, 1.0f, true, false},      // Battery Power (W)
     { 0x908C, I16, 1, 1, 0.1f, true, false},      // Battery SoC (%)
     { 0x9423, U16, 1, 1, 0.1f, true, false},                                // Battery SoH (%) (não disponível nesse modelo)

@@ -65,6 +65,8 @@ bool Inverter::getYear(uint16_t& year) {
             y = y >> 8;
         }
 
+        y += 2000;
+
         if (y < 1970 || y > 2100) return false;
 
         year = y;
@@ -260,6 +262,7 @@ bool Inverter::setYear(uint16_t year) {
     // Caso 1: registrador direto
     if (_map.time_year.writable) {
         if (_map.time_year.handlerId == GOODWE_HANDLER) {
+            year -= 2000;
             uint16_t reg;
 
             // ler valor atual (contém month junto)

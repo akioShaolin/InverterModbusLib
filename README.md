@@ -1,260 +1,142 @@
-# 🔌 InverterModbusLib
+# InverterModbusLib
 
-## 🇧🇷 Português
+[Português](README.pt-BR.md)
 
-### 📌 Sobre o projeto
+Arduino library for Modbus RTU communication with photovoltaic inverters using ESP8266 and ESP32.
 
-Partes da arquitetura, documentação e exemplos desta biblioteca foram desenvolvidas com auxílio de inteligência artificial para acelerar prototipagem, revisão e organização do código.
+## About the Project
 
-Esta biblioteca tem como objetivo padronizar a comunicação Modbus com inversores fotovoltaicos de diferentes fabricantes, criando uma interface única, consistente e reutilizável.
+Parts of the architecture, documentation and examples of this library were developed with the assistance of artificial intelligence tools to speed up prototyping, review and code organization.
 
-A proposta é permitir que desenvolvedores interajam com inversores sem precisar conhecer os detalhes específicos de cada mapa Modbus.
+This library aims to standardize Modbus communication with photovoltaic inverters from different manufacturers by providing a single, consistent and reusable interface.
 
----
-
-### 🎯 Objetivos
-
-* Padronizar leitura e escrita de dados via Modbus
-* Suportar múltiplos fabricantes e modelos
-* Facilitar integração com sistemas embarcados (ESP8266, ESP32, Arduino)
-* Reduzir retrabalho na implementação de novos inversores
+The goal is to allow developers to interact with inverters without needing to know the specific details of each Modbus map.
 
 ---
 
-## Recursos
+## Project Status
 
-- Leitura de dados do inversor
-- Escrita de parâmetros
-- Suporte a múltiplos fabricantes/modelos
-- Suporte a múltiplos inversores no mesmo barramento
-- Configuração dinâmica de UART/Modbus
-- Compatível com ESP8266 e ESP32
-- Interface orientada a objetos
-- Exemplos com interface web
+This project is currently in **alpha** stage.
 
----
-
-### ⚙️ Como funciona
-
-Cada inversor é descrito por um **mapa de registradores (Modbus Map)**, contendo:
-
-* Endereço
-* Tipo de dado
-* Tamanho
-* Escala
-* Permissões (leitura/escrita)
-
-A biblioteca utiliza esse mapa para interpretar automaticamente os dados.
-
-```cpp
-Inverter inverter(MODEL_X);
-
-float power = inverter.getActivePower();
-auto voltage = inverter.getGridVoltage();
-```
-
----
-
-### 🧠 Arquitetura
-
-* `ModbusField` → descrição de cada dado
-* `InverterMap` → conjunto de campos por modelo
-* `ManufacturerProfile` → regras específicas por fabricante
-* `Inverter` → interface principal
-
----
-
-### 🚧 Status
-
-Projeto em desenvolvimento ativo.
-
-Já suporta:
-
-* leitura estruturada de registradores
-* múltiplos tipos de dados (U16, U32, FLOAT, ASCII)
-* arrays e dados intercalados
-* tratamento de campos não disponíveis
-
----
-
-🚨 Comportamentos conhecidos
-
-Boot/Shutdown em registrador único
-
-Alguns inversores utilizam apenas um único registrador para controle de estado (ligar/desligar).
-
-Nestes casos:
-
-O registrador deve ser mapeado em *_map.boot*
-Não deve ser mapeado em *_map.shutdown*
-
-A biblioteca trata automaticamente as operações de boot e shutdown utilizando os valores definidos em `BootMode`.
-
-- Para os inversores já testados, os mapas realizam automaticamente a normalização das unidades utilizadas pela biblioteca. Exemplo: um inversor pode reportar potência em kW e outro em W; os campos scale realizam a conversão necessária, mesmo que a documentação original utilize unidades diferentes.
-- Os endereços dos registradores são tratados como 0-based internamente. Dependendo da documentação do fabricante, podem existir divergências de endereçamento (0-based vs 1-based).
-- Caso o inversor utilizar apenas um único registrador para controle de estado (liga / desliga), mapeie apenas no _map.boot
-- switch no campo principal, mas o fallback depende de outro campo. (em ExportLimit, o fallback leva a ExportLimitPercent. Não é feita a verificação de FIELD_SIMPLE ou SPECIAL)
-- Valores de energia podem ser expostos como float para conveniência da API. (getTotalEnergy)
-- Para operações acumulativas de longo prazo, recomenda-se utilizar os valores brutos inteiros (uint32_t/int32_t) para evitar perda progressiva de precisão.
-- Em inversores monofásicos, apenas a fase r possui valor válido para leitura de tensão da rede. As fases s e t permanecem zeradas. Em inversores trifásicos que disponibilizam apenas um registrador de frequência, o valor válido será atribuído somente à fase r.
-- Alguns registradores podem variar entre firmwares/modelos.
-- Alguns fabricantes utilizam escalas e endianness diferentes.
-- O mapa Modbus ainda está em evolução e validação prática.
-- Algumas funções de escrita ainda estão em validação e podem variar bastante entre fabricantes. Em certos modelos, diferentes recursos podem compartilhar o mesmo registrador de controle com valores enumerados distintos. Essas funções podem existir internamente, mas ainda não fazem parte da API pública recomendada.
-- Alguns mapas ainda estão em validação prática. Certos fabricantes utilizam registradores diferentes para leitura e escrita, offsets 0-based/1-based, escalas diferentes ou campos parcialmente disponíveis.
-Current Modbus transaction layer is not thread-safe.
-
----
-
-### 🤝 Colaboração com fabricantes
-
-Este projeto busca colaboração direta com fabricantes de inversores.
-
-Se você é fabricante ou representante técnico, sua contribuição é extremamente valiosa.
-
-Estamos interessados em:
-
-* Documentação oficial de mapas Modbus
-* Diferenças entre modelos e firmwares
-* Boas práticas de leitura/escrita
-* Especificações de escala e encoding
-
----
-
-### 📩 Contato
-
-Caso queira colaborar ou fornecer documentação:
-
-* Abra uma issue
-* Entre em contato diretamente
-
----
-
-### 📦 Dependências
-
-Esta biblioteca utiliza a biblioteca ModbusRTU desenvolvida por Emelianov,
-licenciada sob a BSD 3-Clause License.
-
----
-
-### ⚠️ Observação importante
-
-Mapas Modbus podem variar entre modelos e versões de firmware.
-Este projeto busca representar essas variações de forma estruturada e segura.
-
----
-
-## 🇺🇸 English
-
-### 📌 About the project
-
-This library aims to standardize Modbus communication with photovoltaic inverters from different manufacturers, providing a unified and reusable interface.
-
-The goal is to allow developers to interact with inverters without dealing with vendor-specific register maps.
-
----
+The Modbus communication core is already functional, but inverter maps are still being validated in practice with real equipment.
 
 ### 🎯 Goals
 
-* Standardize Modbus read/write operations
-* Support multiple manufacturers and models
-* Enable embedded integrations (ESP8266, ESP32, Arduino)
-* Reduce development effort when adding new devices
+- Provide a simple API for reading data and basic power control with real equipment
+- Standardize data reading and writing through Modbus
+- Support multiple manufacturers and models
+- Make integration with embedded systems easier
+- Reduce rework when implementing support for new inverters
 
 ---
 
-### ⚙️ How it works
+## Features
 
-Each inverter is described by a **Modbus register map**, including:
+- Modbus RTU communication over RS485
+- ESP8266 and ESP32 compatibility
+- Dynamic UART/Modbus configuration
+- Support for multiple inverters on the same bus
+- Modbus maps separated by model/family
+- Object-oriented API
+- Arduino IDE examples
+- Web panel example for testing and validation
+- Structure prepared for future expansion
 
-* Address
-* Data type
-* Length
-* Scale
-* Access permissions
+---
 
-The library uses this map to interpret data automatically.
+## Compatibility
+
+| Model | Status | Notes |
+|---|---|---|
+| SIW200 M030 | Partially validated | Time data uses GoodWe special handling, total energy register reading |
+| SIW200 M050 | Partially validated | Time data uses GoodWe special handling, total energy register reading |
+| SIW200 M100 | Partially validated | Time data uses GoodWe special handling, total energy register reading |
+| SIW400G T100 W0 | Partially validated | Most readings are working |
+| SIW500H ST030 M3 | Partially validated | Power/export limitation working |
+| SIW500H ST015 M0 | Partially validated | Power/export limitation working |
+| SIW420G K075 W00 | Map found | Validation pending |
+| SIW200H M050 W00 | Pending | Map may be different from SIW400G |
+| SIW400H T030 W10 | Pending | Inconclusive test |
+| GW3000N-XS | Partially validated | Time data uses GoodWe special handling, total energy register reading |
+| GW5000-DNS | Partially validated | Time data uses GoodWe special handling, total energy register reading |
+| GW10K-MS | Partially validated | Time data uses GoodWe special handling, total energy register reading |
+| R100 | Partially validated | Most readings are working |
+| H3-PRO | Pending | Inconclusive test |
+| SUN2000-30KTL-M3 | Partially validated | Power/export limitation working |
+| SUN2000-15KTL-M0 | Partially validated | Power/export limitation working |
+
+Models from the same family may share the same Modbus map, but only physically tested models should be considered validated.
+
+---
+
+## Documentation
+
+Detailed documentation is available in the `documentation` folder.
+
+- [Public API](documentation/API.md)
+- [Compatibility and validation](documentation/COMPATIBILITY.md)
+- [Roadmap](documentation/ROADMAP.md)
+
+> Some documents may still be incomplete during the alpha stage.
+
+---
+
+## Installation
+
+### Arduino IDE
+
+Copy the library folder to the Arduino libraries directory:
+
+```text
+Documents/Arduino/libraries/InverterModbusLib
+```
+
+Then restart Arduino IDE and include the library in your sketch:
 
 ```cpp
-Inverter inverter(MODEL_X);
-
-float power = inverter.getActivePower();
-auto voltage = inverter.getGridVoltage();
+#include <InverterModbusLib.h>
 ```
 
 ---
 
-### 🧠 Architecture
+## Known Limitations and Behaviors
 
-* `ModbusField` → describes each data point
-* `InverterMap` → set of fields per model
-* `ManufacturerProfile` → vendor-specific logic
-* `Inverter` → main interface
+Some inverters have manufacturer-specific behaviors, such as different offsets, special fields, control enums, custom date/time formats and partially implemented registers.
 
----
+See:
 
-### 🚧 Status
-
-Work in progress.
-
-Current features:
-
-* structured register reading
-* multiple data types (U16, U32, FLOAT, ASCII)
-* support for arrays and interleaved data
-* handling of unavailable fields
+- [Known behaviors](documentation/KNOWN_BEHAVIORS.md)
+- [Compatibility](documentation/COMPATIBILITY.md)
+- [Validation status](documentation/VALIDATION.md)
 
 ---
 
-### 🚨 Known behaviors
+## 🤝 Collaboration with Manufacturers
 
-Single register for boot/shutdown
+This project seeks direct collaboration with inverter manufacturers.
 
-Some inverters use a single register to control power state (start/stop).
-
-In these cases:
-
-The register must be mapped to *_map.boot*
-It must not be mapped to *_map.shutdown*
-
-The library automatically handles boot and shutdown operations using the values defined in ```bash BootMode```.
-
----
-
-### 🤝 Collaboration with manufacturers
-
-This project actively seeks collaboration with inverter manufacturers.
-
-If you are a manufacturer or technical representative, your contribution is highly valuable.
+If you are a manufacturer or technical representative, your contribution is extremely valuable.
 
 We are interested in:
 
-* Official Modbus protocol documentation
-* Differences between models and firmware versions
-* Recommended read/write practices
-* Scaling and encoding specifications
+- Official Modbus map documentation
+- Differences between models and firmware versions
+- Best practices for reading/writing data
+- Scale and encoding specifications
 
 ---
 
-### 📩 Contact
+## 📩 Contact
 
-If you are willing to collaborate or share documentation:
+If you want to collaborate or provide documentation:
 
-* Open an issue
-* Reach out directly
-
----
-
-### 📦 Dependencies
-
-This library depends on the ModbusRTU library by Emelianov,
-licensed under the BSD 3-Clause License.
+- Open an issue
+- Contact directly
 
 ---
 
-### ⚠️ Disclaimer
+## 📦 Dependencies
 
-Modbus maps may vary between models and firmware versions.
-This project aims to handle these variations in a structured and reliable way.
+This library uses the ModbusRTU library developed by Emelianov, licensed under the BSD 3-Clause License.
 
 ---

@@ -24,17 +24,17 @@ static const ModbusInverterMap map_SIW200 PROGMEM = {
     { 0x0100, U16, 1, 1, 1.0f, true, true },      // Set Power Limit Percent (%)
     { 0x0123, U16, 1, 1, 1.0f, true, true },      // Enable Export Limit (0-Off, 1-On)
     INVALID_FIELD,                                // Set Export Limit (W) (não disponível nesse modelo)
-    { 0x0124, U16, 1, 1, 0.1f, true, true },      // Set Export Limit Percent(%)
+    { 0x0125, U16, 1, 1, 0.1f, true, true },      // Set Export Limit Percent(%)
     INVALID_FIELD,                                // Enable Power Factor (Não disponível nesse modelo)
     { 0x0101, U16, 1, 1, 1.0f, true, true, FIELD_SPECIAL, GOODWE_HANDLER },      // Set Power Factor % [1, 20] LAGGING, [80, 100] LEADING
     INVALID_FIELD,                                // Power Factor Excitation Mode (Não disponível nesse modelo)
     // Tempo
-    { 0x0010, U16, 1, 1, 1.0f, true, false, FIELD_SPECIAL, GOODWE_HANDLER },     // Time Year MSB
-    { 0x0010, U16, 1, 1, 1.0f, true, false, FIELD_SPECIAL, GOODWE_HANDLER },     // Time Month LSB
-    { 0x0011, U16, 1, 1, 1.0f, true, false, FIELD_SPECIAL, GOODWE_HANDLER },     // Time Day MSB
-    { 0x0011, U16, 1, 1, 1.0f, true, false, FIELD_SPECIAL, GOODWE_HANDLER },     // Time Hour LSB
-    { 0x0012, U16, 1, 1, 1.0f, true, false, FIELD_SPECIAL, GOODWE_HANDLER },     // Time Minute MSB
-    { 0x0012, U16, 1, 1, 1.0f, true, false, FIELD_SPECIAL, GOODWE_HANDLER },     // Time Second LSB
+    { 0x0010, U16, 1, 1, 1.0f, true, true, FIELD_SPECIAL, GOODWE_HANDLER },     // Time Year MSB
+    { 0x0010, U16, 1, 1, 1.0f, true, true, FIELD_SPECIAL, GOODWE_HANDLER },     // Time Month LSB
+    { 0x0011, U16, 1, 1, 1.0f, true, true, FIELD_SPECIAL, GOODWE_HANDLER },     // Time Day MSB
+    { 0x0011, U16, 1, 1, 1.0f, true, true, FIELD_SPECIAL, GOODWE_HANDLER },     // Time Hour LSB
+    { 0x0012, U16, 1, 1, 1.0f, true, true, FIELD_SPECIAL, GOODWE_HANDLER },     // Time Minute MSB
+    { 0x0012, U16, 1, 1, 1.0f, true, true, FIELD_SPECIAL, GOODWE_HANDLER },     // Time Second LSB
     INVALID_FIELD,                                // Time Epoch (não disponível nesse modelo)
     // Status
     { 0x0222, U16, 2, 1, 0.1f, true, false },     // Total Energy (kWh) - MSB em 0x0222 e LSB em 0x0223 
@@ -47,7 +47,7 @@ static const ModbusInverterMap map_SIW200 PROGMEM = {
 
     { 0x022A, U16, 3, 1, 0.1f, true, false },     // Grid Voltage R, S, T (V)
     { 0x022D, U16, 3, 1, 0.1f, true, false },     // Grid Current R, S, T (A)
-    { 0x022F, U16, 3, 1, 0.01f, true, false },    // Frequency (Hz)
+    { 0x0230, U16, 3, 1, 0.01f, true, false },    // Frequency (Hz)
 
     { 0x0235, U16, 1, 1, 0.1f, true, false },     // Temperature (°C)
     INVALID_FIELD,                                // Insulation Resistance (kΩ)
@@ -455,7 +455,7 @@ static const ModbusInverterMap map_SIW400H_W10 PROGMEM = {
 
 static const ModbusInverterMap map_SIW420G PROGMEM = {
     // Identificação
-    { 0x000A, ASCII, 10, 1, 1.0f, true, false },   // Serial. Scale é ignorado para ASCII; usar 1.0f apenas como valor neutro
+    { 0x0006, U64, 1, 4, 1.0f, true, false },   // Serial. Scale é ignorado para ASCII; usar 1.0f apenas como valor neutro
     // Controle
     INVALID_FIELD,     // Boot. Write 1
     INVALID_FIELD,     // Shutdown. Write 1
@@ -477,8 +477,8 @@ static const ModbusInverterMap map_SIW420G PROGMEM = {
     INVALID_FIELD,                                // Time Second (não disponível nesse modelo)
     INVALID_FIELD,     // Time Epoch
     // Status
-    INVALID_FIELD,    // Total Energy (kWh) - MSB em 0x0222 e LSB em 0x0223 
-    INVALID_FIELD,   // Daily Energy (kWh)  
+    { 0x0016, U32, 1, 2, 0.1f, true, false },     // Total Energy (kWh) - MSB em 0x0222 e LSB em 0x0223 
+    { 0x0018, U16, 1, 1, 0.1f, true, false },     // Daily Energy (kWh)  
 
     INVALID_FIELD,   // Active Power (W)
     INVALID_FIELD,                                // Apparent Power (kVA) (não disponível nesse modelo)

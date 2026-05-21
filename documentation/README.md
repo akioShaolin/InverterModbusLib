@@ -1,28 +1,34 @@
-# 📚 Documentation
+# Documentation
 
-This folder is reserved for detailed documentation of the inverterLib project.
+This folder contains detailed documentation for InverterModbusLib.
 
-## Planned contents
+## Available Documents
 
-- Inverter models and supported manufacturers
-- Modbus register maps (per device)
-- Data types and decoding rules
-- Communication configuration (baud rate, parity, etc.)
-- Examples and use cases
-- Known limitations and edge cases
+- [Public API](API.md)
+- [Compatibility](COMPATIBILITY.md)
+- [Validation](VALIDATION.md)
+- [Known Behaviors](KNOWN_BEHAVIORS.md)
+- [Roadmap](ROADMAP.md)
 
-## Notes
+## Documentation Notes
 
-- Keep documentation clear and structured
-- Prefer diagrams and tables when possible
-- Separate content by manufacturer and model
-- Always indicate firmware/version when relevant
+This project is currently in alpha stage. Some documents may still be incomplete or change frequently.
 
-## TODO
+When reading compatibility and validation information, consider that inverter behavior may vary depending on:
 
-- [ ] Add first inverter Modbus map
-- [ ] Document data types (U16, U32, FLOAT32, ASCII)
-- [ ] Create communication setup guide
-- [ ] Add real-world examples
+- firmware version
+- manufacturer documentation
+- region
+- communication interface
+- inverter configuration
+- enabled permissions
 
-- [API](API.md)
+## Future Documentation
+
+Planned documentation includes:
+
+- manufacturer-specific notes
+- model-specific validation tables
+- Modbus map notes
+- examples of real-world use
+- troubleshooting guides

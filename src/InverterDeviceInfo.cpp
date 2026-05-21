@@ -90,6 +90,15 @@ bool Inverter::getSerialNumber(String& serialNumber) {
                 serialNumber = String(buffer); // Transforma o número em string
                 return true;
             }
+
+            if (_map.serialNumber.type == U64) {
+                uint64_t buffer;
+                if (!readField(_map.serialNumber, &buffer)) return false;
+
+                serialNumber = String(buffer); // Transforma o número em string
+                return true;
+            }
+
             return false;
 
         default:

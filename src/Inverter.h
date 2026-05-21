@@ -174,36 +174,7 @@ public:
     bool getInsulationResistance(float& kiloOhms);   //
     // ------------------------------------------------------
 
-private:
-
-    // Variáveis privadas
-    // ------------------------------------------------------
-    ModbusRTU* _mb = nullptr;                        //
-    ModbusConfigData _cfg;                           //
-    ModbusConfig _modbus;                            //
-    HardwareSerial* _serialPort;                     //
-    InverterModel _model;                            //
-    InverterDescriptor _descriptor;                  //
-    ModbusInverterMap _map;                          //
-    String _serialNumber;                            //
-    // ------------------------------------------------------
-
-    // Arquivo InverterControl.cpp
-    // ------------------------------------------------------
-    // Helpers internos
-    bool isInvalidField(const ModbusField& field);   //
-    // ------------------------------------------------------
-
-    // Arquivo InverterTime.cpp
-    // ------------------------------------------------------
-    // Conversões e validações internas
-    bool isLeap(uint16_t y);                         //
-    Datetime epochToDatetime(uint32_t epoch);        //
-    bool isValidDatetime(const Datetime& dt);        //
-    uint32_t datetimeToEpoch(const Datetime& dt);    //
-    // ------------------------------------------------------
-
-    // ------------------------------------------------------
+       // ------------------------------------------------------
     // Privates temporárias (em desenvolvimento)
     bool setPowerLimitEnabled(bool enabled);            //
     bool setExportLimitEnabled(bool enabled);           //
@@ -244,6 +215,37 @@ private:
     // Status/Alarmes
     bool getInverterStatus(uint32_t status);//InverterStatus& status);  //
     bool getAlarm(uint32_t alarm);//Alarm& alarm);                     //
+
+private:
+
+    // Variáveis privadas
+    // ------------------------------------------------------
+    ModbusRTU* _mb = nullptr;                        //
+    ModbusConfigData _cfg;                           //
+    ModbusConfig _modbus;                            //
+    HardwareSerial* _serialPort;                     //
+    InverterModel _model;                            //
+    InverterDescriptor _descriptor;                  //
+    ModbusInverterMap _map;                          //
+    String _serialNumber;                            //
+    // ------------------------------------------------------
+
+    // Arquivo InverterControl.cpp
+    // ------------------------------------------------------
+    // Helpers internos
+    bool isInvalidField(const ModbusField& field);   //
+    // ------------------------------------------------------
+
+    // Arquivo InverterTime.cpp
+    // ------------------------------------------------------
+    // Conversões e validações internas
+    bool isLeap(uint16_t y);                         //
+    Datetime epochToDatetime(uint32_t epoch);        //
+    bool isValidDatetime(const Datetime& dt);        //
+    uint32_t datetimeToEpoch(const Datetime& dt);    //
+    // ------------------------------------------------------
+
+ 
 
 
     // ------------------------------------------------------

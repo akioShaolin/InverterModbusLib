@@ -48,9 +48,9 @@ The Modbus communication core is already functional, but inverter maps are still
 
 | Model | Status | Notes |
 |---|---|---|
-| SIW200 M030 | Partially validated | Time data uses GoodWe special handling, total energy register reading |
-| SIW200 M050 | Partially validated | Time data uses GoodWe special handling, total energy register reading |
-| SIW200 M100 | Partially validated | Time data uses GoodWe special handling, total energy register reading |
+| SIW200 M030 | Partially validated | Time data uses GoodWe-compatible handling |
+| SIW200 M050 | Partially validated | Time data uses GoodWe-compatible handling |
+| SIW200 M100 | Partially validated | Time data uses GoodWe-compatible handling |
 | SIW400G T100 W0 | Partially validated | Most readings are working |
 | SIW500H ST030 M3 | Partially validated | Power/export limitation working |
 | SIW500H ST015 M0 | Partially validated | Power/export limitation working |

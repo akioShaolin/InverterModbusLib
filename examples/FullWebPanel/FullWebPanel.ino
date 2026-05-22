@@ -38,7 +38,7 @@ const char* AP_PASS = "12345678";
 // Modbus / RS485 defaults
 // ====================================================== 
 
-int8_t deRePin = 12;
+int8_t deRePin = -1;
 
 ESP8266WebServer server(80);
 ModbusRTU mb;
@@ -436,13 +436,6 @@ void handleApiSet() {
     dt.minute = server.arg("minute").toInt();
     dt.second = server.arg("second").toInt();
   }
-  else if (fn == "setYear") { group = "setTime"; ok = inverter->setYear((uint16_t)u); }
-  else if (fn == "setMonth") { group = "setTime"; ok = inverter->setMonth((uint16_t)u); }
-  else if (fn == "setDay") { group = "setTime"; ok = inverter->setDay((uint16_t)u); }
-  else if (fn == "setHour") { group = "setTime"; ok = inverter->setHour((uint16_t)u); }
-  else if (fn == "setMinute") { group = "setTime"; ok = inverter->setMinute((uint16_t)u); }
-  else if (fn == "setSecond") { group = "setTime"; ok = inverter->setSecond((uint16_t)u); }
-  else if (fn == "setEpochTime") { group = "setTime"; ok = inverter->setEpochTime(u); }
   else { server.send(400, "text/plain", "Unknown function"); return;}
 
   server.send(200, "text/html", ok ? "OK" : "Falha");

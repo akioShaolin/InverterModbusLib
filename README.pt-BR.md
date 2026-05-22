@@ -48,9 +48,9 @@ O núcleo de comunicação Modbus já está funcional, mas os mapas dos inversor
 
 | Modelo | Status | Observações |
 |---|---|---|
-| SIW200 M030 | Parcialmente validado | Dados de tempo usam tratamento especial GoodWe, leitura do reg de Energia total |
-| SIW200 M050 | Parcialmente validado | Dados de tempo usam tratamento especial GoodWe, leitura do reg de Energia total |
-| SIW200 M100 | Parcialmente validado | Dados de tempo usam tratamento especial GoodWe, leitura do reg de Energia total |
+| SIW200 M030 | Parcialmente validado | Dados de tempo usam tratamento compatível com GoodWe |
+| SIW200 M050 | Parcialmente validado | Dados de tempo usam tratamento compatível com GoodWe |
+| SIW200 M100 | Parcialmente validado | Dados de tempo usam tratamento compatível com GoodWe |
 | SIW400G T100 W0 | Parcialmente validado | Grande parte das leituras funcionando |
 | SIW500H ST030 M3 | Parcialmente validado | Limitação de potência/exportação funcionando |
 | SIW500H ST015 M0 | Parcialmente validado | Limitação de potência/exportação funcionando |

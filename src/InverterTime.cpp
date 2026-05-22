@@ -63,9 +63,8 @@ bool Inverter::getYear(uint16_t& year) {
 
         if (_map.time_year.handlerId == GOODWE_HANDLER) {
             y = y >> 8;
+            y += 2000;
         }
-
-        y += 2000;
 
         if (y < 1970 || y > 2100) return false;
 

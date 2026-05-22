@@ -44,17 +44,17 @@ After startup, connect to:
 
 Files ending in `_1` show the model selection menu.
 
-![SIW400G selection](resources/ReadSerialTwoInverters/400G_1.jpeg)
+![SIW400G selection](../../resources/ReadSerialTwoInverters/400G_1.jpeg)
 
-![SIW500H selection](resources/ReadSerialTwoInverters/500H_1.jpeg)
+![SIW500H selection](../../resources/ReadSerialTwoInverters/500H_1.jpeg)
 
 ### Serial Number Result
 
 Files ending in `_2` show the serial number result.
 
-![SIW400G serial result](resources/ReadSerialTwoInverters/400G_2.jpeg)
+![SIW400G serial result](../../resources/ReadSerialTwoInverters/400G_2.jpeg)
 
-![SIW500H serial result](resources/ReadSerialTwoInverters/500H_2.jpeg)
+![SIW500H serial result](../../resources/ReadSerialTwoInverters/500H_2.jpeg)
 
 ## Modbus Configuration
 
@@ -92,14 +92,10 @@ getSerialNumber()
 ### Folder Structure
 
 ```bash
-examples/
+resources/
 └── ReadSerialTwoInverters/
-    ├── ReadSerialTwoInverters.ino
-    ├── README.md
-    └── resources/
-        └── ReadSerialTwoInverters/
-            ├── 400G_1.jpeg
-            ├── 400G_2.jpeg
-            ├── 500H_1.jpeg
-            └── 500H_2.jpeg
+    ├── 400G_1.jpeg
+    ├── 400G_2.jpeg
+    ├── 500H_1.jpeg
+    └── 500H_2.jpeg
 ```

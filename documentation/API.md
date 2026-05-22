@@ -102,7 +102,6 @@ bool getStringCurrent(StringValues& current);
 ## Date and Time
 
 ```cpp
-bool getDatetime(Datetime& dt);
 
 bool getYear(uint16_t& year);
 bool getMonth(uint16_t& month);
@@ -113,16 +112,6 @@ bool getSecond(uint16_t& second);
 
 bool getEpochTime(uint32_t& epoch);
 
-bool setDatetime(Datetime dt);
-
-bool setYear(uint16_t year);
-bool setMonth(uint16_t month);
-bool setDay(uint16_t day);
-bool setHour(uint16_t hour);
-bool setMinute(uint16_t minute);
-bool setSecond(uint16_t second);
-
-bool setEpochTime(uint32_t epoch);
 ```
 
 ## Data Structures
@@ -151,19 +140,6 @@ struct StringValues {
 };
 ```
 
-### Datetime
-
-```cpp
-struct Datetime {
-    uint16_t year;
-    uint8_t month;
-    uint8_t day;
-    uint8_t hour;
-    uint8_t minute;
-    uint8_t second;
-};
-```
-
 ## Return Values
 
 Most functions return `bool`.
@@ -187,6 +163,17 @@ Some functions may exist in the library but are not considered stable for the cu
 Examples:
 
 ```cpp
+
+bool isBooted(bool& isBooted);
+bool isPowerLimitEnabled(bool& enabled);
+bool getPowerLimit(float& watts);
+bool getPowerLimitPercent(float& percent);
+bool isExportLimitEnabled(bool& enabled);
+bool getExportLimit(float& watts);
+bool getExportLimitPercent(float& percent);
+bool isPowerFactorEnabled(bool& enabled);
+bool getPowerFactorSetpoint(float& pf);
+
 bool setPowerLimitEnabled(bool enabled);
 bool setExportLimitEnabled(bool enabled);
 bool setPowerFactorEnabled(bool enabled);
@@ -196,6 +183,19 @@ bool setPowerFactorExcitationMode(PfExcitationMode excitationMode);
 bool getReactivePower(float& voltAmperReactive);
 bool getApparentPower(float& voltAmper);
 bool getPowerFactor(float& pf);
+
+bool getDatetime(Datetime& dt);
+
+bool setDatetime(Datetime dt);
+bool setYear(uint16_t year);
+bool setMonth(uint16_t month);
+bool setDay(uint16_t day);
+bool setHour(uint16_t hour);
+bool setMinute(uint16_t minute);
+bool setSecond(uint16_t second);
+bool setEpochTime(uint32_t epoch);
+
+bool getStringPower(StringValues& power);
 
 bool getInverterStatus(InverterStatus& status);
 bool getAlarm(Alarm& alarm);

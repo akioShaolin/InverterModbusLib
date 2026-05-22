@@ -112,7 +112,7 @@ bool Inverter::boot() {
 
         default:
             return false;
-    }    
+    }
 }
 
 bool Inverter::setBoot(bool enable) {
@@ -169,7 +169,7 @@ bool Inverter::setPowerLimit(float watts) {
     switch (_map.PowerLimit.mode) {
 
         case FIELD_SIMPLE:
-            if (_map.PowerLimit.writable && _map.PowerLimit.scale == 0.0f) {
+            if (_map.PowerLimit.writable && _map.PowerLimit.scale != 0.0f) {
                 return writeField(_map.PowerLimit, watts / _map.PowerLimit.scale);
             }
 

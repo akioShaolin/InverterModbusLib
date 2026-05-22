@@ -89,6 +89,21 @@ enum class StatusFormat {
     BITFIELD32
 };
 
+enum ProtocolFamily {
+    PROTOCOL_DEFAULT,
+    PROTOCOL_GOODWE_COMPAT,
+    PROTOCOL_HUAWEI_COMPAT,
+    PROTOCOL_FOXESS_COMPAT,
+    PROTOCOL_CHINT_COMPAT,
+    PROTOCOL_WEG_COMPAT
+};
+
+constexpr ModbusConfigData defaultModbusConfig PROGMEM {1, 9600, SERIAL_8N1};
+constexpr PowerLimitMode defaultPowerLimitMode PROGMEM = {0x00, 0x01};
+constexpr ExportLimitMode defaultExportLimitMode PROGMEM = {0x01, 0x00};
+constexpr BootMode defaultBootMode PROGMEM = {0x01, 0x00};
+constexpr BatteryInfo noBattery PROGMEM = {0, 0, {0}};
+
 struct InverterDescriptor {
     // Identificação elétrica do equipamento
     InverterTopology topology;
@@ -99,6 +114,7 @@ struct InverterDescriptor {
 
     // Comunicação
     const ModbusConfigData* config;
+    ProtocolFamily protocolFamily;
 
     // Recursos disponíveis
     PVInfo pvInfo;
@@ -112,6 +128,10 @@ struct InverterDescriptor {
     StatusFormat statusFormat;
 };
 
-InverterDescriptor getDescriptor(InverterModel model);
+const InverterDescriptor getDescriptor(InverterModel model);
+const InverterDescriptor getDescriptor_Weg(InverterModel model);
+const InverterDescriptor getDescriptor_FoxEss(InverterModel model);
+const InverterDescriptor getDescriptor_GoodWe(InverterModel model);
+const InverterDescriptor getDescriptor_Huawei(InverterModel model);
 
 #endif

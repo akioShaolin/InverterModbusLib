@@ -1,13 +1,3 @@
-
----
-
-## `COMPATIBILITY.md`
-
-Esse é o documento de compatibilidade por modelo/família. Aqui você pode ser mais específico.
-
-Sugestão:
-
-```md
 # Compatibilidade
 
 Este documento lista os modelos e famílias de inversores considerados pela InverterModbusLib.

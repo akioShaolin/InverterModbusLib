@@ -15,9 +15,12 @@
 
 // Organização das Features
 
+constexpr uint16_t FEATURE_VALUE_NONE = 0xFFFF;
+
 struct IdentificationFeature {
     ModbusField serialNumber;
     ModbusField modelId;
+    ModbusField modelName;
     ModbusField firmwareVersion;
 };
 
@@ -67,18 +70,19 @@ struct ExportLimitFeature {
 
 struct ReactivePowerFeature {
     ModbusField enable;
-    ModbusField powerFactor;
+    ModbusField controlMode;
+
+    ModbusField powerFactorSetpoint;
     ModbusField excitationMode;
-    ModbusField reactivePower;
+    ModbusField fixedReactivePowerSetpoint;
 
     uint16_t disableValue;
-    uint16_t enableValue;
-    uint16_t inductiveValue;
-    uint16_t capacitiveValue;
+    uint16_t enablePowerFactorValue;
+    uint16_t enableFixedReactivePowerValue;
 
-    bool supportsPowerFactor;
+    bool supportsPowerFactorSetpoint;
     bool supportsExcitationMode;
-    bool supportsReactivePower;
+    bool supportsFixedReactivePower;
     bool requiresEnableBeforeWrite;
 };
 
@@ -97,6 +101,13 @@ struct TimeFeature {
     bool usesBCD;
 };
 
+struct PowerMeasurementFeature {
+    ModbusField activePower;
+    ModbusField reactivePower;
+    ModbusField apparentPower;
+    ModbusField powerFactor;
+};
+
 struct GridFeature {
     ModbusField voltage;
     ModbusField current;
@@ -105,19 +116,9 @@ struct GridFeature {
     uint8_t phaseCount;
 };
 
-struct PowerMeasurementFeature {
-    ModbusField activePower;
-    ModbusField reactivePower;
-    ModbusField apparentPower;
-    ModbusField powerFactor;
-};
-
 struct EnergyFeature {
     ModbusField total;
     ModbusField daily;
-
-    bool totalUsesSwappedWords;
-    bool dailyUsesSwappedWords;
 };
 
 struct PvStringFeature {
@@ -125,7 +126,11 @@ struct PvStringFeature {
     ModbusField current;
     ModbusField power;
 
-    uint8_t stringCount;
+    ModbusField stringCount;
+    ModbusField MpptCount;
+
+    bool stringCountFromDescriptor;
+    bool mpptCountFromDescriptor;
 };
 
 struct BatteryFeature {

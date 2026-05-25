@@ -25,12 +25,6 @@ struct Datetime {
 };
 
 struct ModbusInverterMap {
-    // Identificação
-    ModbusField serialNumber;
-
-    // Controle
-    ModbusField boot;
-    ModbusField shutdown;
 
     IdentificationFeature identification;
     ControlFeature control;
@@ -50,9 +44,15 @@ struct ModbusInverterMap {
     EpsFeature eps;
 
     DiagnosticFeature diagnostic;
-    StatusFeature status;
+    StatusFeature status; // */
 
     /*
+    // Identificação
+    ModbusField serialNumber;
+    // Controle
+    ModbusField boot;
+    ModbusField shutdown;    
+
     ModbusField enablePowerLimit;
     ModbusField PowerLimit;
     ModbusField PowerLimitPercent;
@@ -104,14 +104,6 @@ struct ModbusInverterMap {
     ModbusField epsCurrent;
     ModbusField epsActivePower;
     */
-// ActivePowerFeature
-// ReactivePowerFeature
-// EpsFeature
-// BatteryFeature
-// PvStringFeature
-// GridFeature
-// EnergyFeature
-// DeviceStatusFeature
 };
 
 ModbusInverterMap getInverterMap(InverterModel model);

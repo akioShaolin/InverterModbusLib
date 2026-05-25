@@ -10,7 +10,7 @@
 #include "InverterDescriptor.h"
 #include "InverterModels.h"
 
-constexpr BootMode hwCompBootMode PROGMEM =      {0x01, 0x01};
+constexpr BootMode hwCompBootMode PROGMEM =      {0x00, 0x00};
 constexpr BootMode gwCompBootMode PROGMEM =      {0x00, 0x00};
 constexpr BootMode fxCompBootMode PROGMEM = {0xCF, 0xCE};
 constexpr PowerLimitMode hwCompPowerLimitMode PROGMEM = {0x00, 0x01};

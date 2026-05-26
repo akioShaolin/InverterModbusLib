@@ -10,11 +10,6 @@
 #include "InverterDescriptor.h"
 #include "InverterModels.h"
 
-constexpr BootMode hwCompBootMode PROGMEM =      {0x00, 0x00};
-constexpr BootMode gwCompBootMode PROGMEM =      {0x00, 0x00};
-constexpr BootMode fxCompBootMode PROGMEM = {0xCF, 0xCE};
-constexpr PowerLimitMode hwCompPowerLimitMode PROGMEM = {0x00, 0x01};
-constexpr ExportLimitMode fxCompExportLimitMode PROGMEM = {0xAA, 0x55};
 constexpr ModbusConfigData gwCompModbusConfig PROGMEM {247, 9600, SERIAL_8N1};
 // Weg
 constexpr InverterDescriptor desc_SIW200_M030 PROGMEM =            {STRING, ON_GRID, SINGLE_PHASE, NO_EPS, 3000U,  &gwCompModbusConfig, PROTOCOL_GOODWE_COMPAT, {1, 1, {0}}, noBattery, &gwCompBootMode, &defaultPowerLimitMode,nullptr, AlarmFormat::BITFIELD32, StatusFormat::ENUM_CODE  };
@@ -72,7 +67,19 @@ constexpr InverterDescriptor desc_SIW500G_H250_W0 PROGMEM =        {STRING, ON_G
 constexpr InverterDescriptor desc_SIW500H_ST012_M2 PROGMEM =       {STRING, ON_GRID, THREE_PHASE, NO_EPS, 12000U,  &defaultModbusConfig, PROTOCOL_HUAWEI_COMPAT, {4, 2,   {0, 0, 1, 1}}, noBattery, &hwCompBootMode, &hwCompPowerLimitMode, &defaultExportLimitMode, AlarmFormat::BITFIELD16, StatusFormat::BITFIELD16 };
 constexpr InverterDescriptor desc_SIW500H_ST015_M2 PROGMEM =       {STRING, ON_GRID, THREE_PHASE, NO_EPS, 15000U,  &defaultModbusConfig, PROTOCOL_HUAWEI_COMPAT, {4, 2,   {0, 0, 1, 1}}, noBattery, &hwCompBootMode, &hwCompPowerLimitMode, &defaultExportLimitMode, AlarmFormat::BITFIELD16, StatusFormat::BITFIELD16 };
 constexpr InverterDescriptor desc_SIW500H_ST020_M2 PROGMEM =       {STRING, ON_GRID, THREE_PHASE, NO_EPS, 20000U,  &defaultModbusConfig, PROTOCOL_HUAWEI_COMPAT, {4, 2,   {0, 0, 1, 1}}, noBattery, &hwCompBootMode, &hwCompPowerLimitMode, &defaultExportLimitMode, AlarmFormat::BITFIELD16, StatusFormat::BITFIELD16 };
-constexpr InverterDescriptor desc_SIW500H_ST030_M3 PROGMEM =       {STRING, ON_GRID, THREE_PHASE, NO_EPS, 30000U,  &defaultModbusConfig, PROTOCOL_HUAWEI_COMPAT, {8, 4,   {0, 0, 1, 1, 2, 2, 3, 3}}, noBattery, &hwCompBootMode, &hwCompPowerLimitMode, &defaultExportLimitMode, AlarmFormat::BITFIELD16, StatusFormat::BITFIELD16 };
+constexpr InverterDescriptor desc_SIW500H_ST030_M3 PROGMEM = {
+    STRING,
+    ON_GRID,
+    THREE_PHASE,
+    NO_EPS,
+    30000U,
+    &defaultModbusConfig,
+    PROTOCOL_HUAWEI_COMPAT,
+    { 8, 4,   {0, 0, 1, 1, 2, 2, 3, 3}},
+    noBattery,
+    AlarmFormat::BITFIELD16,
+    StatusFormat::BITFIELD16
+};
 constexpr InverterDescriptor desc_SIW500H_ST036_M3 PROGMEM =       {STRING, ON_GRID, THREE_PHASE, NO_EPS, 36000U,  &defaultModbusConfig, PROTOCOL_HUAWEI_COMPAT, {8, 4,   {0, 0, 1, 1, 2, 2, 3, 3}}, noBattery, &hwCompBootMode, &hwCompPowerLimitMode, &defaultExportLimitMode, AlarmFormat::BITFIELD16, StatusFormat::BITFIELD16 };
 constexpr InverterDescriptor desc_SIW500H_ST040_M3 PROGMEM =       {STRING, ON_GRID, THREE_PHASE, NO_EPS, 40000U,  &defaultModbusConfig, PROTOCOL_HUAWEI_COMPAT, {8, 4,   {0, 0, 1, 1, 2, 2, 3, 3}}, noBattery, &hwCompBootMode, &hwCompPowerLimitMode, &defaultExportLimitMode, AlarmFormat::BITFIELD16, StatusFormat::BITFIELD16 };
 constexpr InverterDescriptor desc_SIW500H_SK020 PROGMEM =          {STRING, ON_GRID, THREE_PHASE, NO_EPS, 20000U,  &defaultModbusConfig, PROTOCOL_HUAWEI_COMPAT, {8, 4,   {0, 0, 1, 1, 2, 2, 3, 3}}, noBattery, &hwCompBootMode, &hwCompPowerLimitMode, &defaultExportLimitMode, AlarmFormat::BITFIELD16, StatusFormat::BITFIELD16 };

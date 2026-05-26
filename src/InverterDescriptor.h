@@ -59,21 +59,6 @@ struct BatteryInfo {
     uint8_t portCount;      // Número de entradas, relevante para inversores do tipo Hibrido e Offgrid, pode ser 0 para outros tipos
     uint8_t batteryToPort[MAX_BATTERIES];  // Distribuição das Baterias pelas Entradas
 };
-    
-struct BootMode {
-    uint16_t bootValue;
-    uint16_t shutdownValue;
-};
-
-struct PowerLimitMode {
-    uint16_t powerLimitEnable;
-    uint16_t powerLimitDisable;
-};
-
-struct ExportLimitMode {
-    uint16_t exportLimitEnable;
-    uint16_t exportLimitDisable;
-};
 
 enum class AlarmFormat {
     UNKNOWN,
@@ -99,9 +84,6 @@ enum ProtocolFamily {
 };
 
 constexpr ModbusConfigData defaultModbusConfig PROGMEM {1, 9600, SERIAL_8N1};
-constexpr PowerLimitMode defaultPowerLimitMode PROGMEM = {0x00, 0x01};
-constexpr ExportLimitMode defaultExportLimitMode PROGMEM = {0x01, 0x00};
-constexpr BootMode defaultBootMode PROGMEM = {0x01, 0x00};
 constexpr BatteryInfo noBattery PROGMEM = {0, 0, {0}};
 
 struct InverterDescriptor {
@@ -119,9 +101,6 @@ struct InverterDescriptor {
     // Recursos disponíveis
     PVInfo pvInfo;
     BatteryInfo batteryInfo;
-    const BootMode* bootMode;    
-    const PowerLimitMode* powerLimitMode;
-    const ExportLimitMode* exportLimitMode;
     
     // Formatos de interpretação de alarmes e status
     AlarmFormat alarmFormat;

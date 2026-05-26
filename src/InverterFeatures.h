@@ -15,8 +15,6 @@
 
 // Organização das Features
 
-constexpr uint16_t FEATURE_VALUE_NONE = 0xFFFF;
-
 struct IdentificationFeature {
     ModbusField serialNumber;
     ModbusField modelId;
@@ -45,6 +43,8 @@ struct ActivePowerFeature {
     uint16_t wattsModeValue;
     uint16_t percentModeValue;
 
+    bool supportsEnable;
+    bool implicitEnable;
     bool supportsWatts;
     bool supportsPercent;
     bool requiresEnableBeforeWrite;
@@ -164,7 +164,5 @@ struct StatusFeature {
     //AlarmFormat alarmFormat;
     //StatusFormat statusFormat;
 };
-
-// Declaração de pequenas constantes
 
 #endif

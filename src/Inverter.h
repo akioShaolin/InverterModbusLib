@@ -203,7 +203,6 @@ private:
     bool setPowerFactor(float pf);                      //
     bool setPowerFactorExcitationMode(PfExcitationMode excitationMode); //
 
-    bool isBooted(bool& isBooted);                   //
     bool isPowerLimitEnabled(bool& enabled);         //
     bool getPowerLimit(float& watts);                //
     bool getPowerLimitPercent(float& percent);       //
@@ -244,6 +243,7 @@ private:
     bool getInverterStatus(uint32_t status);//InverterStatus& status);  //
     bool getAlarm(uint32_t alarm);//Alarm& alarm);                     //
 
+    bool Inverter::hasValidMap() const;
     // ------------------------------------------------------
     // Centro das operações Modbus
     // Arquivo InverterCore.cpp

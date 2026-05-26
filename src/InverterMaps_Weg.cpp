@@ -9,6 +9,8 @@
 
 #include "InverterMaps.h"
 
+constexpr uint16_t FEATURE_VALUE_NONE = 0xFFFF;
+
 constexpr BatteryFeature noBattery = {
     INVALID_FIELD,
     INVALID_FIELD,
@@ -26,13 +28,12 @@ constexpr EpsFeature noEps = {
     0
 };
 
-
 static const ModbusInverterMap map_SIW500H_M3 PROGMEM = {
     // identification
     {
         { 0x753F, ASCII, 10, 1, 1.0f, true, false },    // Serial. Scale é ignorado para ASCII; usar 1.0f apenas como valor neutro
-        { 0x7576, U16, 1, 1.0f, true, false },          // Model ID
-        { 0x7530, ASCII, 15, 1.0f, true, false },       // Model Name
+        { 0x7576, U16, 1, 1, 1.0f, true, false },       // Model ID
+        { 0x7530, ASCII, 15, 1, 1.0f, true, false },    // Model Name
         INVALID_FIELD                                   // O firmware é obtido pelo Model ID
     }, {
         { 0x9D08, U16, 1, 1, 1.0f, false, true },       // Boot. Write 1
@@ -49,6 +50,8 @@ static const ModbusInverterMap map_SIW500H_M3 PROGMEM = {
         FEATURE_VALUE_NONE,                             // enableValue
         FEATURE_VALUE_NONE,                             // wattsModeValue
         FEATURE_VALUE_NONE,                             // percentModeValue
+        false,                                          // supportsEnable
+        true,                                           // implicitEnable
         true,                                           // supportsWatts
         true,                                           // supportsPercent
         false,                                          // requiresEnableBeforeWrite
@@ -123,3 +126,4 @@ static const ModbusInverterMap map_SIW500H_M3 PROGMEM = {
 
     }
 };
+

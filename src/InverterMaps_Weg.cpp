@@ -11,6 +11,37 @@
 
 constexpr uint16_t FEATURE_VALUE_NONE = 0xFFFF;
 
+constexpr ReactivePowerFeature NO_REACTIVE_POWER_FEATURE = {
+    INVALID_FIELD,
+    INVALID_FIELD,
+    INVALID_FIELD,
+
+    INVALID_FIELD,
+    INVALID_FIELD,
+    INVALID_FIELD,
+
+    FEATURE_VALUE_NONE,
+    FEATURE_VALUE_NONE,
+
+    FEATURE_VALUE_NONE,
+    FEATURE_VALUE_NONE,
+
+    false,
+    false,
+    false,
+    false,
+
+    false,
+    false,
+    false,
+    false,
+
+    false,
+
+    false,
+    false
+};
+
 constexpr BatteryFeature noBattery = {
     INVALID_FIELD,
     INVALID_FIELD,
@@ -65,23 +96,34 @@ static const ModbusInverterMap map_SIW500H_M3 PROGMEM = {
         FEATURE_VALUE_NONE,                             // enableValue
         0x06,                                           // wattsModeValue
         0x07,                                           // percentModeValue
+        true,                                           // supportsEnable
+        false,                                          // implicitEnable
         true,                                           // supportsWatts
         true,                                           // supportsPercent
         false,                                          // requiresEnableBeforeWrite
         true,                                           // requiresModeBeforeWrite
     }, {
-        INVALID_FIELD,                                  // enable
+        INVALID_FIELD,                                  // enablePf
+        INVALID_FIELD,                                  // enableFixedReactive
         INVALID_FIELD,                                  // controlMode
         { 0x9CBA, U16, 1, 1, 0.001f, true, true },      // powerFactorSetpoint
         INVALID_FIELD,                                  // excitationMode
-        { 0x9D04, U16, 1, 1, 1.0f, true, true },        // fixedReactivePower
-        FEATURE_VALUE_NONE,                             // disableValue
-        FEATURE_VALUE_NONE,                             // enablePowerFactorValue
+        INVALID_FIELD,                                  // fixedReactiveSp
+        FEATURE_VALUE_NONE,                             // disablePfValue
+        FEATURE_VALUE_NONE,                             // enablePfValue
+        FEATURE_VALUE_NONE,                             // disableFixedReactivePowerValue
         FEATURE_VALUE_NONE,                             // enableFixedReactivePowerValue
-        true,                                           // supportsPowerFactorSetpoint
+        false,                                          // supportsEnablePf
+        false,                                          // supportsControlModePf
+        true,                                           // supportPfSp
+        true,                                           // implicitPfSp
+        false,                                          // supportsEnableFixedReactive
+        false,                                          // supportsControlModeFixedReactive
+        false,                                          // supportsFixedReactiveSetpoint
+        false,                                          // implicitFixedReactiveSetpoint
         false,                                          // supportsExcitationMode
-        true,                                           // supportsFixedReactivePower
-        false                                           // requiresEnableBeforeWrite
+        false,                                          // requiresEnableBeforeWrite
+        false                                           // requiresModeBeforeWrite
     }, {
         INVALID_FIELD,                                  // Time Year (não disponível nesse modelo)
         INVALID_FIELD,                                  // Time Month (não disponível nesse modelo)
@@ -103,7 +145,9 @@ static const ModbusInverterMap map_SIW500H_M3 PROGMEM = {
         { 0x7D45, U16, 3, 1, 0.1f, true, false },       // Grid Voltage R, S, T (V)
         { 0x7D48, I32, 3, 2, 0.001f, true, false },     // Grid Current R, S, T (A)
         { 0x7D55, U16, 1, 1, 0.01f, true, false },      // Frequency (Hz)
-        3                                               // phaseCount
+        3,                                              // phaseCount
+        true,                                           // supportsPhaseVoltage
+        true                                            // supportsLineVoltage
     }, {
         { 0x7D6A, U32, 1, 2, 0.01f, true, false },      // Total Energy (kWh)
         { 0x7D72, U32, 1, 2, 0.01f, true, false },      // Daily Energy (kWh)  

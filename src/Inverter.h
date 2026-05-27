@@ -66,9 +66,30 @@ constexpr uint8_t INV_MAX_STRING_CHARS = 32;
     */
 
 struct PhaseData {
-    float r;
-    float s;
-    float t;
+    union{
+        float a;
+        float l1;
+        float r;
+        float ab;
+        float rs;
+    };
+
+    union {
+        float b;
+        float l2;
+        float s;
+        float bc;
+        float st;
+    };
+
+    union {
+        float c;
+        float l3;
+        float t;
+        float ca;
+        float tr;
+    };
+
 };
 
 enum InverterStatus {
@@ -152,13 +173,17 @@ public:
     // Comandos / Limites
     // Medições AC
     bool getActivePower(float& watts);               // 
-    bool getGridVoltage(PhaseData& phase);           //
+    bool getGridVoltage(float& voltage);             //
+    bool getGridPhaseVoltage(PhaseData& phase);      //
+    bool getGridLineVoltage(PhaseData& phase);       //
+    bool getGridCurrent(float& current);             //
     bool getGridCurrent(PhaseData& phase);           //
-    bool getGridFrequency(PhaseData& phase);         //
+    bool getGridFrequency(float& freq);              //
     // Energia
     bool getTotalEnergy(float& kWh);                 //
     bool getDailyEnergy(float& kWh);                 //
     // Strings FV
+    bool getPVStringCount(uint16_t& count);          //
     bool getStringVoltage(StringValues& voltage);    //
     bool getStringCurrent(StringValues& current);    //  
     // Diagnóstico e Saúde
@@ -212,8 +237,8 @@ private:
     bool isPowerFactorEnabled(bool& enabled);        //
     bool getPowerFactorSetpoint(float& pf);          //
 
-    bool getReactivePower(float& voltAmperReactive); //
-    bool getApparentPower(float& voltAmper);         //
+    bool getReactivePower(float& var); //
+    bool getApparentPower(float& va);         //
     bool getPowerFactor(float &pf);                  //
 
     // Leitura de data/hora

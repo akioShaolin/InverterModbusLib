@@ -62,6 +62,8 @@ struct ExportLimitFeature {
     uint16_t wattsModeValue;
     uint16_t percentModeValue;
 
+    bool supportsEnable;
+    bool implicitEnable;
     bool supportsWatts;
     bool supportsPercent;
     bool requiresEnableBeforeWrite;
@@ -69,21 +71,46 @@ struct ExportLimitFeature {
 };
 
 struct ReactivePowerFeature {
-    ModbusField enable;
+    // Enable simples, quando existir
+    ModbusField enablePf;
+    ModbusField enableFixedReactive;
+
+    // Modo enum compartilhado, quando existir
     ModbusField controlMode;
 
-    ModbusField powerFactorSetpoint;
+    // Setpoints
+    ModbusField pfSetpoint;
     ModbusField excitationMode;
-    ModbusField fixedReactivePowerSetpoint;
+    ModbusField fixedReactiveSp;
 
-    uint16_t disableValue;
-    uint16_t enablePowerFactorValue;
-    uint16_t enableFixedReactivePowerValue;
+    // Valores para PF
+    uint16_t disablePfValue;
+    uint16_t enablePfValue;             // usado no enablePf ou no controlMode
 
-    bool supportsPowerFactorSetpoint;
+    // Valores para reativo fixo
+    uint16_t disableFixedReactiveValue;    
+    uint16_t enableFixedReactiveValue;  // usado no enableFixedReactive ou no controlMode
+
+    // Suporte a fator de potencia
+    bool supportsEnablePf;
+    bool supportsControlModePf;
+    bool supportsPfSp;
+    bool implicitPfSp;
+
+    // Suporte a reativo fixo
+    bool supportsEnableFixedReactive;
+    bool supportsControlModeFixedReactive;
+    bool supportsFixedReactiveSp;
+    bool implicitFixedReactiveSp;
+
+    // Excitação
     bool supportsExcitationMode;
-    bool supportsFixedReactivePower;
+
+    // Comportamento de escrita
     bool requiresEnableBeforeWrite;
+    bool requiresModeBeforeWrite;
+
+    // Sp = Setpoint
 };
 
 struct TimeFeature {
@@ -109,11 +136,15 @@ struct PowerMeasurementFeature {
 };
 
 struct GridFeature {
-    ModbusField voltage;
+    ModbusField phaseVoltage;
+    ModbusField lineVoltage;
     ModbusField current;
     ModbusField frequency;
 
     uint8_t phaseCount;
+
+    bool supportsPhaseVoltage;
+    bool supportsLineVoltage;
 };
 
 struct EnergyFeature {

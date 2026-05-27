@@ -12,7 +12,6 @@ InverterDeviceInfo.cpp
 │   └── getSerial()
 │
 ├── Comandos/Limites
-│   ├── isBooted()
 │   ├── isPowerLimitEnabled()
 │   ├── getPowerLimit()
 │   ├── getPowerLimitPercent()
@@ -136,7 +135,10 @@ bool Inverter::isPowerLimitEnabled(bool& enabled) {
             uint16_t e;
             if (!readField(field, &e)) return false;
 
-            enabled = (e != feature.disableValue);
+            // Em alguns inversores, o registrador pode ser compartilhado
+            // entre diferentes modos. Portanto, somente o valor expecífico
+            // de power limit deve retornar true
+            enabled = (e == feature.enableValue);
             return true;
         }
 
@@ -155,7 +157,6 @@ bool Inverter::getPowerLimit(float& watts) {
 
         switch (field.mode) {
             case FIELD_SIMPLE:
-                if(!field.readable) return false;
                 return readScaledFloat(field, watts);
                 
             default:
@@ -189,55 +190,72 @@ bool Inverter::getPowerLimit(float& watts) {
 
 bool Inverter::getPowerLimitPercent(float& percent) {
     if (!hasValidMap()) return false;
-    if (_descriptor.nominalPowerW == 0) return false;
 
-    switch (_map.PowerLimitPercent.mode) {
+    const ActivePowerFeature& feature = _map.activePower;
 
-        case FIELD_SIMPLE:
-            if (_map.PowerLimitPercent.readable) {
-                return readScaledFloat(_map.PowerLimitPercent, percent);
-            }
+    if (feature.supportsPercent) {
+        const ModbusField& field = feature.percent;
 
-            if (_map.PowerLimit.readable) {
+        switch (field.mode) {
+            case FIELD_SIMPLE:
+                return readScaledFloat(field, percent);
+
+            default:
+                return false;
+        }
+    }
+
+    if (feature.supportsWatts) {
+        const ModbusField& field = feature.watts;
+
+        switch (field.mode) {
+            case FIELD_SIMPLE: {
+                if (!field.readable) return false;
+                if (_descriptor.nominalPowerW == 0) return false;
+                // Trocar por getNominalPower. Ler registrador de potencia nominal e adicionar fallback para o descriptor
+
                 float watts;
-                if (!readScaledFloat(_map.PowerLimit, watts)) return false;
+                if (!readScaledFloat(field, watts)) return false;
 
                 percent = (watts / (float)_descriptor.nominalPowerW) * 100.0f;
                 return true;
             }
-            
-            return false;
 
-        default:
-            return false;
+            default:
+                return false;
+        }
     }
+
+    return false;
 }
 
 bool Inverter::isExportLimitEnabled(bool& enabled) {
     if (!hasValidMap()) return false;
-    if (_descriptor.exportLimitMode == nullptr) return false;
+    const ExportLimitFeature& feature = _map.exportLimit;
 
-    switch (_map.enableExportLimit.mode) {
+    if (!feature.supportsEnable) {
+        if (feature.implicitEnable) {
+            enabled = true;
+            return true;
+        }
+        return false;
+    }
+
+    const ModbusField& field = feature.enable;
+
+    switch (field.mode) {
 
         case FIELD_SIMPLE: {
-            if (!_map.enableExportLimit.readable) return false;
-            uint16_t v;
-            if (!readField(_map.enableExportLimit, &v)) return false;
+            if (!field.readable) return false;
 
-            uint16_t enabledValue = pgm_read_word(&_descriptor.exportLimitMode->exportLimitEnable);
-            uint16_t disabledValue = pgm_read_word(&_descriptor.exportLimitMode->exportLimitDisable);
+            uint16_t e;
+            if (!readField(field, &e)) return false;
 
-            if (v == enabledValue) {
-                enabled = true;
-                return true;
-            }
-
-            if (v == disabledValue) {
-                enabled = false;
-                return true;
-            }
-
-            return false;
+            // Em alguns inversores, o registrador pode ser compartilhado
+            // entre diferentes modos. Portanto, somente o valor expecífico
+            // de export limit deve retornar true
+            enabled = (e == feature.enableValue);
+            return true;
         }
 
         default:
@@ -247,99 +265,162 @@ bool Inverter::isExportLimitEnabled(bool& enabled) {
 
 bool Inverter::getExportLimit(float& watts) {
     if (!hasValidMap()) return false;
-    if (_descriptor.nominalPowerW == 0) return false;
 
-    switch (_map.ExportLimit.mode) {
+    const ExportLimitFeature& feature = _map.exportLimit;
+
+    if (feature.supportsWatts) {
+        const ModbusField& field = feature.watts;
+
+        switch (field.mode) {
 
         case FIELD_SIMPLE:
-            if(_map.ExportLimit.readable) {
-                return readScaledFloat(_map.ExportLimit, watts);
-            }
+            return readScaledFloat(field, watts);
 
-            if (_map.ExportLimitPercent.readable) {
-                float percent;
-                if (!readScaledFloat(_map.ExportLimitPercent, percent)) return false;
-
-                watts = (_descriptor.nominalPowerW * percent) / 100.0f;
-                return true;
-            }
-            return false;
-            
         default:
             return false;
+        }
     }
+
+    if (feature.supportsPercent) {
+        const ModbusField& field = feature.percent;
+        switch (field.mode) {
+            case FIELD_SIMPLE: {
+                if (!field.readable) return false;
+                if (_descriptor.nominalPowerW == 0) return false;
+                // Trocar por getNominalPower. Ler registrador de potencia nominal e adicionar fallback para o descriptor
+
+                float percent;
+                if (!readScaledFloat(field, percent)) return false;
+
+                watts = ((float)_descriptor.nominalPowerW * percent) / 100.0f;
+                return true;
+            }
+
+            default:
+                return false;
+        }
+        
+    }
+
+    return false;
 }
 
 bool Inverter::getExportLimitPercent(float& percent) {
     if (!hasValidMap()) return false;
-    if (_descriptor.nominalPowerW == 0) return false;
 
-    switch (_map.ExportLimitPercent.mode) {
+    const ExportLimitFeature& feature = _map.exportLimit;
 
-        case FIELD_SIMPLE:
-            if (_map.ExportLimitPercent.readable) {
-                return readScaledFloat(_map.ExportLimitPercent, percent);
-            }
+    if (feature.supportsPercent) {
+        const ModbusField& field = feature.percent;
 
-            if(_map.ExportLimit.readable) {
+        switch (field.mode) {
+            case FIELD_SIMPLE:
+                return readScaledFloat(field, percent);
+
+            default:
+                return false;
+        }
+    }
+
+    if (feature.supportsWatts) {
+        const ModbusField& field = feature.watts;
+
+        switch (field.mode) {
+            case FIELD_SIMPLE: {
+                if (!field.readable) return false;
+                if (_descriptor.nominalPowerW == 0) return false;
+                // Trocar por getNominalPower. Ler registrador de potencia nominal e adicionar fallback para o descriptor
+
                 float watts;
-                if (!readScaledFloat(_map.ExportLimit, watts)) return false;
+                if (!readScaledFloat(field, watts)) return false;
 
                 percent = (watts / (float)_descriptor.nominalPowerW) * 100.0f;
                 return true;
             }
 
-            return false;
-            
-        default:
-            return false;
+            default:
+                return false;
+        }
     }
+
+    return false;
 }
 
 bool Inverter::isPowerFactorEnabled(bool& enabled) {
     if (!hasValidMap()) return false;
-    
-    switch (_map.enablePowerFactor.mode) {
 
-        case FIELD_SIMPLE: {
-            if (!_map.enablePowerFactor.readable) return false;
-            uint16_t e;
-            if (!readField(_map.enablePowerFactor, &e)) return false;
+    const ReactivePowerFeature& feature = _map.reactivePowerControl;
 
-            enabled = (e != 0);
-            return true;
+    if (!feature.supportsEnablePf) {
+        const ModbusField& field = feature.enablePf;
+
+        switch (field.mode) {
+
+            case FIELD_SIMPLE: {
+                if (!field.readable) return false;
+
+                uint16_t e;
+                if (!readField(field, &e)) return false;
+
+                // Em alguns inversores, o registrador pode ser compartilhado
+                // entre diferentes modos. Portanto, somente o valor expecífico
+                // de export limit deve retornar true
+                enabled = (e == feature.enablePfValue);
+                return true;
+            }
+
+            default:
+                return false;
         }
-            
-        default:
-            return false;
     }
+
+    if (feature.supportsControlModePf) {
+        const ModbusField& field = feature.controlMode;
+
+        switch (field.mode) {
+            case FIELD_SIMPLE: {
+                if (!field.readable) return false;
+
+                uint16_t mode;
+                if (!readField(field, &mode)) return false;
+
+                enabled = (mode == feature.enablePfValue);
+                return true;
+            }
+
+            default:
+                return false;
+        }
+    }
+
+    if (feature.implicitPfSp) {
+        enabled = true;
+        return true;
+    }
+
+    return false;
 }
 
 bool Inverter::getPowerFactorSetpoint(float& pf) {
     if (!hasValidMap()) return false;
 
-    switch (_map.PowerFactorSetpoint.mode) {
+    const ReactivePowerFeature feature = _map.reactivePowerControl;
 
-        case FIELD_SIMPLE:{
-            uint16_t signal = 0;
-            // 0 - mantém o sinal; 1 - troca o sinal
-            if (!isInvalidField(_map.powerFactorExcitationMode) && _map.powerFactorExcitationMode.readable) {
-                if (!readField(_map.powerFactorExcitationMode, &signal)) return false;
-            }
+    if (!feature.supportsPfSp) return false;
 
-            if (_map.PowerFactorSetpoint.readable) {
-                float scaledPf;
-                if (!readScaledFloat(_map.PowerFactorSetpoint, scaledPf)) return false;
+    const ModbusField& field = feature.pfSetpoint;
 
-                pf = (signal != 0) ? -scaledPf : scaledPf;
-                return true;
-            }
-            return false;
-        }
-            
+    switch (field.mode) {
+
+        case FIELD_SIMPLE:
+            if (!field.readable) return false;
+            return readScaledFloat(field, pf);
+
         default:
             return false;
     }
+
+    return false;
 }
 
 // ======================================================
@@ -348,40 +429,46 @@ bool Inverter::getPowerFactorSetpoint(float& pf) {
 
 bool Inverter::getActivePower(float& watts) {
     if (!hasValidMap()) return false;
+
+    const ModbusField& field = _map.power.activePower;
     
-    switch (_map.activePower.mode) {
+    switch (field.mode) {
 
         case FIELD_SIMPLE:
-            if (!_map.activePower.readable) return false;
-            return readScaledFloat(_map.activePower, watts);
+            if (!field.readable) return false;
+            return readScaledFloat(field, watts);
             
         default:
             return false;
     }
 }
    
-bool Inverter::getReactivePower(float& voltAmperReactive) {
+bool Inverter::getReactivePower(float& var) {
     if (!hasValidMap()) return false;
+
+    const ModbusField& field = _map.power.reactivePower;
     
-    switch (_map.reactivePower.mode) {
+    switch (field.mode) {
 
         case FIELD_SIMPLE:
-            if (!_map.reactivePower.readable) return false;
-            return readScaledFloat(_map.reactivePower, voltAmperReactive);
+            if (!field.readable) return false;
+            return readScaledFloat(field, var);
             
         default:
             return false;
     }
 }
 
-bool Inverter::getApparentPower(float& voltAmper) {
+bool Inverter::getApparentPower(float& va) {
     if (!hasValidMap()) return false;
+
+    const ModbusField& field = _map.power.apparentPower;
     
-    switch (_map.apparentPower.mode) {
+    switch (field.mode) {
 
         case FIELD_SIMPLE:
-            if (!_map.apparentPower.readable) return false;
-            return readScaledFloat(_map.reactivePower, voltAmper);
+            if (!field.readable) return false;
+            return readScaledFloat(field, va);
             
         default:
             return false;
@@ -390,24 +477,37 @@ bool Inverter::getApparentPower(float& voltAmper) {
 
 bool Inverter::getPowerFactor(float &pf) {
     if (!hasValidMap()) return false;
+
+    const ModbusField& fieldPf = _map.power.powerFactor;
     
-    switch (_map.powerFactor.mode) {
+    switch (fieldPf.mode) {
 
         case FIELD_SIMPLE: {
-            uint16_t signal = 0;
-            // 0 - mantém o sinal; 1 - troca o sinal
-            if (!isInvalidField(_map.powerFactorExcitationMode) && _map.powerFactorExcitationMode.readable) {
-                if (!readField(_map.powerFactorExcitationMode, &signal)) return false;
-            }
 
-            if (_map.powerFactor.readable) {
-                float scaledPf;
-                if (!readScaledFloat(_map.powerFactor, scaledPf)) return false;
+            if (!fieldPf.readable) return false;
+            
+            float scaledPf;
+            if (!readScaledFloat(fieldPf, scaledPf)) return false;
 
-                pf = (signal != 0) ? -scaledPf : scaledPf;
-                return true;
+            const ReactivePowerFeature& featureReactive = _map.reactivePowerControl;
+
+            if (featureReactive.supportsExcitationMode) {
+                const ModbusField& fieldExcitation = featureReactive.excitationMode;
+
+                if (!isInvalidField(fieldExcitation) && fieldExcitation.readable) {
+                    uint16_t signal = 0;
+
+                    if (!readField(fieldExcitation, &signal)) return false;
+
+                    // 0 - mantém o sinal; 1 - troca o sinal
+                    pf = (signal != 0) ? -scaledPf : scaledPf;
+                    return true;
+                }                
             }
-            return false;
+               
+            // Sem excitationMode, assume que o valor lido está correto
+            pf = scaledPf;
+            return true;
         }
 
         default:
@@ -416,29 +516,109 @@ bool Inverter::getPowerFactor(float &pf) {
     }
 }
 
-bool Inverter::getGridVoltage(PhaseData& phase) {
+bool Inverter::getGridVoltage(float& voltage) {
     if (!hasValidMap()) return false;
+
+    const GridFeature& feature = _map.grid;
+
+    if (!feature.supportsPhaseVoltage) return false;
+    if (feature.phaseCount != 1) return false;
+
+    const ModbusField& field = feature.phaseVoltage;
+
+    if (field.length != 1) return false;
+
+    switch (field.mode) {
+        case FIELD_SIMPLE:
+            if (!field.readable) return false;
+            return readScaledFloat(field, voltage);
+
+        default:
+            return false;
+    }
+}
+
+bool Inverter::getGridPhaseVoltage(PhaseData& phase) {
+    if (!hasValidMap()) return false;
+
+    const GridFeature& feature = _map.grid;
+
+    if (!feature.supportsPhaseVoltage) return false;
+    if (feature.phaseCount != 3) return false;
+
+    const ModbusField& field = feature.phaseVoltage;
     
-    switch (_map.gridVoltage.mode) {
+    if (field.length != 3) return false;
+
+    switch (field.mode) {
 
         case FIELD_SIMPLE: {
-            if (!_map.gridVoltage.readable) return false;
-            if (_map.gridVoltage.length == 0 || _map.gridVoltage.length > 3) return false;
+            if (!field.readable) return false;
 
-            float v[INV_MAX_FLOAT_VALUES];
+            float v[3];
 
-            if (!readScaledFloat(_map.gridVoltage, v, _map.gridVoltage.length)) return false;
+            if (!readScaledFloat(field, v, 3)) return false;
 
-            phase.r = 0.0f;
-            phase.s = 0.0f;
-            phase.t = 0.0f;
-
-            if (_map.gridVoltage.length >= 1) phase.r = v[0];
-            if (_map.gridVoltage.length >= 2) phase.s = v[1];
-            if (_map.gridVoltage.length >= 3) phase.t = v[2];
+            phase.r = v[0];
+            phase.s = v[1];
+            phase.t = v[2];
 
             return true;
         }
+
+        default:
+            return false;
+    }
+}
+
+bool Inverter::getGridLineVoltage(PhaseData& phase) {
+    if (!hasValidMap()) return false;
+
+    const GridFeature& feature = _map.grid;
+
+    if (!feature.supportsLineVoltage) return false;
+    if (feature.phaseCount != 3) return false;
+
+    const ModbusField& field = feature.lineVoltage;
+    
+    if (field.length != 3) return false;
+
+    switch (field.mode) {
+
+        case FIELD_SIMPLE: {
+            if (!field.readable) return false;
+
+            float v[3];
+
+            if (!readScaledFloat(field, v, 3)) return false;
+
+            phase.r = v[0];
+            phase.s = v[1];
+            phase.t = v[2];
+
+            return true;
+        }
+
+        default:
+            return false;
+    }
+}
+
+bool Inverter::getGridCurrent(float& current) {
+    if (!hasValidMap()) return false;
+
+    const GridFeature& feature = _map.grid;
+
+    if (feature.phaseCount != 1) return false;
+
+    const ModbusField& field = feature.current;
+
+    if (field.length != 1) return false;
+
+    switch (field.mode) {
+        case FIELD_SIMPLE:
+            if (!field.readable) return false;
+            return readScaledFloat(field, current);
 
         default:
             return false;
@@ -447,24 +627,27 @@ bool Inverter::getGridVoltage(PhaseData& phase) {
 
 bool Inverter::getGridCurrent(PhaseData& phase) {
     if (!hasValidMap()) return false;
+
+    const GridFeature& feature = _map.grid;
+
+    if (feature.phaseCount != 3) return false;
+
+    const ModbusField& field = feature.current;
     
-    switch (_map.gridCurrent.mode) {
+    if (field.length != 3) return false;
+
+    switch (field.mode) {
 
         case FIELD_SIMPLE: {
-            if (!_map.gridCurrent.readable) return false;
-            if (_map.gridCurrent.length == 0 || _map.gridCurrent.length > 3) return false;
+            if (!field.readable) return false;
 
-            float v[INV_MAX_FLOAT_VALUES];
+            float v[3];
 
-            if (!readScaledFloat(_map.gridCurrent, v, _map.gridCurrent.length)) return false;
+            if (!readScaledFloat(field, v, 3)) return false;
 
-            phase.r = 0.0f;
-            phase.s = 0.0f;
-            phase.t = 0.0f;
-
-            if (_map.gridCurrent.length >= 1) phase.r = v[0];
-            if (_map.gridCurrent.length >= 2) phase.s = v[1];
-            if (_map.gridCurrent.length >= 3) phase.t = v[2];
+            phase.r = v[0];
+            phase.s = v[1];
+            phase.t = v[2];
 
             return true;
         }
@@ -474,29 +657,17 @@ bool Inverter::getGridCurrent(PhaseData& phase) {
     }
 }
 
-bool Inverter::getGridFrequency(PhaseData& phase) {
+bool Inverter::getGridFrequency(float& freq) {
     if (!hasValidMap()) return false;
-    
-    switch (_map.gridFrequency.mode) {
 
-        case FIELD_SIMPLE: {
-            if (!_map.gridFrequency.readable) return false;
-            if (_map.gridFrequency.length == 0 || _map.gridFrequency.length > 3) return false;
+    const ModbusField& field = _map.grid.frequency;
 
-            float v[INV_MAX_FLOAT_VALUES];
+    if (!field.length != 1) return false;
 
-            if (!readScaledFloat(_map.gridFrequency, v, _map.gridFrequency.length)) return false;
-
-            phase.r = 0.0f;
-            phase.s = 0.0f;
-            phase.t = 0.0f;
-
-            if (_map.gridFrequency.length >= 1) phase.r = v[0];
-            if (_map.gridFrequency.length >= 2) phase.s = v[1];
-            if (_map.gridFrequency.length >= 3) phase.t = v[2];
-
-            return true;
-        }
+    switch (field.mode) {
+        case FIELD_SIMPLE:
+            if (!field.readable) return false;
+            return readScaledFloat(field, freq);
 
         default:
             return false;
@@ -509,12 +680,14 @@ bool Inverter::getGridFrequency(PhaseData& phase) {
 
 bool Inverter::getTotalEnergy(float& kWh) {
     if (!hasValidMap()) return false;
+
+    const ModbusField& field = _map.energy.total;
     
-    switch (_map.totalEnergy.mode) {
+    switch (field.mode) {
 
         case FIELD_SIMPLE:
-            if (!_map.totalEnergy.readable) return false;
-            return readScaledFloat(_map.totalEnergy, kWh);
+            if (!field.readable) return false;
+            return readScaledFloat(field, kWh);
             
         default:
             return false;
@@ -524,11 +697,13 @@ bool Inverter::getTotalEnergy(float& kWh) {
 bool Inverter::getDailyEnergy(float& kWh) {
     if (!hasValidMap()) return false;
     
-    switch (_map.dailyEnergy.mode) {
+    const ModbusField& field = _map.energy.daily;
+
+    switch (field.mode) {
 
         case FIELD_SIMPLE:
-            if (!_map.dailyEnergy.readable) return false;
-            return readScaledFloat(_map.dailyEnergy, kWh);
+            if (!field.readable) return false;
+            return readScaledFloat(field, kWh);
             
         default:
             return false;
@@ -538,25 +713,80 @@ bool Inverter::getDailyEnergy(float& kWh) {
 // ======================================================
 // PV Strings
 // ======================================================
+bool Inverter::getPVStringCount(uint16_t& count) {
+    if (!hasValidMap()) return false;
+
+    const PvStringFeature& feature = _map.pvString;
+    const ModbusField& field = feature.stringCount;
+
+    count = 0;
+
+    // Primeiro tentar ler o registrador do inversor
+    if (!isInvalidField(field) && field.readable) {
+        switch (field.mode) {
+            case FIELD_SIMPLE: {
+                uint16_t raw;
+                if (readField(field, &raw)) {
+                    count = raw;
+                    return true;
+                }
+                break;
+            }
+
+            default:
+                break;
+        }
+    }
+
+    // Fallback: usa o descriptor
+    if (_descriptor.pvInfo.stringCount > 0) {
+        count = _descriptor.pvInfo.stringCount;
+
+        return true;
+    }
+
+    return false;
+}
 
 bool Inverter::getStringVoltage(StringValues& voltage) {
     if (!hasValidMap()) return false;
-    
-    switch (_map.stringVoltage.mode) {
+
+    const PvStringFeature& feature = _map.pvString;
+    const ModbusField& originalField = feature.voltage;
+
+    if (!originalField.readable) return false;
+    if (originalField.length == 0) return false;
+
+    uint16_t count = 0;
+
+    if (!getPVStringCount(count)) return false;
+
+    if (count == 0) return false;
+    if (count > MAX_STRINGS) count = MAX_STRINGS;
+
+    uint16_t effectiveLength = originalField.length;
+
+    if (count < effectiveLength) {
+        effectiveLength = count;
+    }
+
+    if (effectiveLength == 0) return false;
+    if (effectiveLength > MAX_STRINGS) effectiveLength = MAX_STRINGS;
+
+    ModbusField field = originalField;
+    field.length = effectiveLength;
+
+    float values[MAX_STRINGS];
+
+    switch (field.mode) {
 
         case FIELD_SIMPLE: {
-            if (!_map.stringVoltage.readable) return false;
-            if (_map.stringVoltage.length == 0 || _map.stringVoltage.length > MAX_STRINGS) return false;
-            if (_descriptor.pvInfo.stringCount == 0 || _descriptor.pvInfo.stringCount > MAX_STRINGS) return false;
+            if (!readScaledFloat(field, values, field.length)) return false;
 
-            float v[MAX_STRINGS];
-
-            if (!readScaledFloat(_map.stringVoltage, v, _descriptor.pvInfo.stringCount)) return false;
-
-            voltage.count = _descriptor.pvInfo.stringCount;
+            voltage.count = field.length;
 
             for(uint8_t i = 0; i < voltage.count; i++) {
-                voltage.values[i] = v[i];
+                voltage.values[i] = values[i];
             }
 
             return true;
@@ -569,27 +799,53 @@ bool Inverter::getStringVoltage(StringValues& voltage) {
 
 bool Inverter::getStringCurrent(StringValues& current) {
     if (!hasValidMap()) return false;
-    
-    switch (_map.stringCurrent.mode) {
+
+    const PvStringFeature& feature = _map.pvString;
+    const ModbusField& originalField = feature.current;
+
+    if (!originalField.readable) return false;
+    if (originalField.length == 0) return false;
+
+    uint16_t count = 0;
+
+    if (!getPVStringCount(count)) return false;
+
+    if (count == 0) return false;
+    if (count > MAX_STRINGS) count = MAX_STRINGS;
+
+    uint16_t effectiveLength = originalField.length;
+
+    if (count < effectiveLength) {
+        effectiveLength = count;
+    }
+
+    if (effectiveLength == 0) return false;
+    if (effectiveLength > MAX_STRINGS) effectiveLength = MAX_STRINGS;
+
+    ModbusField field = originalField;
+    field.length = effectiveLength;
+
+    float values[MAX_STRINGS];
+
+    switch (field.mode) {
 
         case FIELD_SIMPLE: {
-            if (!_map.stringCurrent.readable) return false;
-            if (_map.stringCurrent.length == 0 || _map.stringCurrent.length > MAX_STRINGS) return false;
-            if (_descriptor.pvInfo.stringCount == 0 || _descriptor.pvInfo.stringCount > MAX_STRINGS) return false;
+            if (!readScaledFloat(field, values, field.length)) return false;
 
-            float v[MAX_STRINGS];
+            current.count = field.length;
 
-            if (!readScaledFloat(_map.stringCurrent, v, _descriptor.pvInfo.stringCount)) return false;
-
-            current.count = _descriptor.pvInfo.stringCount;
+            // Zera o array antes de atribuir os valores
+            for (uint8_t i = 0; i < MAX_STRINGS; i++) {
+                current.values[i] = 0.0f;
+            }
 
             for(uint8_t i = 0; i < current.count; i++) {
-                current.values[i] = v[i];
+                current.values[i] = values[i];
             }
 
             return true;
         }
-
+            
         default:
             return false;
     }

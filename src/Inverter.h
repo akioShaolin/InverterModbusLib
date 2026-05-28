@@ -132,6 +132,54 @@ struct BatteryValues {
 class Inverter {
 public:
 
+
+
+    bool setPowerLimitEnabled(bool enabled);            //
+    bool setExportLimitEnabled(bool enabled);           //
+    bool setPowerFactorEnabled(bool enabled);           //
+    bool setPowerFactor(float pf);                      //
+    bool setPowerFactorExcitationMode(PfExcitationMode excitationMode); //
+
+    bool isPowerLimitEnabled(bool& enabled);         //
+    bool getPowerLimit(float& watts);                //
+    bool getPowerLimitPercent(float& percent);       //
+    bool isExportLimitEnabled(bool& enabled);        //
+    bool getExportLimit(float& watts);               //
+    bool getExportLimitPercent(float& percent);      //
+    bool isPowerFactorEnabled(bool& enabled);        //
+    bool getPowerFactorSetpoint(float& pf);          //
+
+    bool getReactivePower(float& var); //
+    bool getApparentPower(float& va);         //
+    bool getPowerFactor(float &pf);                  //
+
+    // Escrita de data/hora
+    bool setYear(uint16_t year);                     //
+    bool setMonth(uint16_t month);                   //
+    bool setDay(uint16_t day);                       //
+    bool setHour(uint16_t hour);                     //
+    bool setMinute(uint16_t minute);                 //
+    bool setSecond(uint16_t second);                 //
+    bool setEpochTime(uint32_t epoch);               //
+
+    bool getStringPower(StringValues& power);        //
+    // Bateria
+    bool getBatteryVoltage(BatteryValues& voltage);  //
+    bool getBatteryCurrent(BatteryValues& current);  //
+    bool getBatteryPower(BatteryValues& power);      //
+    bool getBatterySoC(BatteryValues& soc);          //
+    bool getBatterySoH(BatteryValues& soh);          //    
+    // EPS
+    bool getEPSVoltage(float& voltage);              //
+    bool getEPSVoltage(PhaseData& phase);            //
+    bool getEPSCurrent(float& current);              //
+    bool getEPSCurrent(PhaseData& phase);            //
+    bool getEPSActivePower(float& power);            //    
+    bool getEPSActivePower(PhaseData& phase);        // 
+
+
+
+
     // Setters
     // Arquivo InverterControl.cpp
     // ------------------------------------------------------
@@ -188,9 +236,12 @@ public:
     bool getStringCurrent(StringValues& current);    //  
     // Diagnóstico e Saúde
     bool getTemperature(float& temperature);         //
-    bool getInsulationResistance(float& kiloOhms);   //
+    bool getInsulationResistance(float& kohm);   //
     // ------------------------------------------------------
-
+    // Status/Alarmes
+    bool getInverterStatus(uint32_t status);//InverterStatus& status);  //
+    bool getAlarm(uint32_t alarm);//Alarm& alarm);                     //
+    
 private:
 
     // Variáveis privadas
@@ -222,51 +273,7 @@ private:
 
     // ------------------------------------------------------
     // Privates temporárias (em desenvolvimento)
-    bool setPowerLimitEnabled(bool enabled);            //
-    bool setExportLimitEnabled(bool enabled);           //
-    bool setPowerFactorEnabled(bool enabled);           //
-    bool setPowerFactor(float pf);                      //
-    bool setPowerFactorExcitationMode(PfExcitationMode excitationMode); //
 
-    bool isPowerLimitEnabled(bool& enabled);         //
-    bool getPowerLimit(float& watts);                //
-    bool getPowerLimitPercent(float& percent);       //
-    bool isExportLimitEnabled(bool& enabled);        //
-    bool getExportLimit(float& watts);               //
-    bool getExportLimitPercent(float& percent);      //
-    bool isPowerFactorEnabled(bool& enabled);        //
-    bool getPowerFactorSetpoint(float& pf);          //
-
-    bool getReactivePower(float& var); //
-    bool getApparentPower(float& va);         //
-    bool getPowerFactor(float &pf);                  //
-
-    // Leitura de data/hora
-    bool getDatetime(Datetime& dt);                  //
-    // Escrita de data/hora
-    bool setDatetime(Datetime dt);                   //
-    bool setYear(uint16_t year);                     //
-    bool setMonth(uint16_t month);                   //
-    bool setDay(uint16_t day);                       //
-    bool setHour(uint16_t hour);                     //
-    bool setMinute(uint16_t minute);                 //
-    bool setSecond(uint16_t second);                 //
-    bool setEpochTime(uint32_t epoch);               //
-
-    bool getStringPower(StringValues& power);        //
-    // Bateria
-    bool getBatteryVoltage(BatteryValues& voltage);  //
-    bool getBatteryCurrent(BatteryValues& current);  //
-    bool getBatteryPower(BatteryValues& power);      //
-    bool getBatterySoC(BatteryValues& soc);          //
-    bool getBatterySoH(BatteryValues& soh);          //    
-    // EPS
-    bool getEPSVoltage(PhaseData& phase);            //
-    bool getEPSCurrent(PhaseData& phase);            //
-    bool getEPSActivePower(PhaseData& phase);        //     
-    // Status/Alarmes
-    bool getInverterStatus(uint32_t status);//InverterStatus& status);  //
-    bool getAlarm(uint32_t alarm);//Alarm& alarm);                     //
 
     bool Inverter::hasValidMap() const;
     // ------------------------------------------------------

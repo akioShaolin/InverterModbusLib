@@ -53,8 +53,9 @@ Inverter::Inverter(InverterModel model)
         _cfg.id = pgm_read_byte(&_descriptor.config->id);
         _cfg.baud = pgm_read_dword(&_descriptor.config->baud);
         _cfg.serialConfig = (SerialConfig)pgm_read_dword(&_descriptor.config->serialConfig);
+        _cfg.deRePin = (int8_t)pgm_read_byte(&_descriptor.config->deRePin);
     } else {
-        _cfg = {1, 9600, SERIAL_8N1};
+        _cfg = {1, 9600, SERIAL_8N1, -1};
     }
 }
 
@@ -72,7 +73,7 @@ void Inverter::attachSerial(HardwareSerial& serial) {
 
 bool Inverter::begin() {
     if (_mb == nullptr) return false;
-    if (_map.serialNumber.address == 0xFFFF) return false;
+    if (!hasValidMap()) return false;
     if (_descriptor.nominalPowerW == 0) return false;  //São campos obrigatórios. A falta deles invalida a struct
 
     _modbus.setConfig(
@@ -81,8 +82,6 @@ bool Inverter::begin() {
         _cfg.serialConfig,
         _cfg.deRePin
     );
-
-    getSerialNumber(_serialNumber);
     
     return true;
 }
@@ -98,44 +97,46 @@ void Inverter::setSlaveId(uint8_t id) {
 
 // Caso o inversor possua apenas um registrador para controle (boot/shutdown),
 // este deve ser mapeado em _map.boot, e não em _map.shutdown.
-bool Inverter::boot() {
-    if (_map.serialNumber.address == 0xFFFF) return false;
-    if (_descriptor.bootMode == nullptr) return false;
+bool Inverter::setBoot(bool enable) {
+    return enable ? Inverter::boot() : shutdown();
+}
 
-    uint16_t v = pgm_read_word(&_descriptor.bootMode->bootValue);
+bool Inverter::boot() {
+    if (!hasValidMap()) return false;
+
+    const ControlFeature& feature = _map.control;
+    const ModbusField& field = feature.boot;
+    const uint16_t bootValue = feature.bootValue;
+
+    if (bootValue == FEATURE_VALUE_NONE) return false;
+    if (isInvalidField(field)) return false;
     
-    switch (_map.boot.mode) {
+    switch (field.mode) {
 
         case FIELD_SIMPLE:
-            if (!_map.boot.writable) return false;
-            return writeField(_map.boot, v);
+            if (!field.writable) return false;
+            return writeField(field, bootValue);
 
         default:
             return false;
     }
 }
 
-bool Inverter::setBoot(bool enable) {
-    return enable ? Inverter::boot() : shutdown();
-}
-
 bool Inverter::shutdown() {
-    if (_map.serialNumber.address == 0xFFFF) return false;
-    if (_descriptor.bootMode == nullptr) return false;
-    
-    uint16_t v = pgm_read_word(&_descriptor.bootMode->shutdownValue);
+    if (!hasValidMap()) return false;
 
-    switch (_map.shutdown.mode) {
+    const ControlFeature& feature = _map.control;
+    const ModbusField& field = feature.shutdown;
+    const uint16_t shutdownValue = feature.shutdownValue;
+
+    if (shutdownValue == FEATURE_VALUE_NONE) return false;
+    if (isInvalidField(field)) return false;
+    
+    switch (field.mode) {
 
         case FIELD_SIMPLE:
-            if(_map.shutdown.writable) {
-                return writeField(_map.shutdown, v);
-            }
-            
-            if (_map.boot.writable) {
-                return writeField(_map.boot, v);
-            }
-            return false;
+            if (!field.writable) return false;
+            return writeField(field, shutdownValue);
 
         default:
             return false;
@@ -143,23 +144,75 @@ bool Inverter::shutdown() {
 }
 
 bool Inverter::setPowerLimitEnabled(bool enabled) {
-    if (_map.serialNumber.address == 0xFFFF) return false;
+    if (!hasValidMap()) return false;
+
+    const ActivePowerFeature& feature = _map.activePower;   
     
-    switch (_map.enablePowerLimit.mode) {
+    // Fallback cai em enable por enum ou por implicit enable
+    if (feature.supportsEnable) {
 
-        case FIELD_SIMPLE: {
-            if (!_map.enablePowerLimit.writable) return false;
-            if (_descriptor.powerLimitMode == nullptr) return false;
-            uint16_t v = enabled
-                ? pgm_read_word(&_descriptor.powerLimitMode->powerLimitEnable)
-                : pgm_read_word(&_descriptor.powerLimitMode->powerLimitDisable);
+        const ModbusField& field = feature.enable;
 
-            return writeField(_map.enablePowerLimit, v);
+        if (isInvalidField(field)) {
+            if (feature.implicitEnable == true) {
+                return enabled;
+            }
+
+            return false;
         }
 
-        default:
-            return false;
+        const uint16_t enableValue = feature.enableValue;
+        const uint16_t disableValue = feature.disableValue;
+
+        if (enableValue == FEATURE_VALUE_NONE || disableValue == FEATURE_VALUE_NONE) return false;
+
+        switch (field.mode) {
+
+            case FIELD_SIMPLE: {
+                if (!field.writable) return false;
+                uint16_t v = enabled
+                    ? enableValue
+                    : disableValue;
+
+                return writeField(field, v);
+            }
+
+            default:
+                return false;
+        }
     }
+    // Fallback do Mode
+    if (feature.supportsMode) {
+        const ModbusField& field = feature.mode;
+
+        if (isInvalidField(field)) return false;
+
+        const uint16_t enableMode = feature.enableValue;
+        const uint16_t disableMode = feature.disableValue;
+
+        if (enableMode == FEATURE_VALUE_NONE || disableMode == FEATURE_VALUE_NONE) return false;
+
+        switch (field.mode) {
+
+            case FIELD_SIMPLE: {
+                if (!field.writable) return false;
+                uint16_t v = enabled
+                    ? enableMode
+                    : disableMode;
+
+                return writeField (field, v);
+            }
+
+            default:
+                return false;
+        }
+    }
+    // Fallback do implicit
+    if (feature.implicitEnable) {
+        return enabled;
+    }
+
+    return false;
 }
 
 bool Inverter::setPowerLimit(float watts) {
@@ -360,12 +413,4 @@ bool Inverter::setPowerFactorExcitationMode(PfExcitationMode excitationMode) {
         default:
             return false;
     }
-}
-
-// ======================================================
-// Internal Helpers
-// ======================================================
-
-bool Inverter::isInvalidField(const ModbusField& field) {
-    return field.address == 0xFFFF;
 }

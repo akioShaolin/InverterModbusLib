@@ -9,8 +9,6 @@
 
 #include "InverterMaps.h"
 
-constexpr uint16_t FEATURE_VALUE_NONE = 0xFFFF;
-
 constexpr ReactivePowerFeature NO_REACTIVE_POWER_FEATURE = {
     INVALID_FIELD,
     INVALID_FIELD,
@@ -82,6 +80,7 @@ static const ModbusInverterMap map_SIW500H_M3 PROGMEM = {
         FEATURE_VALUE_NONE,                             // wattsModeValue
         FEATURE_VALUE_NONE,                             // percentModeValue
         false,                                          // supportsEnable
+        false,                                          // supportsMode
         true,                                           // implicitEnable
         true,                                           // supportsWatts
         true,                                           // supportsPercent
@@ -132,17 +131,17 @@ static const ModbusInverterMap map_SIW500H_M3 PROGMEM = {
         INVALID_FIELD,                                  // Time Minute (não disponível nesse modelo)
         INVALID_FIELD,                                  // Time Second (não disponível nesse modelo)
         { 0x9C40, U32, 1, 2, 1.0f, true, true },        // Time Epoch
-        false,                                          // supportsSeparatedFields
+        false,                                          // usesSharedDateTimeRegisters
         true,                                           // supportsEpoch
         false,                                          // yearIsOffsetFrom2000
-        false                                           // usesBCD
     }, {
         { 0x7D50, I32, 1, 2, 1.0f, true, false },       // Active Power (W)
         INVALID_FIELD,                                  // Apparent Power (kVA) (não disponível nesse modelo)
         { 0x7D52, I32, 1, 2, 1.0f, true, false },       // Reactive Power (VAr)
         { 0x7D54, I16, 1, 1, 0.001f, true, false },     // Power Factor
     }, {
-        { 0x7D45, U16, 3, 1, 0.1f, true, false },       // Grid Voltage R, S, T (V)
+        { 0x7D45, U16, 3, 1, 0.1f, true, false },       // PhaseVoltage R, S, T (V)
+        { 0x7D42, U16, 3, 1, 0.1f, true, false },       // LineVoltage RS, ST, TR (V)
         { 0x7D48, I32, 3, 2, 0.001f, true, false },     // Grid Current R, S, T (A)
         { 0x7D55, U16, 1, 1, 0.01f, true, false },      // Frequency (Hz)
         3,                                              // phaseCount
@@ -157,8 +156,6 @@ static const ModbusInverterMap map_SIW500H_M3 PROGMEM = {
         INVALID_FIELD,                                  // String Power (W) (não disponível nesse modelo)
         { 0x7576, U16, 1, 1, 1.0f, true, false },       // Number of PV Strings
         { 0x7577, U16, 1, 1, 1.0f, true, false },       // Number of MPP trackers
-        false,
-        false
     }, 
     noBattery,
     noEps, {

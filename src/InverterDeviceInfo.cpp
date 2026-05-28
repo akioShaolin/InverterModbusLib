@@ -6,10 +6,11 @@
  * Copyright (c) 2026, Pedro Akio Sakuma
  * Licensed under BSD 3-Clause License
  */
+
  /*
 InverterDeviceInfo.cpp
 ├── Identificação
-│   └── getSerial()
+│   └── getSerialNumber()
 │
 ├── Comandos/Limites
 │   ├── isPowerLimitEnabled()
@@ -27,6 +28,8 @@ InverterDeviceInfo.cpp
 │   ├── getApparentPower()
 │   ├── getPowerFactor()
 │   ├── getGridVoltage()
+│   ├── getGridPhaseVoltage()
+│   ├── getGridLineVoltage()
 │   ├── getGridCurrent()
 │   └── getGridFrequency()
 │
@@ -35,6 +38,7 @@ InverterDeviceInfo.cpp
 │   └── getDailyEnergy()
 │
 ├── Strings FV
+│   ├── getStringCount()
 │   ├── getStringVoltage()
 │   ├── getStringCurrent()
 │   └── getStringPower()
@@ -65,10 +69,6 @@ InverterDeviceInfo.cpp
 // ======================================================
 // Identification
 // ======================================================
-
-bool Inverter::hasValidMap() const {
-    return _map.identification.serialNumber.address != 0xFFFF;
-}
 
 bool Inverter::getSerialNumber(String& serialNumber) {
     if (!hasValidMap()) return false;    
@@ -592,9 +592,9 @@ bool Inverter::getGridLineVoltage(PhaseData& phase) {
 
             if (!readScaledFloat(field, v, 3)) return false;
 
-            phase.r = v[0];
-            phase.s = v[1];
-            phase.t = v[2];
+            phase.rs = v[0];
+            phase.st = v[1];
+            phase.tr = v[2];
 
             return true;
         }
@@ -762,7 +762,6 @@ bool Inverter::getStringVoltage(StringValues& voltage) {
     if (!getPVStringCount(count)) return false;
 
     if (count == 0) return false;
-    if (count > MAX_STRINGS) count = MAX_STRINGS;
 
     uint16_t effectiveLength = originalField.length;
 
@@ -784,6 +783,11 @@ bool Inverter::getStringVoltage(StringValues& voltage) {
             if (!readScaledFloat(field, values, field.length)) return false;
 
             voltage.count = field.length;
+
+            // Zera o array antes de atribuir os valores
+            for (uint8_t i = 0; i < MAX_STRINGS; i++) {
+                voltage.values[i] = 0.0f;
+            }
 
             for(uint8_t i = 0; i < voltage.count; i++) {
                 voltage.values[i] = values[i];
@@ -811,7 +815,6 @@ bool Inverter::getStringCurrent(StringValues& current) {
     if (!getPVStringCount(count)) return false;
 
     if (count == 0) return false;
-    if (count > MAX_STRINGS) count = MAX_STRINGS;
 
     uint16_t effectiveLength = originalField.length;
 
@@ -853,22 +856,47 @@ bool Inverter::getStringCurrent(StringValues& current) {
 
 bool Inverter::getStringPower(StringValues& power) {
     if (!hasValidMap()) return false;
-    
-    switch (_map.stringPower.mode) {
+
+    const PvStringFeature& feature = _map.pvString;
+    const ModbusField& originalField = feature.power;
+
+    if (!originalField.readable) return false;
+    if (originalField.length == 0) return false;
+
+    uint16_t count = 0;
+
+    if (!getPVStringCount(count)) return false;
+
+    if (count == 0) return false;
+
+    uint16_t effectiveLength = originalField.length;
+
+    if (count < effectiveLength) {
+        effectiveLength = count;
+    }
+
+    if (effectiveLength == 0) return false;
+    if (effectiveLength > MAX_STRINGS) effectiveLength = MAX_STRINGS;
+
+    ModbusField field = originalField;
+    field.length = effectiveLength;
+
+    float values[MAX_STRINGS];
+
+    switch (field.mode) {
 
         case FIELD_SIMPLE: {
-            if (!_map.stringPower.readable) return false;
-            if (_map.stringPower.length == 0 || _map.stringPower.length > MAX_STRINGS) return false;
-            if (_descriptor.pvInfo.stringCount == 0 || _descriptor.pvInfo.stringCount > MAX_STRINGS) return false;
+            if (!readScaledFloat(field, values, field.length)) return false;
 
-            float v[MAX_STRINGS];
+            power.count = field.length;
 
-            if (!readScaledFloat(_map.stringPower, v, _descriptor.pvInfo.stringCount)) return false;
-
-            power.count = _descriptor.pvInfo.stringCount;
+            // Zera o array antes de atribuir os valores
+            for (uint8_t i = 0; i < MAX_STRINGS; i++) {
+                power.values[i] = 0.0f;
+            }
 
             for(uint8_t i = 0; i < power.count; i++) {
-                power.values[i] = v[i];
+                power.values[i] = values[i];
             }
 
             return true;
@@ -885,27 +913,50 @@ bool Inverter::getStringPower(StringValues& power) {
 
 bool Inverter::getBatteryVoltage(BatteryValues& voltage) {
     if (!hasValidMap()) return false;
-    if (_descriptor.batteryInfo.batteryCount == 0) return false;
-    
-    switch (_map.batteryVoltage.mode) {
+
+    const BatteryFeature& feature = _map.battery;
+    const ModbusField& originalField = feature.voltage;
+
+    if (!originalField.readable) return false;
+    if (originalField.length == 0) return false;
+
+    uint16_t count = feature.batteryCount;
+
+    if (count == 0) return false;
+
+    uint16_t effectiveLength = originalField.length;
+
+    if (count < effectiveLength) {
+        effectiveLength = count;
+    }
+
+    if (effectiveLength == 0) return false;
+    if (effectiveLength > MAX_BATTERIES) effectiveLength = MAX_BATTERIES;
+
+    ModbusField field = originalField;
+    field.length = effectiveLength;
+
+    float values[MAX_BATTERIES];
+
+    switch (field.mode) {
 
         case FIELD_SIMPLE: {
-            if (!_map.batteryVoltage.readable) return false;
-            if (_map.batteryVoltage.length == 0 || _map.batteryVoltage.length > MAX_BATTERIES) return false;
+            if (!readScaledFloat(field, values, field.length)) return false;
 
-            float v[MAX_BATTERIES];
+            voltage.count = field.length;
 
-            if (!readScaledFloat(_map.batteryVoltage, v, _map.batteryVoltage.length)) return false;
+            // Zera o array antes de atribuir os valores
+            for (uint8_t i = 0; i < MAX_BATTERIES; i++) {
+                voltage.values[i] = 0.0f;
+            }
 
-            voltage.count = _map.batteryVoltage.length;
-
-            for(uint8_t i = 0; i < MAX_BATTERIES; i++) {
-                voltage.values[i] = (i < voltage.count) ? v[i] : 0.0f;
+            for(uint8_t i = 0; i < voltage.count; i++) {
+                voltage.values[i] = values[i];
             }
 
             return true;
         }
-
+            
         default:
             return false;
     }
@@ -913,27 +964,50 @@ bool Inverter::getBatteryVoltage(BatteryValues& voltage) {
 
 bool Inverter::getBatteryCurrent(BatteryValues& current) {
     if (!hasValidMap()) return false;
-    if (_descriptor.batteryInfo.batteryCount == 0) return false;
-    
-    switch (_map.batteryCurrent.mode) {
+
+    const BatteryFeature& feature = _map.battery;
+    const ModbusField& originalField = feature.current;
+
+    if (!originalField.readable) return false;
+    if (originalField.length == 0) return false;
+
+    uint16_t count = feature.batteryCount;
+
+    if (count == 0) return false;
+
+    uint16_t effectiveLength = originalField.length;
+
+    if (count < effectiveLength) {
+        effectiveLength = count;
+    }
+
+    if (effectiveLength == 0) return false;
+    if (effectiveLength > MAX_BATTERIES) effectiveLength = MAX_BATTERIES;
+
+    ModbusField field = originalField;
+    field.length = effectiveLength;
+
+    float values[MAX_BATTERIES];
+
+    switch (field.mode) {
 
         case FIELD_SIMPLE: {
-            if (!_map.batteryCurrent.readable) return false;
-            if (_map.batteryCurrent.length == 0 || _map.batteryCurrent.length > MAX_BATTERIES) return false;
+            if (!readScaledFloat(field, values, field.length)) return false;
 
-            float v[MAX_BATTERIES];
+            current.count = field.length;
 
-            if (!readScaledFloat(_map.batteryCurrent, v, _map.batteryCurrent.length)) return false;
+            // Zera o array antes de atribuir os valores
+            for (uint8_t i = 0; i < MAX_BATTERIES; i++) {
+                current.values[i] = 0.0f;
+            }
 
-            current.count = _map.batteryCurrent.length;
-
-            for(uint8_t i = 0; i < MAX_BATTERIES; i++) {
-                current.values[i] = (i < current.count) ? v[i] : 0.0f;
+            for(uint8_t i = 0; i < current.count; i++) {
+                current.values[i] = values[i];
             }
 
             return true;
         }
-
+            
         default:
             return false;
     }
@@ -941,22 +1015,45 @@ bool Inverter::getBatteryCurrent(BatteryValues& current) {
 
 bool Inverter::getBatteryPower(BatteryValues& power) {
     if (!hasValidMap()) return false;
-    if (_descriptor.batteryInfo.batteryCount == 0) return false;
-    
-    switch (_map.batteryPower.mode) {
+
+    const BatteryFeature& feature = _map.battery;
+    const ModbusField& originalField = feature.power;
+
+    if (!originalField.readable) return false;
+    if (originalField.length == 0) return false;
+
+    uint16_t count = feature.batteryCount;
+
+    if (count == 0) return false;
+
+    uint16_t effectiveLength = originalField.length;
+
+    if (count < effectiveLength) {
+        effectiveLength = count;
+    }
+
+    if (effectiveLength == 0) return false;
+    if (effectiveLength > MAX_BATTERIES) effectiveLength = MAX_BATTERIES;
+
+    ModbusField field = originalField;
+    field.length = effectiveLength;
+
+    float values[MAX_BATTERIES];
+
+    switch (field.mode) {
 
         case FIELD_SIMPLE: {
-            if (!_map.batteryPower.readable) return false;
-            if (_map.batteryPower.length == 0 || _map.batteryPower.length > MAX_BATTERIES) return false;
+            if (!readScaledFloat(field, values, field.length)) return false;
 
-            float v[MAX_BATTERIES];
+            power.count = field.length;
 
-            if (!readScaledFloat(_map.batteryPower, v, _map.batteryPower.length)) return false;
+            // Zera o array antes de atribuir os valores
+            for (uint8_t i = 0; i < MAX_BATTERIES; i++) {
+                power.values[i] = 0.0f;
+            }
 
-            power.count = _map.batteryPower.length;
-
-            for(uint8_t i = 0; i < MAX_BATTERIES; i++) {
-                power.values[i] = (i < power.count) ? v[i] : 0.0f;
+            for(uint8_t i = 0; i < power.count; i++) {
+                power.values[i] = values[i];
             }
 
             return true;
@@ -969,22 +1066,45 @@ bool Inverter::getBatteryPower(BatteryValues& power) {
 
 bool Inverter::getBatterySoC(BatteryValues& soc) {
     if (!hasValidMap()) return false;
-    if (_descriptor.batteryInfo.batteryCount == 0) return false;
-    
-    switch (_map.batterySoC.mode) {
+
+    const BatteryFeature& feature = _map.battery;
+    const ModbusField& originalField = feature.soc;
+
+    if (!originalField.readable) return false;
+    if (originalField.length == 0) return false;
+
+    uint16_t count = feature.batteryCount;
+
+    if (count == 0) return false;
+
+    uint16_t effectiveLength = originalField.length;
+
+    if (count < effectiveLength) {
+        effectiveLength = count;
+    }
+
+    if (effectiveLength == 0) return false;
+    if (effectiveLength > MAX_BATTERIES) effectiveLength = MAX_BATTERIES;
+
+    ModbusField field = originalField;
+    field.length = effectiveLength;
+
+    float values[MAX_BATTERIES];
+
+    switch (field.mode) {
 
         case FIELD_SIMPLE: {
-            if (!_map.batterySoC.readable) return false;
-            if (_map.batterySoC.length == 0 || _map.batterySoC.length > MAX_BATTERIES) return false;
+            if (!readScaledFloat(field, values, field.length)) return false;
 
-            float v[MAX_BATTERIES];
+            soc.count = field.length;
 
-            if (!readScaledFloat(_map.batterySoC, v, _map.batterySoC.length)) return false;
+            // Zera o array antes de atribuir os valores
+            for (uint8_t i = 0; i < MAX_BATTERIES; i++) {
+                soc.values[i] = 0.0f;
+            }
 
-            soc.count = _map.batterySoC.length;
-
-            for(uint8_t i = 0; i < MAX_BATTERIES; i++) {
-                soc.values[i] = (i < soc.count) ? v[i] : 0.0f;
+            for(uint8_t i = 0; i < soc.count; i++) {
+                soc.values[i] = values[i];
             }
 
             return true;
@@ -997,22 +1117,45 @@ bool Inverter::getBatterySoC(BatteryValues& soc) {
 
 bool Inverter::getBatterySoH(BatteryValues& soh) {
     if (!hasValidMap()) return false;
-    if (_descriptor.batteryInfo.batteryCount == 0) return false;
-    
-    switch (_map.batterySoH.mode) {
+
+    const BatteryFeature& feature = _map.battery;
+    const ModbusField& originalField = feature.soh;
+
+    if (!originalField.readable) return false;
+    if (originalField.length == 0) return false;
+
+    uint16_t count = feature.batteryCount;
+
+    if (count == 0) return false;
+
+    uint16_t effectiveLength = originalField.length;
+
+    if (count < effectiveLength) {
+        effectiveLength = count;
+    }
+
+    if (effectiveLength == 0) return false;
+    if (effectiveLength > MAX_BATTERIES) effectiveLength = MAX_BATTERIES;
+
+    ModbusField field = originalField;
+    field.length = effectiveLength;
+
+    float values[MAX_BATTERIES];
+
+    switch (field.mode) {
 
         case FIELD_SIMPLE: {
-            if (!_map.batterySoH.readable) return false;
-            if (_map.batterySoH.length == 0 || _map.batterySoH.length > MAX_BATTERIES) return false;
+            if (!readScaledFloat(field, values, field.length)) return false;
 
-            float v[MAX_BATTERIES];
+            soh.count = field.length;
 
-            if (!readScaledFloat(_map.batterySoH, v, _map.batterySoH.length)) return false;
+            // Zera o array antes de atribuir os valores
+            for (uint8_t i = 0; i < MAX_BATTERIES; i++) {
+                soh.values[i] = 0.0f;
+            }
 
-            soh.count = _map.batterySoH.length;
-
-            for(uint8_t i = 0; i < MAX_BATTERIES; i++) {
-                soh.values[i] = (i < soh.count) ? v[i] : 0.0f;
+            for(uint8_t i = 0; i < soh.count; i++) {
+                soh.values[i] = values[i];
             }
 
             return true;
@@ -1027,31 +1170,75 @@ bool Inverter::getBatterySoH(BatteryValues& soh) {
 // EPS
 // ======================================================
 
+bool Inverter::getEPSVoltage(float& voltage) {
+    if (!hasValidMap()) return false;
+
+    const EpsFeature& feature = _map.eps;
+
+    if (feature.phaseCount != 1) return false;
+
+    const ModbusField& field = feature.voltage;
+
+    if (field.length != 1) return false;
+
+    switch (field.mode) {
+        case FIELD_SIMPLE:
+            if (!field.readable) return false;
+            return readScaledFloat(field, voltage);
+
+        default:
+            return false;
+    }
+}
+
 bool Inverter::getEPSVoltage(PhaseData& phase) {
     if (!hasValidMap()) return false;
-    if (_descriptor.epsPhaseType == NO_EPS) return false;
+
+    const EpsFeature& feature = _map.eps;
+
+    if (feature.phaseCount != 3) return false;
+
+    const ModbusField& field = feature.voltage;
     
-    switch (_map.epsVoltage.mode) {
+    if (field.length != 3) return false;
+
+    switch (field.mode) {
 
         case FIELD_SIMPLE: {
-            if (!_map.epsVoltage.readable) return false;
-            if (_map.epsVoltage.length == 0 || _map.epsVoltage.length > 3) return false;
+            if (!field.readable) return false;
 
-            float v[INV_MAX_FLOAT_VALUES];
+            float v[3];
 
-            if (!readScaledFloat(_map.epsVoltage, v, _map.epsVoltage.length)) return false;
+            if (!readScaledFloat(field, v, 3)) return false;
 
-            phase.r = 0.0f;
-            phase.s = 0.0f;
-            phase.t = 0.0f;
-
-            if (_map.epsVoltage.length >= 1) phase.r = v[0];
-            if (_map.epsVoltage.length >= 2) phase.s = v[1];
-            if (_map.epsVoltage.length >= 3) phase.t = v[2];
+            phase.r = v[0];
+            phase.s = v[1];
+            phase.t = v[2];
 
             return true;
         }
-            
+
+        default:
+            return false;
+    }
+}
+
+bool Inverter::getEPSCurrent(float& current) {
+    if (!hasValidMap()) return false;
+
+    const EpsFeature& feature = _map.eps;
+
+    if (feature.phaseCount != 1) return false;
+
+    const ModbusField& field = feature.current;
+
+    if (field.length != 1) return false;
+
+    switch (field.mode) {
+        case FIELD_SIMPLE:
+            if (!field.readable) return false;
+            return readScaledFloat(field, current);
+
         default:
             return false;
     }
@@ -1059,29 +1246,52 @@ bool Inverter::getEPSVoltage(PhaseData& phase) {
 
 bool Inverter::getEPSCurrent(PhaseData& phase) {
     if (!hasValidMap()) return false;
-    if (_descriptor.epsPhaseType == NO_EPS) return false;
+
+    const EpsFeature& feature = _map.eps;
+
+    if (feature.phaseCount != 3) return false;
+
+    const ModbusField& field = feature.current;
     
-    switch (_map.epsCurrent.mode) {
+    if (field.length != 3) return false;
+
+    switch (field.mode) {
 
         case FIELD_SIMPLE: {
-            if (!_map.epsCurrent.readable) return false;
-            if (_map.epsCurrent.length == 0 || _map.epsCurrent.length > 3) return false;
+            if (!field.readable) return false;
 
-            float v[INV_MAX_FLOAT_VALUES];
+            float v[3];
 
-            if (!readScaledFloat(_map.epsCurrent, v, _map.epsCurrent.length)) return false;
+            if (!readScaledFloat(field, v, 3)) return false;
 
-            phase.r = 0.0f;
-            phase.s = 0.0f;
-            phase.t = 0.0f;
-
-            if (_map.epsCurrent.length >= 1) phase.r = v[0];
-            if (_map.epsCurrent.length >= 2) phase.s = v[1];
-            if (_map.epsCurrent.length >= 3) phase.t = v[2];
+            phase.r = v[0];
+            phase.s = v[1];
+            phase.t = v[2];
 
             return true;
         }
-        
+
+        default:
+            return false;
+    }
+}
+
+bool Inverter::getEPSActivePower(float& power) {
+    if (!hasValidMap()) return false;
+
+    const EpsFeature& feature = _map.eps;
+
+    if (feature.phaseCount != 1) return false;
+
+    const ModbusField& field = feature.activePower;
+
+    if (field.length != 1) return false;
+
+    switch (field.mode) {
+        case FIELD_SIMPLE:
+            if (!field.readable) return false;
+            return readScaledFloat(field, power);
+
         default:
             return false;
     }
@@ -1089,29 +1299,31 @@ bool Inverter::getEPSCurrent(PhaseData& phase) {
 
 bool Inverter::getEPSActivePower(PhaseData& phase) {
     if (!hasValidMap()) return false;
-    if (_descriptor.epsPhaseType == NO_EPS) return false;
+
+    const EpsFeature& feature = _map.eps;
+
+    if (feature.phaseCount != 3) return false;
+
+    const ModbusField& field = feature.activePower;
     
-    switch (_map.epsActivePower.mode) {
+    if (field.length != 3) return false;
+
+    switch (field.mode) {
 
         case FIELD_SIMPLE: {
-            if (!_map.epsActivePower.readable) return false;
-            if (_map.epsActivePower.length == 0 || _map.epsActivePower.length > 3) return false;
+            if (!field.readable) return false;
 
-            float v[INV_MAX_FLOAT_VALUES];
+            float v[3];
 
-            if (!readScaledFloat(_map.epsActivePower, v, _map.epsActivePower.length)) return false;
+            if (!readScaledFloat(field, v, 3)) return false;
 
-            phase.r = 0.0f;
-            phase.s = 0.0f;
-            phase.t = 0.0f;
-
-            if (_map.epsActivePower.length >= 1) phase.r = v[0];
-            if (_map.epsActivePower.length >= 2) phase.s = v[1];
-            if (_map.epsActivePower.length >= 3) phase.t = v[2];
+            phase.r = v[0];
+            phase.s = v[1];
+            phase.t = v[2];
 
             return true;
         }
-            
+
         default:
             return false;
     }
@@ -1123,28 +1335,32 @@ bool Inverter::getEPSActivePower(PhaseData& phase) {
 
 bool Inverter::getTemperature(float& temperature) {
     if (!hasValidMap()) return false;
+
+    const DiagnosticFeature& feature = _map.diagnostic;
+    const ModbusField& field = feature.temperature;    
     
-    
-    switch (_map.temperature.mode) {
+    switch (field.mode) {
 
         case FIELD_SIMPLE:
-            if (!_map.temperature.readable) return false;
-            return readScaledFloat(_map.temperature, temperature);
+            if (!field.readable) return false;
+            return readScaledFloat(field, temperature);
             
         default:
             return false;
     }
 }
 
-bool Inverter::getInsulationResistance(float& kiloOhms) {
+bool Inverter::getInsulationResistance(float& kohm) {
     if (!hasValidMap()) return false;
+
+    const DiagnosticFeature& feature = _map.diagnostic;
+    const ModbusField& field = feature.insulationResistance;    
     
-    
-    switch (_map.insulationResistance.mode) {
+    switch (field.mode) {
 
         case FIELD_SIMPLE:
-            if (!_map.insulationResistance.readable) return false;
-            return readScaledFloat(_map.insulationResistance, kiloOhms);
+            if (!field.readable) return false;
+            return readScaledFloat(field, kohm);
             
         default:
             return false;
@@ -1163,15 +1379,17 @@ bool Inverter::getInsulationResistance(float& kiloOhms) {
 // #############################################################################################################
 bool Inverter::getInverterStatus(uint32_t status) {//InverterStatus& status) {
     if (!hasValidMap()) return false;
+
+    const ModbusField& field = _map.status.inverterStatus;
     
-    switch (_map.inverterStatus.mode) {
+    switch (field.mode) {
 
         case FIELD_SIMPLE:{
-            if (!_map.inverterStatus.readable) return false;
+            if (!field.readable) return false;
 
             uint32_t raw;
 
-            if (!readField(_map.inverterStatus, &raw)) return false;
+            if (!readField(field, &raw)) return false;
 
             status = raw;//(InverterStatus)raw;
             return true;
@@ -1184,14 +1402,16 @@ bool Inverter::getInverterStatus(uint32_t status) {//InverterStatus& status) {
 
 bool Inverter::getAlarm(uint32_t alarm) {//Alarm& alarm) {
     if (!hasValidMap()) return false;
+
+    const ModbusField& field = _map.status.alarm;
     
-    switch (_map.alarm.mode) {
+    switch (field.mode) {
 
         case FIELD_SIMPLE: {
-            if (!_map.alarm.readable) return false;
+            if (!field.readable) return false;
 
             uint16_t raw;
-            if (!readField(_map.alarm, &raw)) return false;
+            if (!readField(field, &raw)) return false;
 
             alarm = raw;//(Alarm)raw;
             return true;

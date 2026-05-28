@@ -39,584 +39,657 @@ InverterTime.cpp
 // Date/Time Read
 // ======================================================
 
-bool Inverter::getDatetime(Datetime& dt) {
-    if (_map.serialNumber.address == 0xFFFF) return false;
-
-    if (_map.time_epoch.readable) {
-        uint32_t epoch;
-        if (!readField(_map.time_epoch, &epoch)) return false;
-
-        dt = epochToDatetime(epoch);
-        return true;
-    }
-    // Inserir leitura por leitura e Goodwe
-    // fallback futuro: campos separados
-    return false;
-}
-
 bool Inverter::getYear(uint16_t& year) {
-    if (_map.serialNumber.address == 0xFFFF) return false;
+    if (!hasValidMap()) return false;
 
-    if (_map.time_year.readable) {
-        uint16_t y;
-        if (!readField(_map.time_year, &y)) return false;
+    const TimeFeature& feature = _map.time;
+    const ModbusField& fieldYear = feature.year;
 
-        if (_map.time_year.handlerId == GOODWE_HANDLER) {
-            y = y >> 8;
-            y += 2000;
+    // Verifica se o campo existe, senão cai em fallback
+    if (!isInvalidField(fieldYear)) {
+        
+        switch (fieldYear.mode) {
+            case FIELD_SIMPLE: {
+                if (!fieldYear.readable) return false;
+
+                uint16_t raw = 0;
+
+                if (!readField(fieldYear, &raw)) return false;
+
+                if (feature.usesSharedDateTimeRegisters) {
+                    raw = raw >> 8;
+                }
+
+                if (feature.yearIsOffsetFrom2000) {
+                    raw = raw + 2000;
+                }
+
+                if (raw < 1970 || raw > 2100) return false;
+
+                year = raw;
+
+                return true;
+            }
+
+            default:
+                return false;
         }
-
-        if (y < 1970 || y > 2100) return false;
-
-        year = y;
-        return true;
     }
 
-    if (_map.time_epoch.readable) {
-        uint32_t epoch;
+    // Fallback: Tenta obter ano a partir do epoch
+    if (!feature.supportsEpoch) return false;
+
+    const ModbusField& fieldEpoch = feature.epoch;
+
+    if (isInvalidField(fieldEpoch)) return false;
+
+    switch (fieldEpoch.mode)
+    {
+    case FIELD_SIMPLE: {
+        if (!fieldEpoch.readable) return false;
+
+        uint32_t epoch = 0;
         Datetime dtTmp;
-        if (!readField(_map.time_epoch, &epoch)) return false;
+
+        if (!readField(fieldEpoch, &epoch)) return false;
 
         dtTmp = epochToDatetime(epoch);
+
+        if (dtTmp.year < 1970 || dtTmp.year > 2100) return false;
+
         year = dtTmp.year;
         return true;
+    }  
+    
+    default:
+        return false;
     }
-    return false;
 }
 
 bool Inverter::getMonth(uint16_t& month) {
-    if (_map.serialNumber.address == 0xFFFF) return false;
+    if (!hasValidMap()) return false;
 
-    if (_map.time_month.readable) {
-        uint16_t m;
-        if (!readField(_map.time_month, &m)) return false;
+    const TimeFeature& feature = _map.time;
+    const ModbusField& fieldMonth = feature.month;
 
-        if (_map.time_month.handlerId == GOODWE_HANDLER) {
-            m = m & 0xFF;
-        }
+    // Verifica se o campo existe, senão cai em fallback
+    if (!isInvalidField(fieldMonth)) {
         
-        if (m < 1 || m > 12) return false;
+        switch (fieldMonth.mode) {
+            case FIELD_SIMPLE: {
+                if (!fieldMonth.readable) return false;
 
-        month = m;
-        return true;
+                uint16_t raw = 0;
+
+                if (!readField(fieldMonth, &raw)) return false;
+
+                if (feature.usesSharedDateTimeRegisters) {
+                    raw = raw & 0xFF;
+                }
+
+                if (raw < 1 || raw > 12) return false;
+
+                month = raw;
+
+                return true;
+            }
+
+            default:
+                return false;
         }
+    }
 
-    if (_map.time_epoch.readable) {
-        uint32_t epoch;
+    // Fallback: Tenta obter mês a partir do epoch
+    if (!feature.supportsEpoch) return false;
+
+    const ModbusField& fieldEpoch = feature.epoch;
+
+    if (isInvalidField(fieldEpoch)) return false;
+
+    switch (fieldEpoch.mode)
+    {
+    case FIELD_SIMPLE: {
+        if (!fieldEpoch.readable) return false;
+
+        uint32_t epoch = 0;
         Datetime dtTmp;
-        if (!readField(_map.time_epoch, &epoch)) return false;
+
+        if (!readField(fieldEpoch, &epoch)) return false;
 
         dtTmp = epochToDatetime(epoch);
+
+        if (dtTmp.month < 1 || dtTmp.month > 12) return false;
+
         month = dtTmp.month;
         return true;
+    }  
+    
+    default:
+        return false;
     }
-    return false;
 }
 
 bool Inverter::getDay(uint16_t& day) {
-    if (_map.serialNumber.address == 0xFFFF) return false;
+    if (!hasValidMap()) return false;
 
-    if (_map.time_day.readable) {
-        uint16_t d;
-        if (!readField(_map.time_day, &d)) return false;
+    const TimeFeature& feature = _map.time;
+    const ModbusField& fieldDay = feature.day;
 
-        if (_map.time_day.handlerId == GOODWE_HANDLER) {
-            d = d >> 8;
+    // Verifica se o campo existe, senão cai em fallback
+    if (!isInvalidField(fieldDay)) {
+        
+        switch (fieldDay.mode) {
+            case FIELD_SIMPLE: {
+                if (!fieldDay.readable) return false;
+
+                uint16_t raw = 0;
+
+                if (!readField(fieldDay, &raw)) return false;
+
+                if (feature.usesSharedDateTimeRegisters) {
+                    raw = raw >> 8;
+                }
+
+                if (raw < 1 || raw > 31) return false;
+
+                day = raw;
+
+                return true;
+            }
+
+            default:
+                return false;
         }
-
-        if (d < 1 || d > 31) return false;
-
-        day = d;
-        return true;
     }
 
-    if (_map.time_epoch.readable) {
-        uint32_t epoch;
+    // Fallback: Tenta obter dia a partir do epoch
+    if (!feature.supportsEpoch) return false;
+
+    const ModbusField& fieldEpoch = feature.epoch;
+
+    if (isInvalidField(fieldEpoch)) return false;
+
+    switch (fieldEpoch.mode)
+    {
+    case FIELD_SIMPLE: {
+        if (!fieldEpoch.readable) return false;
+
+        uint32_t epoch = 0;
         Datetime dtTmp;
-        if (!readField(_map.time_epoch, &epoch)) return false;
+
+        if (!readField(fieldEpoch, &epoch)) return false;
 
         dtTmp = epochToDatetime(epoch);
+
+        if (dtTmp.day < 1 || dtTmp.day > 31) return false;
+
         day = dtTmp.day;
         return true;
+    }  
+    
+    default:
+        return false;
     }
-    return false;
 }
 
 bool Inverter::getHour(uint16_t& hour) {
-    if (_map.serialNumber.address == 0xFFFF) return false;
+    if (!hasValidMap()) return false;
 
-    if (_map.time_hour.readable) {
-        uint16_t h;
-        if (!readField(_map.time_hour, &h)) return false;
+    const TimeFeature& feature = _map.time;
+    const ModbusField& fieldHour = feature.hour;
 
-        if (_map.time_hour.handlerId == GOODWE_HANDLER) {
-            h = h & 0xFF;
-        }
+    // Verifica se o campo existe, senão cai em fallback
+    if (!isInvalidField(fieldHour)) {
         
-        if (h > 23) return false;
+        switch (fieldHour.mode) {
+            case FIELD_SIMPLE: {
+                if (!fieldHour.readable) return false;
 
-        hour = h;
-        return true;
+                uint16_t raw = 0;
+
+                if (!readField(fieldHour, &raw)) return false;
+
+                if (feature.usesSharedDateTimeRegisters) {
+                    raw = raw & 0xFF;
+                }
+
+                if (raw < 0 || raw > 23) return false;
+
+                hour = raw;
+
+                return true;
+            }
+
+            default:
+                return false;
         }
+    }
 
-    if (_map.time_epoch.readable) {
-        uint32_t epoch;
+    // Fallback: Tenta obter hora a partir do epoch
+    if (!feature.supportsEpoch) return false;
+
+    const ModbusField& fieldEpoch = feature.epoch;
+
+    if (isInvalidField(fieldEpoch)) return false;
+
+    switch (fieldEpoch.mode)
+    {
+    case FIELD_SIMPLE: {
+        if (!fieldEpoch.readable) return false;
+
+        uint32_t epoch = 0;
         Datetime dtTmp;
-        if (!readField(_map.time_epoch, &epoch)) return false;
+
+        if (!readField(fieldEpoch, &epoch)) return false;
 
         dtTmp = epochToDatetime(epoch);
+
+        if (dtTmp.hour < 0 || dtTmp.hour > 23) return false;
+
         hour = dtTmp.hour;
         return true;
+    }  
+    
+    default:
+        return false;
     }
-    return false;
 }
 
 bool Inverter::getMinute(uint16_t& minute) {
-    if (_map.serialNumber.address == 0xFFFF) return false;
+    if (!hasValidMap()) return false;
 
-    if (_map.time_minute.readable) {
-        uint16_t m;
-        if (!readField(_map.time_minute, &m)) return false;
+    const TimeFeature& feature = _map.time;
+    const ModbusField& fieldMin = feature.minute;
 
-        if (_map.time_minute.handlerId == GOODWE_HANDLER) {
-            m = m >> 8;
+    // Verifica se o campo existe, senão cai em fallback
+    if (!isInvalidField(fieldMin)) {
+        
+        switch (fieldMin.mode) {
+            case FIELD_SIMPLE: {
+                if (!fieldMin.readable) return false;
+
+                uint16_t raw = 0;
+
+                if (!readField(fieldMin, &raw)) return false;
+
+                if (feature.usesSharedDateTimeRegisters) {
+                    raw = raw >> 8;
+                }
+
+                if (raw > 59) return false;
+
+                minute = raw;
+
+                return true;
+            }
+
+            default:
+                return false;
         }
-
-        if (m > 59) return false;
-
-        minute = m;
-        return true;
     }
 
-    if (_map.time_epoch.readable) {
-        uint32_t epoch;
+    // Fallback: Tenta obter minuto a partir do epoch
+    if (!feature.supportsEpoch) return false;
+
+    const ModbusField& fieldEpoch = feature.epoch;
+
+    if (isInvalidField(fieldEpoch)) return false;
+
+    switch (fieldEpoch.mode)
+    {
+    case FIELD_SIMPLE: {
+        if (!fieldEpoch.readable) return false;
+
+        uint32_t epoch = 0;
         Datetime dtTmp;
-        if (!readField(_map.time_epoch, &epoch)) return false;
+
+        if (!readField(fieldEpoch, &epoch)) return false;
 
         dtTmp = epochToDatetime(epoch);
+
+        if (dtTmp.minute > 59) return false;
+
         minute = dtTmp.minute;
         return true;
+    }  
+    
+    default:
+        return false;
     }
-    return false;
 }
 
 bool Inverter::getSecond(uint16_t& second) {
-    if (_map.serialNumber.address == 0xFFFF) return false;
+    if (!hasValidMap()) return false;
 
-    if (_map.time_second.readable) {
-        uint16_t s;
-        if (!readField(_map.time_second, &s)) return false;
+    const TimeFeature& feature = _map.time;
+    const ModbusField& fieldSec = feature.second;
 
-        if (_map.time_second.handlerId == GOODWE_HANDLER) {
-            s = s & 0xFF;
-        }
+    // Verifica se o campo existe, senão cai em fallback
+    if (!isInvalidField(fieldSec)) {
         
-        if (s > 59) return false;
+        switch (fieldSec.mode) {
+            case FIELD_SIMPLE: {
+                if (!fieldSec.readable) return false;
 
-        second = s;
-        return true;
+                uint16_t raw = 0;
+
+                if (!readField(fieldSec, &raw)) return false;
+
+                if (feature.usesSharedDateTimeRegisters) {
+                    raw = raw & 0xFF;
+                }
+
+                if (raw > 59) return false;
+
+                second = raw;
+
+                return true;
+            }
+
+            default:
+                return false;
         }
+    }
 
-    if (_map.time_epoch.readable) {
-        uint32_t epoch;
+    // Fallback: Tenta obter segundo a partir do epoch
+    if (!feature.supportsEpoch) return false;
+
+    const ModbusField& fieldEpoch = feature.epoch;
+
+    if (isInvalidField(fieldEpoch)) return false;
+
+    switch (fieldEpoch.mode) {
+    case FIELD_SIMPLE: {
+        if (!fieldEpoch.readable) return false;
+
+        uint32_t epoch = 0;
         Datetime dtTmp;
-        if (!readField(_map.time_epoch, &epoch)) return false;
+
+        if (!readField(fieldEpoch, &epoch)) return false;
 
         dtTmp = epochToDatetime(epoch);
+
+        if (dtTmp.second > 59) return false;
+
         second = dtTmp.second;
         return true;
+    }  
+    
+    default:
+        return false;
     }
-    return false;
 }
 
 bool Inverter::getEpochTime(uint32_t& epoch) {
-    if (_map.serialNumber.address == 0xFFFF) return false;
+    if (!hasValidMap()) return false;
 
-    if (!_map.time_epoch.readable) return false;
+    const TimeFeature& feature = _map.time;
+    const ModbusField& field = feature.epoch;
 
-    return readField(_map.time_epoch, &epoch);
+    if (isInvalidField(field)) return false;
+
+    switch (field.mode) {
+    case FIELD_SIMPLE:
+        if (!field.readable) return false;
+        return readField(field, &epoch);
+    
+    default:
+        return false;
+    }
+
+    // Sem fallback
 }
 
 // ======================================================
 // Date/Time Write
 // ======================================================
 
-bool Inverter::setDatetime(Datetime dt) {
-    if (_map.serialNumber.address == 0xFFFF) return false;
-    if (!isValidDatetime(dt)) return false;
-
-    if (_map.time_epoch.writable) {
-        uint32_t epoch = datetimeToEpoch(dt);
-        return writeField(_map.time_epoch, epoch);
-    }
-
-    // fallback futuro: escrever campos separados
-    return false;
-}
-
 bool Inverter::setYear(uint16_t year) {
-    if (_map.serialNumber.address == 0xFFFF) return false;
+    if (!hasValidMap()) return false;
     if (year < 1970 || year > 2100) return false;
 
-    // Caso 1: registrador direto
-    if (_map.time_year.writable) {
-        if (_map.time_year.handlerId == GOODWE_HANDLER) {
-            year -= 2000;
-            uint16_t reg;
+    const TimeFeature& feature = _map.time;
+    const ModbusField& fieldYear = feature.year;
 
-            // ler valor atual (contém month junto)
-            if (!readField(_map.time_year, &reg)) return false;
+    // Verifica se o campo existe, senão cai em fallback
+    if (!isInvalidField(fieldYear)) {
+        
+        switch (fieldYear.mode) {
+            case FIELD_SIMPLE: {
+                if (!fieldYear.writable) return false;
+                if (feature.yearIsOffsetFrom2000) {
+                    if (year < 2000 && year > 2099) return false;
+                    year -= 2000;
+                }
 
-            // preservar LSB (month)
-            uint16_t lsb = reg & 0x00FF;
+                if (feature.usesSharedDateTimeRegisters) {
+                    uint16_t reg;
 
-            // colocar ano no MSB
-            uint16_t newVal = (year << 8) | lsb;
+                    // ler valor atual (contém month junto)
+                    if (!readField(fieldYear, &reg)) return false;
 
-            return writeField(_map.time_year, newVal);
+                    // preservar LSB (month)
+                    uint16_t lsb = reg & 0x00FF;
+
+                    // colocar ano no MSB
+                    uint16_t newVal = (year << 8) | lsb;
+
+                    return writeField(fieldYear, newVal);
+                }
+
+                return writeField(fieldYear, year);
+            }
+
+            default:
+                return false;
         }
-
-        return writeField(_map.time_year, year);
     }
 
-    // Caso 2: fallback para epoch
-    if (_map.time_epoch.writable) {
-        Datetime dt;
-
-        if (!getDatetime(dt)) return false;
-
-        dt.year = year;
-        if (!isValidDatetime(dt)) return false;
-
-        uint32_t epoch = datetimeToEpoch(dt);
-        return writeField(_map.time_epoch, epoch);
-    }
-
+    // Fallback: Tentaria escrever ano a partir do epoch, mas não é necessário por enquanto
     return false;
 }
 
 bool Inverter::setMonth(uint16_t month) {
-    if (_map.serialNumber.address == 0xFFFF) return false;
+    if (!hasValidMap()) return false;
     if (month < 1 || month > 12) return false;
 
-    // Caso 1: registrador direto
-    if (_map.time_month.writable) {
-        if (_map.time_month.handlerId == GOODWE_HANDLER) {
-            uint16_t reg;
+    const TimeFeature& feature = _map.time;
+    const ModbusField& fieldMonth = feature.month;
 
-            // ler valor atual (contém year junto)
-            if (!readField(_map.time_month, &reg)) return false;
+    // Verifica se o campo existe, senão cai em fallback
+    if (!isInvalidField(fieldMonth)) {
+        
+        switch (fieldMonth.mode) {
+            case FIELD_SIMPLE: {
+                if (!fieldMonth.writable) return false;
 
-            // preservar MSB (year)
-            uint16_t msb = reg & 0xFF00;
+                if (feature.usesSharedDateTimeRegisters) {
+                    uint16_t reg;
 
-            // colocar mês no LSB
-            uint16_t newVal = msb | (month & 0x00FF);
+                    // ler valor atual (contém year junto)
+                    if (!readField(fieldMonth, &reg)) return false;
 
-            return writeField(_map.time_month, newVal);
+                    // preservar MSB (year)
+                    uint16_t msb = reg & 0xFF00;
+
+                    // colocar mes no LSB
+                    uint16_t newVal = msb | (month & 0x00FF);
+
+                    return writeField(fieldMonth, newVal);
+                }
+
+                return writeField(fieldMonth, month);
+            }
+
+            default:
+                return false;
         }
-
-        return writeField(_map.time_month, month);
     }
 
-    // Caso 2: fallback para epoch
-    if (_map.time_epoch.writable) {
-        Datetime dt;
-
-        if (!getDatetime(dt)) return false;
-
-        dt.month = month;
-        if (!isValidDatetime(dt)) return false;
-
-        uint32_t epoch = datetimeToEpoch(dt);
-        return writeField(_map.time_epoch, epoch);
-    }
-
+    // Fallback: Tentaria escrever mes a partir do epoch, mas não é necessário por enquanto
     return false;
 }
 
 bool Inverter::setDay(uint16_t day) {
-    if (_map.serialNumber.address == 0xFFFF) return false;
+    if (!hasValidMap()) return false;
     if (day < 1 || day > 31) return false;
 
-    // Caso 1: registrador direto
-    if (_map.time_day.writable) {
-        if (_map.time_day.handlerId == GOODWE_HANDLER) {
-            uint16_t reg;
+    const TimeFeature& feature = _map.time;
+    const ModbusField& fieldDay = feature.day;
 
-            // ler valor atual (contém hour junto)
-            if (!readField(_map.time_day, &reg)) return false;
+    // Verifica se o campo existe, senão cai em fallback
+    if (!isInvalidField(fieldDay)) {
+        
+        switch (fieldDay.mode) {
+            case FIELD_SIMPLE: {
+                if (!fieldDay.writable) return false;
 
-            // preservar LSB (hour)
-            uint16_t lsb = reg & 0x00FF;
+                if (feature.usesSharedDateTimeRegisters) {
+                    uint16_t reg;
 
-            // colocar dia no MSB
-            uint16_t newVal = (day << 8) | lsb;
+                    // ler valor atual (contém hour junto)
+                    if (!readField(fieldDay, &reg)) return false;
 
-            return writeField(_map.time_day, newVal);
+                    // preservar LSB (hour)
+                    uint16_t lsb = reg & 0x00FF;
+
+                    // colocar dia no MSB
+                    uint16_t newVal = (day << 8) | lsb;
+
+                    return writeField(fieldDay, newVal);
+                }
+
+                return writeField(fieldDay, day);
+            }
+
+            default:
+                return false;
         }
-
-        return writeField(_map.time_day, day);
     }
 
-    // Caso 2: fallback para epoch
-    if (_map.time_epoch.writable) {
-        Datetime dt;
-
-        if (!getDatetime(dt)) return false;
-
-        dt.day = day;
-        if (!isValidDatetime(dt)) return false;
-
-        uint32_t epoch = datetimeToEpoch(dt);
-        return writeField(_map.time_epoch, epoch);
-    }
-
+    // Fallback: Tentaria escrever dia a partir do epoch, mas não é necessário por enquanto
     return false;
 }
 
 bool Inverter::setHour(uint16_t hour) {
-    if (_map.serialNumber.address == 0xFFFF) return false;
+    if (!hasValidMap()) return false;
     if (hour > 23) return false;
 
-    // Caso 1: registrador direto
-    if (_map.time_hour.writable) {
-        if (_map.time_hour.handlerId == GOODWE_HANDLER) {
-            uint16_t reg;
+    const TimeFeature& feature = _map.time;
+    const ModbusField& fieldHour = feature.hour;
 
-            // ler valor atual (contém day junto)
-            if (!readField(_map.time_hour, &reg)) return false;
-
-            // preservar MSB (day)
-            uint16_t msb = reg & 0xFF00;
-
-            // colocar hour no LSB
-            uint16_t newVal = msb | (hour & 0x00FF);
-
-            return writeField(_map.time_hour, newVal);
-        }
-
-        return writeField(_map.time_hour, hour);
-    }
-
-    // Caso 2: fallback para epoch
-    if (_map.time_epoch.writable) {
-        Datetime dt;
-
-        if (!getDatetime(dt)) return false;
-
-        dt.hour = hour;
-        if (!isValidDatetime(dt)) return false;
+    // Verifica se o campo existe, senão cai em fallback
+    if (!isInvalidField(fieldHour)) {
         
-        uint32_t epoch = datetimeToEpoch(dt);
-        return writeField(_map.time_epoch, epoch);
+        switch (fieldHour.mode) {
+            case FIELD_SIMPLE: {
+                if (!fieldHour.writable) return false;
+
+                if (feature.usesSharedDateTimeRegisters) {
+                    uint16_t reg;
+
+                    // ler valor atual (contém day junto)
+                    if (!readField(fieldHour, &reg)) return false;
+
+                    // preservar MSB (day)
+                    uint16_t msb = reg & 0xFF00;
+
+                    // colocar hour no LSB
+                    uint16_t newVal = msb | (hour & 0x00FF);
+
+                    return writeField(fieldHour, newVal);
+                }
+
+                return writeField(fieldHour, hour);
+            }
+
+            default:
+                return false;
+        }
     }
 
+    // Fallback: Tentaria escrever hora a partir do epoch, mas não é necessário por enquanto
     return false;
 }
 
 bool Inverter::setMinute(uint16_t minute) {
-    if (_map.serialNumber.address == 0xFFFF) return false;
+    if (!hasValidMap()) return false;
     if (minute > 59) return false;
 
-    // Caso 1: registrador direto
-    if (_map.time_minute.writable) {
-        if (_map.time_minute.handlerId == GOODWE_HANDLER) {
-            uint16_t reg;
+    const TimeFeature& feature = _map.time;
+    const ModbusField& fieldMin = feature.minute;
 
-            // ler valor atual (contém second junto)
-            if (!readField(_map.time_minute, &reg)) return false;
+    // Verifica se o campo existe, senão cai em fallback
+    if (!isInvalidField(fieldMin)) {
+        
+        switch (fieldMin.mode) {
+            case FIELD_SIMPLE: {
+                if (!fieldMin.writable) return false;
 
-            // preservar LSB (second)
-            uint16_t lsb = reg & 0x00FF;
+                if (feature.usesSharedDateTimeRegisters) {
+                    uint16_t reg;
 
-            // colocar minuto no MSB
-            uint16_t newVal = (minute << 8) | lsb;
+                    // ler valor atual (contém second junto)
+                    if (!readField(fieldMin, &reg)) return false;
 
-            return writeField(_map.time_minute, newVal);
+                    // preservar LSB (second)
+                    uint16_t lsb = reg & 0x00FF;
+
+                    // colocar minute no MSB
+                    uint16_t newVal = (minute << 8) | lsb;
+
+                    return writeField(fieldMin, newVal);
+                }
+
+                return writeField(fieldMin, minute);
+            }
+
+            default:
+                return false;
         }
-
-        return writeField(_map.time_minute, minute);
     }
 
-    // Caso 2: fallback para epoch
-    if (_map.time_epoch.writable) {
-        Datetime dt;
-
-        if (!getDatetime(dt)) return false;
-
-        dt.minute = minute;
-        if (!isValidDatetime(dt)) return false;
-
-        uint32_t epoch = datetimeToEpoch(dt);
-        return writeField(_map.time_epoch, epoch);
-    }
-
+    // Fallback: Tentaria escrever minuto a partir do epoch, mas não é necessário por enquanto
     return false;
 }
 
 bool Inverter::setSecond(uint16_t second) {
-    if (_map.serialNumber.address == 0xFFFF) return false;
+    if (!hasValidMap()) return false;
     if (second > 59) return false;
 
-    // Caso 1: registrador direto
-    if (_map.time_second.writable) {
-        if (_map.time_second.handlerId == GOODWE_HANDLER) {
-            uint16_t reg;
+    const TimeFeature& feature = _map.time;
+    const ModbusField& fieldSec = feature.second;
 
-            // ler valor atual (contém minute junto)
-            if (!readField(_map.time_second, &reg)) return false;
+    // Verifica se o campo existe, senão cai em fallback
+    if (!isInvalidField(fieldSec)) {
+        
+        switch (fieldSec.mode) {
+            case FIELD_SIMPLE: {
+                if (!fieldSec.writable) return false;
 
-            // preservar MSB (minute)
-            uint16_t msb = reg & 0xFF00;
+                if (feature.usesSharedDateTimeRegisters) {
+                    uint16_t reg;
 
-            // colocar second no LSB
-            uint16_t newVal = msb | (second & 0x00FF);
+                    // ler valor atual (contém minute junto)
+                    if (!readField(fieldSec, &reg)) return false;
 
-            return writeField(_map.time_second, newVal);
+                    // preservar MSB (minute)
+                    uint16_t msb = reg & 0xFF00;
+
+                    // colocar second no LSB
+                    uint16_t newVal = msb | (second & 0x00FF);
+
+                    return writeField(fieldSec, newVal);
+                }
+
+                return writeField(fieldSec, second);
+            }
+
+            default:
+                return false;
         }
-
-        return writeField(_map.time_second, second);
     }
 
-    // Caso 2: fallback para epoch
-    if (_map.time_epoch.writable) {
-        Datetime dt;
-
-        if (!getDatetime(dt)) return false;
-
-        dt.second = second;
-        if (!isValidDatetime(dt)) return false;
-
-        uint32_t epoch = datetimeToEpoch(dt);
-        return writeField(_map.time_epoch, epoch);
-    }
-
+    // Fallback: Tentaria escrever segundo a partir do epoch, mas não é necessário por enquanto
     return false;
-}
-
-bool Inverter::setEpochTime(uint32_t epoch) {
-    if (_map.serialNumber.address == 0xFFFF) return false;
-    if (!_map.time_epoch.writable) return false;
-
-    return writeField(_map.time_epoch, epoch);
-}
-
-// ======================================================
-// Internal Conversions
-// ======================================================
-
-bool Inverter::isLeap(uint16_t y) {
-    return (y % 4 == 0 && y % 100 != 0) || (y % 400 == 0);
-}
-
-Datetime Inverter::epochToDatetime(uint32_t epoch) {
-    Datetime dt;
-
-    uint32_t seconds = epoch;
-
-    dt.second = seconds % 60;
-    seconds /= 60;
-
-    dt.minute = seconds % 60;
-    seconds /= 60;
-
-    dt.hour = seconds % 24;
-    uint32_t days = seconds / 24;
-
-    uint16_t year = 1970;
-
-    while (true) {
-        uint16_t dy = isLeap(year) ? 366 : 365;
-        if (days >= dy) {
-            days -= dy;
-            year++;
-        } else {
-            break;
-        }
-    }
-
-    dt.year = year;
-
-    static const uint8_t daysInMonth[] = {
-        31,28,31,30,31,30,31,31,30,31,30,31
-    };
-
-    uint8_t month = 0;
-
-    while (true) {
-        uint8_t dim = daysInMonth[month];
-
-        if (month == 1 && isLeap(year)) {
-            dim = 29;
-        }
-
-        if (days >= dim) {
-            days -= dim;
-            month++;
-        } else {
-            break;
-        }
-    }
-
-    dt.month = month + 1;
-    dt.day = days + 1;
-
-    return dt;
-}
-
-bool Inverter::isValidDatetime(const Datetime& dt) {
-    if (dt.year < 1970 || dt.year > 2100) return false;
-    if (dt.month < 1 || dt.month > 12) return false;
-    if (dt.hour > 23) return false;
-    if (dt.minute > 59) return false;
-    if (dt.second > 59) return false;
-
-    static const uint8_t daysInMonth[] = {
-        31, 28, 31, 30, 31, 30,
-        31, 31, 30, 31, 30, 31
-    };
-
-    uint8_t maxDay = daysInMonth[dt.month - 1];
-
-    if (dt.month == 2 && isLeap(dt.year)) {
-        maxDay = 29;
-    }
-
-    if (dt.day < 1 || dt.day > maxDay) return false;
-
-    return true;
-}
-
-uint32_t Inverter::datetimeToEpoch(const Datetime& dt) {
-    uint32_t days = 0;
-
-    // Anos completos desde 1970
-    for (uint16_t y = 1970; y < dt.year; y++) {
-        days += isLeap(y) ? 366UL : 365UL;
-    }
-
-    // Meses completos do ano atual
-    static const uint8_t daysInMonth[] = {
-        31, 28, 31, 30, 31, 30,
-        31, 31, 30, 31, 30, 31
-    };
-
-    for (uint8_t m = 1; m < dt.month; m++) {
-        if (m == 2 && isLeap(dt.year)) {
-            days += 29;
-        } else {
-            days += daysInMonth[m - 1];
-        }
-    }
-
-    // Dias completos do mês atual
-    days += (dt.day - 1);
-
-    uint32_t epoch = days * 86400UL;
-    epoch += (uint32_t)dt.hour * 3600UL;
-    epoch += (uint32_t)dt.minute * 60UL;
-    epoch += dt.second;
-
-    return epoch;
 }

@@ -44,6 +44,7 @@ struct ActivePowerFeature {
     uint16_t percentModeValue;
 
     bool supportsEnable;
+    bool supportsMode;
     bool implicitEnable;
     bool supportsWatts;
     bool supportsPercent;
@@ -122,10 +123,9 @@ struct TimeFeature {
     ModbusField second;
     ModbusField epoch;
 
-    bool supportsSeparatedFields;
+    bool usesSharedDateTimeRegisters;
     bool supportsEpoch;
     bool yearIsOffsetFrom2000;
-    bool usesBCD;
 };
 
 struct PowerMeasurementFeature {
@@ -159,9 +159,6 @@ struct PvStringFeature {
 
     ModbusField stringCount;
     ModbusField MpptCount;
-
-    bool stringCountFromDescriptor;
-    bool mpptCountFromDescriptor;
 };
 
 struct BatteryFeature {

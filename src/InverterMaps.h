@@ -24,6 +24,8 @@ struct Datetime {
     uint8_t second;
 };
 
+constexpr uint16_t FEATURE_VALUE_NONE = 0xFFFF;
+
 struct ModbusInverterMap {
 
     IdentificationFeature identification;

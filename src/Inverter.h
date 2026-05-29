@@ -110,13 +110,15 @@ enum Alarm {
     ALARM_UNKNOWN
 };
 
-enum PfExcitationMode {
-    LAGGING,            // +j
-    LEADING,            // -j
-    INDUCTIVE,          // +j
-    CAPACITIVE,         // -j
-    OVER_EXCITED,       // +j
-    UNDER_EXCITED       // -j
+enum PfExcitationMode : uint8_t {
+    PF_EXCITATION_POSITIVE_Q = 0,                   // +j
+    PF_EXCITATION_NEGATIVE_Q = 1,                   // -j
+    LAGGING = PF_EXCITATION_POSITIVE_Q,             // +j
+    LEADING = PF_EXCITATION_NEGATIVE_Q,             // -j
+    INDUCTIVE = PF_EXCITATION_POSITIVE_Q,           // +j
+    CAPACITIVE = PF_EXCITATION_NEGATIVE_Q,          // -j
+    OVER_EXCITED = PF_EXCITATION_POSITIVE_Q,        // +j
+    UNDER_EXCITED = PF_EXCITATION_NEGATIVE_Q        // -j
 };
 
 struct StringValues {
@@ -132,8 +134,7 @@ struct BatteryValues {
 class Inverter {
 public:
 
-
-
+    bool getRatedPower(uint32_t& power);               //
     bool setPowerLimitEnabled(bool enabled);            //
     bool setExportLimitEnabled(bool enabled);           //
     bool setPowerFactorEnabled(bool enabled);           //
@@ -260,6 +261,7 @@ private:
     // ------------------------------------------------------
     // Helpers internos
     bool isInvalidField(const ModbusField& field);   //
+    bool hasValidMap() const;                           //
     // ------------------------------------------------------
 
     // Arquivo InverterTime.cpp
@@ -275,7 +277,7 @@ private:
     // Privates temporárias (em desenvolvimento)
 
 
-    bool Inverter::hasValidMap() const;
+    
     // ------------------------------------------------------
     // Centro das operações Modbus
     // Arquivo InverterCore.cpp

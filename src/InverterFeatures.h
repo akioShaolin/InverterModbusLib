@@ -20,6 +20,7 @@ struct IdentificationFeature {
     ModbusField modelId;
     ModbusField modelName;
     ModbusField firmwareVersion;
+    ModbusField ratedPower;
 };
 
 struct ControlFeature {
@@ -64,6 +65,7 @@ struct ExportLimitFeature {
     uint16_t percentModeValue;
 
     bool supportsEnable;
+    bool supportsMode;
     bool implicitEnable;
     bool supportsWatts;
     bool supportsPercent;
@@ -97,6 +99,7 @@ struct ReactivePowerFeature {
     bool supportsControlModePf;
     bool supportsPfSp;
     bool implicitPfSp;
+    bool usesGoodWePowerFactorRange;
 
     // Suporte a reativo fixo
     bool supportsEnableFixedReactive;

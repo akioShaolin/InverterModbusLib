@@ -109,5 +109,6 @@ struct ModbusInverterMap {
 };
 
 ModbusInverterMap getInverterMap(InverterModel model);
+ModbusInverterMap getMap_Weg(InverterModel model);
 
 #endif

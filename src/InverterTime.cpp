@@ -693,3 +693,29 @@ bool Inverter::setSecond(uint16_t second) {
     // Fallback: Tentaria escrever segundo a partir do epoch, mas não é necessário por enquanto
     return false;
 }
+
+bool Inverter::setEpochTime(uint32_t epoch) {
+    if (!hasValidMap()) return false;
+    //if (second > 59) return false;
+
+    const TimeFeature& feature = _map.time;
+    const ModbusField& fieldEpoch = feature.epoch;
+
+    if (!isInvalidField(fieldEpoch)) {
+        
+        if (isInvalidField(fieldEpoch)) return false;
+        switch (fieldEpoch.mode) {
+            case FIELD_SIMPLE: {
+                if (!fieldEpoch.writable) return false;
+
+                return writeField(fieldEpoch, epoch);
+            }
+
+            default:
+                return false;
+        }
+    }
+
+    // Sem fallback
+    return false;
+}

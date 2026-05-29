@@ -74,7 +74,7 @@ void Inverter::attachSerial(HardwareSerial& serial) {
 bool Inverter::begin() {
     if (_mb == nullptr) return false;
     if (!hasValidMap()) return false;
-    if (_descriptor.nominalPowerW == 0) return false;  //São campos obrigatórios. A falta deles invalida a struct
+    if (_descriptor.ratedPowerW == 0) return false;  //São campos obrigatórios. A falta deles invalida a struct
 
     _modbus.setConfig(
         _cfg.id,
@@ -216,151 +216,527 @@ bool Inverter::setPowerLimitEnabled(bool enabled) {
 }
 
 bool Inverter::setPowerLimit(float watts) {
-    if (_map.serialNumber.address == 0xFFFF) return false;
-    if (_descriptor.nominalPowerW == 0) return false;
+    if (!hasValidMap()) return false;
+    
+    const ActivePowerFeature& feature = _map.activePower;
 
-    switch (_map.PowerLimit.mode) {
+    if (!feature.supportsWatts && !feature.supportsPercent) return false;
 
-        case FIELD_SIMPLE:
-            if (_map.PowerLimit.writable && _map.PowerLimit.scale != 0.0f) {
-                return writeField(_map.PowerLimit, watts / _map.PowerLimit.scale);
+    if (feature.requiresEnableBeforeWrite) {
+        if (!setPowerLimitEnabled(true)) return false;
+    }    
+    
+    // 1) Tenta escrever diretamente em watts
+    if (feature.supportsWatts) {
+        bool wattsWriteOk = false;
+    
+        const ModbusField& field = feature.watts;
+
+        if (!isInvalidField(field)) {
+            switch (field.mode) {
+
+                case FIELD_SIMPLE:
+                    if (field.writable && field.scale != 0.0f) {
+
+                        bool modeOk = true;
+
+                        if (feature.requiresModeBeforeWrite) {
+                            const ModbusField& modeField = feature.mode;
+
+                            // Condição lógica para validar a escrita em watts. Se falhar, cai na fallback de percent
+                            modeOk =    !isInvalidField(modeField) &&
+                                        modeField.writable &&
+                                        feature.wattsModeValue != FEATURE_VALUE_NONE &&
+                                        writeField(modeField, feature.wattsModeValue);
+                        }                    
+
+                        if (modeOk) {
+                            wattsWriteOk = writeField(field, watts / field.scale);
+                        }
+                    }
+                    break;
+
+                default:
+                    break;
             }
+        }
 
-            if(_map.PowerLimitPercent.writable && _map.PowerLimitPercent.scale != 0.0f) {
-                float percent = (watts / (float)_descriptor.nominalPowerW) * 100.0f;
-                return writeField(_map.PowerLimitPercent, percent / _map.PowerLimitPercent.scale);
-            }
-            return false;
-
-        default:
-            return false;
+        if (wattsWriteOk) return true;
     }
+
+    // 2) Fallback: converte watts para porcentagem
+    if (feature.supportsPercent) {
+        const ModbusField& field = feature.percent;
+
+        if (isInvalidField(field)) return false;
+
+        switch (field.mode) {
+            case FIELD_SIMPLE: {
+                if (!field.writable) return false;
+                if (field.scale == 0.0f)  return false;
+
+                uint32_t ratedPower = 0;
+
+                if (!getRatedPower(ratedPower)) return false;
+                if (ratedPower == 0) return false;
+
+                if (feature.requiresModeBeforeWrite) {
+                    const ModbusField& modeField = feature.mode;
+
+                    if (isInvalidField(modeField)) return false;
+                    if (!modeField.writable) return false;
+                    if (feature.percentModeValue == FEATURE_VALUE_NONE) return false;
+
+                    if (!writeField(modeField, feature.percentModeValue)) return false;
+                }
+
+                float percent = (watts * 100.0f) / ((float)ratedPower);
+
+                return writeField(field, percent / field.scale);
+            }
+
+            default:
+                return false;
+        }
+    }
+
+    return false;
 }
 
 bool Inverter::setPowerLimitPercent(float percent) {
-    if (_map.serialNumber.address == 0xFFFF) return false;
-    if (_descriptor.nominalPowerW == 0) return false;
+    if (!hasValidMap()) return false;
+    
+    const ActivePowerFeature& feature = _map.activePower;
 
-    switch (_map.PowerLimitPercent.mode) {
-        
-        case FIELD_SIMPLE:
-            if (_map.PowerLimitPercent.writable && _map.PowerLimitPercent.scale != 0.0f) {
-                return writeField(_map.PowerLimitPercent, percent / _map.PowerLimitPercent.scale);
-            }
+    if (!feature.supportsPercent && !feature.supportsWatts) return false;
 
-            if (_map.PowerLimit.writable && _map.PowerLimit.scale != 0.0f) {
-                float watts = ((float)_descriptor.nominalPowerW * percent) / 100.0f;
-                return writeField(_map.PowerLimit, watts / _map.PowerLimit.scale);
-            }
-            return false;
-
-        default:
-            return false;
+    if (feature.requiresEnableBeforeWrite) {
+        if (!setPowerLimitEnabled(true)) return false;
     }
+    
+    // 1) Tenta escrever diretamente em percent
+    if (feature.supportsPercent) {
+        bool percentWriteOk = false;
+    
+        const ModbusField& field = feature.percent;
+
+        if (!isInvalidField(field)) {
+            switch (field.mode) {
+
+                case FIELD_SIMPLE:
+                    if (field.writable && field.scale != 0.0f) {
+
+                        bool modeOk = true;
+
+                        if (feature.requiresModeBeforeWrite) {
+                            const ModbusField& modeField = feature.mode;
+
+                            // Condição lógica para validar a escrita em percent. Se falhar, cai na fallback de watts
+                            modeOk =    !isInvalidField(modeField) &&
+                                        modeField.writable &&
+                                        feature.percentModeValue != FEATURE_VALUE_NONE &&
+                                        writeField(modeField, feature.percentModeValue);
+                        }                    
+
+                        if (modeOk) {
+                            percentWriteOk = writeField(field, percent / field.scale);
+                        }
+                    }
+                    break;
+
+                default:
+                    break;
+            }
+        }
+
+        if (percentWriteOk) return true;
+    }
+
+    // 2) Fallback: converte percent para watts
+    if (feature.supportsWatts) {
+        const ModbusField& field = feature.watts;
+
+        if (isInvalidField(field)) return false;
+
+        switch (field.mode) {
+            case FIELD_SIMPLE: {
+                if (!field.writable) return false;
+                if (field.scale == 0.0f)  return false;
+
+                uint32_t ratedPower = 0;
+
+                if (!getRatedPower(ratedPower)) return false;
+                if (ratedPower == 0) return false;
+
+                if (feature.requiresModeBeforeWrite) {
+                    const ModbusField& modeField = feature.mode;
+
+                    if (isInvalidField(modeField)) return false;
+                    if (!modeField.writable) return false;
+                    if (feature.wattsModeValue == FEATURE_VALUE_NONE) return false;
+
+                    if (!writeField(modeField, feature.wattsModeValue)) return false;
+                }
+
+                float watts = percent * ((float)ratedPower) / 100.0f;
+
+                return writeField(field, watts / field.scale);
+            }
+
+            default:
+                return false;
+        }
+    }
+
+    return false;
 }
 
 bool Inverter::setExportLimitEnabled(bool enabled) {
-    if (_map.serialNumber.address == 0xFFFF) return false;
+    if (!hasValidMap()) return false;
+
+    const ExportLimitFeature& feature = _map.exportLimit;   
     
-    switch (_map.enableExportLimit.mode) {
+    // Fallback cai em enable por enum ou por implicit enable
+    if (feature.supportsEnable) {
 
-        case FIELD_SIMPLE: {
-            if (!_map.enableExportLimit.writable) return false;
-            if (_descriptor.exportLimitMode == nullptr) return false;
-            uint16_t v = enabled
-                ? pgm_read_word(&_descriptor.exportLimitMode->exportLimitEnable)
-                : pgm_read_word(&_descriptor.exportLimitMode->exportLimitDisable);
-            
-            return writeField(_map.enableExportLimit, v);
-        }
-        
-        default:
+        const ModbusField& field = feature.enable;
 
-            // Special Field daqui para baixo
+        if (isInvalidField(field)) {
+            if (feature.implicitEnable == true) {
+                return enabled;
+            }
+
             return false;
+        }
+
+        const uint16_t enableValue = feature.enableValue;
+        const uint16_t disableValue = feature.disableValue;
+
+        if (enableValue == FEATURE_VALUE_NONE || disableValue == FEATURE_VALUE_NONE) return false;
+
+        switch (field.mode) {
+
+            case FIELD_SIMPLE: {
+                if (!field.writable) return false;
+                uint16_t v = enabled
+                    ? enableValue
+                    : disableValue;
+
+                return writeField(field, v);
+            }
+
+            default:
+                return false;
+        }
     }
+    // Fallback do Mode
+    if (feature.supportsMode) {
+        const ModbusField& field = feature.mode;
+
+        if (isInvalidField(field)) return false;
+
+        const uint16_t enableMode = feature.enableValue;
+        const uint16_t disableMode = feature.disableValue;
+
+        if (enableMode == FEATURE_VALUE_NONE || disableMode == FEATURE_VALUE_NONE) return false;
+
+        switch (field.mode) {
+
+            case FIELD_SIMPLE: {
+                if (!field.writable) return false;
+                uint16_t v = enabled
+                    ? enableMode
+                    : disableMode;
+
+                return writeField (field, v);
+            }
+
+            default:
+                return false;
+        }
+    }
+    // Fallback do implicit
+    if (feature.implicitEnable) {
+        return enabled;
+    }
+
+    return false;
 }
 
 bool Inverter::setExportLimit(float watts) {
-    if (_map.serialNumber.address == 0xFFFF) return false;
-    if (_descriptor.nominalPowerW == 0) return false;
+    if (!hasValidMap()) return false;
+    
+    const ExportLimitFeature& feature = _map.exportLimit;
 
-    switch (_map.ExportLimit.mode) {
+    if (!feature.supportsWatts && !feature.supportsPercent) return false;
 
-        case FIELD_SIMPLE:
-            if (_map.ExportLimit.writable && _map.ExportLimit.scale != 0.0f) {
-                return writeField(_map.ExportLimit, watts / _map.ExportLimit.scale);
-            }
-
-            if(_map.ExportLimitPercent.writable && _map.ExportLimitPercent.scale != 0.0f) {
-                float percent = (watts / (float)_descriptor.nominalPowerW) * 100.0f;
-                return writeField(_map.ExportLimitPercent, percent / _map.ExportLimitPercent.scale);
-            }
-            return false;
-
-        default:
-            return false;
+    if (feature.requiresEnableBeforeWrite) {
+        if (!setExportLimitEnabled(true)) return false;
     }
+    
+    // 1) Tenta escrever diretamente em watts
+    if (feature.supportsWatts) {
+        bool wattsWriteOk = false;
+    
+        const ModbusField& field = feature.watts;
+
+        if (!isInvalidField(field)) {
+            switch (field.mode) {
+
+                case FIELD_SIMPLE:
+                    if (field.writable && field.scale != 0.0f) {
+
+                        bool modeOk = true;
+
+                        if (feature.requiresModeBeforeWrite) {
+                            const ModbusField& modeField = feature.mode;
+
+                            // Condição lógica para validar a escrita em watts. Se falhar, cai na fallback de percent
+                            modeOk =    !isInvalidField(modeField) &&
+                                        modeField.writable &&
+                                        feature.wattsModeValue != FEATURE_VALUE_NONE &&
+                                        writeField(modeField, feature.wattsModeValue);
+                        }                    
+
+                        if (modeOk) {
+                            wattsWriteOk = writeField(field, watts / field.scale);
+                        }
+                    }
+                    break;
+
+                default:
+                    break;
+            }
+        }
+
+        if (wattsWriteOk) return true;
+    }
+
+    // 2) Fallback: converte watts para percent
+    if (feature.supportsPercent) {
+        const ModbusField& field = feature.percent;
+
+        if (isInvalidField(field)) return false;
+
+        switch (field.mode) {
+            case FIELD_SIMPLE: {
+                if (!field.writable) return false;
+                if (field.scale == 0.0f)  return false;
+
+                uint32_t ratedPower = 0;
+
+                if (!getRatedPower(ratedPower)) return false;
+                if (ratedPower == 0) return false;
+
+                if (feature.requiresModeBeforeWrite) {
+                    const ModbusField& modeField = feature.mode;
+
+                    if (isInvalidField(modeField)) return false;
+                    if (!modeField.writable) return false;
+                    if (feature.percentModeValue == FEATURE_VALUE_NONE) return false;
+
+                    if (!writeField(modeField, feature.percentModeValue)) return false;
+                }
+
+                float percent = watts * 100.0f / ((float)ratedPower);
+
+                return writeField(field, percent / field.scale);
+            }
+
+            default:
+                return false;
+        }
+    }
+
+    return false;
 }
 
 bool Inverter::setExportLimitPercent(float percent) {
-    if (_map.serialNumber.address == 0xFFFF) return false;
-    if (_descriptor.nominalPowerW == 0) return false;
+    if (!hasValidMap()) return false;
+    
+    const ExportLimitFeature& feature = _map.exportLimit;
 
-    switch (_map.ExportLimitPercent.mode) {
-        
-        case FIELD_SIMPLE:
-            if (_map.ExportLimitPercent.writable && _map.ExportLimitPercent.scale != 0.0f) {
-                return writeField(_map.ExportLimitPercent, percent / _map.ExportLimitPercent.scale);
-            }
+    if (!feature.supportsPercent && !feature.supportsWatts) return false;
 
-            if (_map.ExportLimit.writable && _map.ExportLimit.scale != 0.0f) {
-                float watts = ((float)_descriptor.nominalPowerW * percent) / 100.0f;
-                return writeField(_map.ExportLimit, watts / _map.ExportLimit.scale);
-            }
-            return false;
-
-        default:
-            return false;
+    if (feature.requiresEnableBeforeWrite) {
+        if (!setExportLimitEnabled(true)) return false;
     }
+    
+    // 1) Tenta escrever diretamente em percent
+    if (feature.supportsPercent) {
+        bool percentWriteOk = false;
+    
+        const ModbusField& field = feature.percent;
+
+        if (!isInvalidField(field)) {
+            switch (field.mode) {
+
+                case FIELD_SIMPLE:
+                    if (field.writable && field.scale != 0.0f) {
+
+                        bool modeOk = true;
+
+                        if (feature.requiresModeBeforeWrite) {
+                            const ModbusField& modeField = feature.mode;
+
+                            // Condição lógica para validar a escrita em percent. Se falhar, cai na fallback de watts
+                            modeOk =    !isInvalidField(modeField) &&
+                                        modeField.writable &&
+                                        feature.percentModeValue != FEATURE_VALUE_NONE &&
+                                        writeField(modeField, feature.percentModeValue);
+                        }                    
+
+                        if (modeOk) {
+                            percentWriteOk = writeField(field, percent / field.scale);
+                        }
+                    }
+                    break;
+
+                default:
+                    break;
+            }
+        }
+
+        if (percentWriteOk) return true;
+    }
+
+    // 2) Fallback: converte percent para watts
+    if (feature.supportsWatts) {
+        const ModbusField& field = feature.watts;
+
+        if (isInvalidField(field)) return false;
+
+        switch (field.mode) {
+            case FIELD_SIMPLE: {
+                if (!field.writable) return false;
+                if (field.scale == 0.0f)  return false;
+
+                uint32_t ratedPower = 0;
+
+                if (!getRatedPower(ratedPower)) return false;
+                if (ratedPower == 0) return false;
+
+                if (feature.requiresModeBeforeWrite) {
+                    const ModbusField& modeField = feature.mode;
+
+                    if (isInvalidField(modeField)) return false;
+                    if (!modeField.writable) return false;
+                    if (feature.wattsModeValue == FEATURE_VALUE_NONE) return false;
+
+                    if (!writeField(modeField, feature.wattsModeValue)) return false;
+                }
+
+                float watts = percent * ((float)ratedPower) / 100.0f;
+
+                return writeField(field, watts / field.scale);
+            }
+
+            default:
+                return false;
+        }
+    }
+
+    return false;
 }
 
 bool Inverter::setPowerFactorEnabled(bool enabled) {
-    if (_map.serialNumber.address == 0xFFFF) return false;
+    if (!hasValidMap()) return false;
 
-    switch (_map.enablePowerFactor.mode) {
+    const ReactivePowerFeature& feature = _map.reactivePowerControl;   
     
-        case FIELD_SIMPLE:
-            if (!_map.enablePowerFactor.writable) return false;
-            return writeField(_map.enablePowerFactor, (uint16_t)enabled);
+    // Fallback cai em enable por enum ou por implicit enable
+    if (feature.supportsEnablePf) {
 
-        default:
+        const ModbusField& field = feature.enablePf;
+
+        if (isInvalidField(field)) {
+            if (feature.implicitPfSp == true) {
+                return enabled;
+            }
+
             return false;
+        }
+
+        const uint16_t enableValue = feature.enablePfValue;
+        const uint16_t disableValue = feature.disablePfValue;
+
+        if (enableValue == FEATURE_VALUE_NONE || disableValue == FEATURE_VALUE_NONE) return false;
+
+        switch (field.mode) {
+
+            case FIELD_SIMPLE: {
+                if (!field.writable) return false;
+                uint16_t v = enabled
+                    ? enableValue
+                    : disableValue;
+
+                return writeField(field, v);
+            }
+
+            default:
+                return false;
+        }
     }
+    // Fallback do Mode
+    if (feature.supportsControlModePf) {
+        const ModbusField& field = feature.controlMode;
+
+        if (isInvalidField(field)) return false;
+
+        const uint16_t enableMode = feature.enablePfValue;
+        const uint16_t disableMode = feature.disablePfValue;
+
+        if (enableMode == FEATURE_VALUE_NONE || disableMode == FEATURE_VALUE_NONE) return false;
+
+        switch (field.mode) {
+
+            case FIELD_SIMPLE: {
+                if (!field.writable) return false;
+                uint16_t v = enabled
+                    ? enableMode
+                    : disableMode;
+
+                return writeField(field, v);
+            }
+
+            default:
+                return false;
+        }
+    }
+    // Fallback do implicit
+    if (feature.implicitPfSp) {
+        return enabled;
+    }
+
+    return false;
 }
 
 bool Inverter::setPowerFactor(float pf) {
-    if (_map.serialNumber.address == 0xFFFF) return false;
+    if (!hasValidMap()) return false;
     if (pf <= -1.0f || pf > 1.0f || pf == 0.0f) return false;
-    if (isInvalidField(_map.PowerFactorSetpoint)) return false;
-
-    switch (_map.PowerFactorSetpoint.mode) {
     
-        case FIELD_SIMPLE:
-            if (!_map.PowerFactorSetpoint.writable && _map.PowerFactorSetpoint.scale == 0.0f) return false;
+    const ReactivePowerFeature& feature = _map.reactivePowerControl;
 
-            if (!isInvalidField(_map.powerFactorExcitationMode) && _map.powerFactorExcitationMode.writable) {
-                if(!setPowerFactorExcitationMode(pf < 0.0f ? LEADING : LAGGING)) return false;
-                pf = pf < 0.0f ? -pf : pf;
-            }
-                            
-            return writeField(_map.PowerFactorSetpoint, pf / _map.PowerFactorSetpoint.scale);
+    if (!feature.supportsPfSp) return false;
 
-        case FIELD_SPECIAL:
-            if (_map.PowerFactorSetpoint.handlerId == GOODWE_HANDLER) {
-                if (!_map.PowerFactorSetpoint.writable && _map.PowerFactorSetpoint.scale == 0.0f) return false;
+    if (feature.requiresEnableBeforeWrite) {
+        if (!setPowerFactorEnabled(true)) return false;
+    }
+
+    const ModbusField& fieldPfSp = feature.pfSetpoint;
+
+    if (isInvalidField(fieldPfSp)) return false;
+
+    switch (fieldPfSp.mode) {
+        case FIELD_SIMPLE: {
+            if (!fieldPfSp.writable) return false;
+            if (fieldPfSp.scale == 0.0f)  return false;
+
+            if (feature.usesGoodWePowerFactorRange) {
                 // Set Power Factor % [1, 20] LAGGING, [80, 100] LEADING
                 // 1-20,lagging 0.99-0.8;   80-100,leading 0.80-1
+                // Lagging: PF 1.00 -> 0%, PF 0.80 -> 20%
+                // Leading: PF -0.80 -> 80%, PF -1.00 -> 100%
                 // Goodwe usa ranges invertidos, leading e lagging são codificados em regiões diferentes
             
                 pf = -pf;
@@ -370,45 +746,42 @@ bool Inverter::setPowerFactor(float pf) {
                 }
 
                 // Percent
-                return writeField(_map.PowerFactorSetpoint, (pf * 100.0f) / _map.PowerFactorSetpoint.scale);
+                return writeField(fieldPfSp, (pf * 100.0f) / fieldPfSp.scale);
             }
-            return false;
+            const ModbusField& fieldExcitation = feature.excitationMode;
+
+            if (!isInvalidField(fieldExcitation) && fieldExcitation.writable) {
+                if(!setPowerFactorExcitationMode(pf < 0.0f ? LEADING : LAGGING)) return false;
+                pf = pf < 0.0f ? -pf : pf;
+            }
+            return writeField(fieldPfSp, pf / fieldPfSp.scale);  
+
+        }
 
         default:
             return false;
     }
+
+    return false;
 }
 
 bool Inverter::setPowerFactorExcitationMode(PfExcitationMode excitationMode) {
-    if (_map.serialNumber.address == 0xFFFF) return false;
-    if (isInvalidField(_map.powerFactorExcitationMode)) return false;
-    
-    uint16_t mode = 0;
-    // 0 - lagging / inductive / over excited
-    // 1 - leading / capacitive / under excited
+    if (!hasValidMap()) return false;
 
-    switch (excitationMode) {
-        case LAGGING:
-        case INDUCTIVE:
-        case OVER_EXCITED:
-            mode = 0;
-            break;
+    const ReactivePowerFeature& feature = _map.reactivePowerControl;
 
-        case LEADING:
-        case CAPACITIVE:
-        case UNDER_EXCITED:
-            mode = 1;
-            break;
+    if (!feature.supportsExcitationMode) return false;
 
-        default:
-            return false;
-    }
+    const ModbusField& field = feature.excitationMode;
 
-    switch (_map.powerFactorExcitationMode.mode) {
+    if (isInvalidField(field)) return false;
+
+    switch (field.mode) {
 
         case FIELD_SIMPLE:
-            if (!_map.powerFactorExcitationMode.writable) return false;
-            return writeField(_map.powerFactorExcitationMode, mode);
+        // Até o momento somente inversores foxess e similares apresentam essa função
+            if (!field.writable) return false;
+            return writeField(field, (uint16_t)excitationMode);
             
         default:
             return false;

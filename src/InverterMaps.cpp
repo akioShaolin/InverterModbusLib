@@ -12,7 +12,7 @@
 // ------------------------------------------------------------------------------------------------------------------------------------------------------------
 // ------------------------------------------------- WEG ------------------------------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------------------------------------------------------------------------------------
-
+/*
 static const ModbusInverterMap map_SIW200 PROGMEM = {
     // Identificação
     { 0x0200, ASCII, 8, 1, 1.0f, true, false },   // Serial. Scale é ignorado para ASCII; usar 1.0f apenas como valor neutro
@@ -1674,7 +1674,7 @@ static const ModbusInverterMap map_SUN2000_M3 PROGMEM = {
     INVALID_FIELD,                                // EPS Current R, S, T (A) (não disponível nesse modelo)
     INVALID_FIELD                                 // EPS Active Power (W) (não disponível nesse modelo)
 };
-
+*/
 // ------------------------------------------------------------------------------------------------------------------------------------------------------------
 // ----------------------------------------------- Escolha ----------------------------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1683,7 +1683,7 @@ ModbusInverterMap getInverterMap(InverterModel model) {
     ModbusInverterMap map; // Variável temporária para copiar o mapa da PROGMEM
     switch (model) {
         // Weg
-        case SIW200_M030:
+/*        case SIW200_M030:
             memcpy_P(&map, &map_SIW200, sizeof(ModbusInverterMap));
             return map;
         case SIW200_M050:
@@ -1848,12 +1848,11 @@ ModbusInverterMap getInverterMap(InverterModel model) {
             return map;
         case SIW500H_ST020_M2:
             memcpy_P(&map, &map_SIW500H_M2, sizeof(ModbusInverterMap));
-            return map;
+            return map;                                                     */
         case SIW500H_ST030_M3:
-            memcpy_P(&map, &map_SIW500H_M3, sizeof(ModbusInverterMap));
-            return map;
-        case SIW500H_ST036_M3:
-            memcpy_P(&map, &map_SIW500H_M3, sizeof(ModbusInverterMap));
+            return getMap_Weg(model);
+/*        case SIW500H_ST036_M3:
+            memcpy_P(&map, &map_SIW500H, sizeof(ModbusInverterMap));
             return map;
         case SIW500H_ST040_M3:
             memcpy_P(&map, &map_SIW500H_M3, sizeof(ModbusInverterMap));
@@ -2142,7 +2141,7 @@ ModbusInverterMap getInverterMap(InverterModel model) {
             
         case UNKNOWN_INVERTER:
             memset(&map, 0, sizeof(ModbusInverterMap)); // Retorna um mapa vazio para o modelo desconhecido
-            return map;
+            return map;*/
         default:
             memset(&map, 0, sizeof(ModbusInverterMap)); // Retorna um mapa vazio para modelos não mapeados
             return map;

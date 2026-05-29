@@ -109,6 +109,41 @@ bool Inverter::getSerialNumber(String& serialNumber) {
     }
 }
 
+bool Inverter::getRatedPower(uint32_t& power) {
+    if (!hasValidMap()) return false;
+
+    power = 0;
+
+    const ModbusField& field = _map.identification.ratedPower;
+    
+    if(!isInvalidField(field) && field.readable) {
+        switch (field.mode) {
+            case FIELD_SIMPLE: {
+                if (field.scale == 0.0f) return false;
+
+                uint32_t raw = 0;
+
+                if (readField(field, &raw)) {
+                    power = (uint32_t)((float)raw * field.scale);
+                    return true;
+                }
+
+                break;
+            }
+
+        default:
+            break;
+        }
+    }
+
+    // Fallback: descriptor
+    if (_descriptor.ratedPowerW != 0) {
+        power = _descriptor.ratedPowerW;
+        return true;
+    } 
+    
+    return false;
+}
 // ======================================================
 // Limits and Control State
 // ======================================================
@@ -170,13 +205,13 @@ bool Inverter::getPowerLimit(float& watts) {
         switch (field.mode) {
             case FIELD_SIMPLE: {
                 if (!field.readable) return false;
-                if (_descriptor.nominalPowerW == 0) return false;
-                // Trocar por getNominalPower. Ler registrador de potencia nominal e adicionar fallback para o descriptor
+                if (_descriptor.ratedPowerW == 0) return false;
+                // Trocar por getratedPower. Ler registrador de potencia nominal e adicionar fallback para o descriptor
 
                 float percent;
                 if (!readScaledFloat(field, percent)) return false;
 
-                watts = ((float)_descriptor.nominalPowerW * percent) / 100.0f;
+                watts = ((float)_descriptor.ratedPowerW * percent) / 100.0f;
                 return true;
             }
 
@@ -211,13 +246,13 @@ bool Inverter::getPowerLimitPercent(float& percent) {
         switch (field.mode) {
             case FIELD_SIMPLE: {
                 if (!field.readable) return false;
-                if (_descriptor.nominalPowerW == 0) return false;
-                // Trocar por getNominalPower. Ler registrador de potencia nominal e adicionar fallback para o descriptor
+                if (_descriptor.ratedPowerW == 0) return false;
+                // Trocar por getratedPower. Ler registrador de potencia nominal e adicionar fallback para o descriptor
 
                 float watts;
                 if (!readScaledFloat(field, watts)) return false;
 
-                percent = (watts / (float)_descriptor.nominalPowerW) * 100.0f;
+                percent = (watts / (float)_descriptor.ratedPowerW) * 100.0f;
                 return true;
             }
 
@@ -286,13 +321,13 @@ bool Inverter::getExportLimit(float& watts) {
         switch (field.mode) {
             case FIELD_SIMPLE: {
                 if (!field.readable) return false;
-                if (_descriptor.nominalPowerW == 0) return false;
-                // Trocar por getNominalPower. Ler registrador de potencia nominal e adicionar fallback para o descriptor
+                if (_descriptor.ratedPowerW == 0) return false;
+                // Trocar por getratedPower. Ler registrador de potencia nominal e adicionar fallback para o descriptor
 
                 float percent;
                 if (!readScaledFloat(field, percent)) return false;
 
-                watts = ((float)_descriptor.nominalPowerW * percent) / 100.0f;
+                watts = ((float)_descriptor.ratedPowerW * percent) / 100.0f;
                 return true;
             }
 
@@ -328,13 +363,13 @@ bool Inverter::getExportLimitPercent(float& percent) {
         switch (field.mode) {
             case FIELD_SIMPLE: {
                 if (!field.readable) return false;
-                if (_descriptor.nominalPowerW == 0) return false;
-                // Trocar por getNominalPower. Ler registrador de potencia nominal e adicionar fallback para o descriptor
+                if (_descriptor.ratedPowerW == 0) return false;
+                // Trocar por getratedPower. Ler registrador de potencia nominal e adicionar fallback para o descriptor
 
                 float watts;
                 if (!readScaledFloat(field, watts)) return false;
 
-                percent = (watts / (float)_descriptor.nominalPowerW) * 100.0f;
+                percent = (watts / (float)_descriptor.ratedPowerW) * 100.0f;
                 return true;
             }
 

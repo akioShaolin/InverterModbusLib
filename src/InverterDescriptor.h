@@ -30,12 +30,6 @@ enum InverterPhaseType {
     THREE_PHASE = 0x03
 };
 
-enum EpsPhaseType {
-    NO_EPS = 0x00,
-    EPS_SINGLE_PHASE = 0x01,
-    EPS_THREE_PHASE = 0x03
-};
-
 enum InverterTopology {
     STRING,
     CENTRAL,
@@ -74,15 +68,6 @@ enum class StatusFormat {
     BITFIELD32
 };
 
-enum ProtocolFamily {
-    PROTOCOL_DEFAULT,
-    PROTOCOL_GOODWE_COMPAT,
-    PROTOCOL_HUAWEI_COMPAT,
-    PROTOCOL_FOXESS_COMPAT,
-    PROTOCOL_CHINT_COMPAT,
-    PROTOCOL_WEG_COMPAT
-};
-
 constexpr ModbusConfigData defaultModbusConfig PROGMEM {1, 9600, SERIAL_8N1};
 constexpr BatteryInfo noBattery PROGMEM = {0, 0, {0}};
 
@@ -91,12 +76,11 @@ struct InverterDescriptor {
     InverterTopology topology;
     InverterGridConnection gridConnection;
     InverterPhaseType inverterPhaseType;
-    EpsPhaseType epsPhaseType;
-    uint32_t nominalPowerW; // Potência máxima em watts, pode ser 0 se não for aplicável ou desconhecida
+    //EpsPhaseType epsPhaseType;
+    uint32_t ratedPowerW; // Potência máxima em watts, pode ser 0 se não for aplicável ou desconhecida
 
     // Comunicação
     const ModbusConfigData* config;
-    ProtocolFamily protocolFamily;
 
     // Recursos disponíveis
     PVInfo pvInfo;

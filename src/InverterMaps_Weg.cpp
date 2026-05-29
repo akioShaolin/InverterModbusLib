@@ -63,7 +63,8 @@ static const ModbusInverterMap map_SIW500H_M3 PROGMEM = {
         { 0x753F, ASCII, 10, 1, 1.0f, true, false },    // Serial. Scale é ignorado para ASCII; usar 1.0f apenas como valor neutro
         { 0x7576, U16, 1, 1, 1.0f, true, false },       // Model ID
         { 0x7530, ASCII, 15, 1, 1.0f, true, false },    // Model Name
-        INVALID_FIELD                                   // O firmware é obtido pelo Model ID
+        INVALID_FIELD,                                  // O firmware é obtido pelo Model ID
+        { 0x7577, U32, 1, 2, 1.0f, true, false }        // Potência nominal
     }, {
         { 0x9D08, U16, 1, 1, 1.0f, false, true },       // Boot. Write 1
         { 0x9D09, U16, 1, 1, 1.0f, false, true },       // Shutdown. Write 1
@@ -96,6 +97,7 @@ static const ModbusInverterMap map_SIW500H_M3 PROGMEM = {
         0x06,                                           // wattsModeValue
         0x07,                                           // percentModeValue
         true,                                           // supportsEnable
+        false,                                          // supportsMode
         false,                                          // implicitEnable
         true,                                           // supportsWatts
         true,                                           // supportsPercent
@@ -116,6 +118,7 @@ static const ModbusInverterMap map_SIW500H_M3 PROGMEM = {
         false,                                          // supportsControlModePf
         true,                                           // supportPfSp
         true,                                           // implicitPfSp
+        false,                                          // invertedRanges
         false,                                          // supportsEnableFixedReactive
         false,                                          // supportsControlModeFixedReactive
         false,                                          // supportsFixedReactiveSetpoint
@@ -167,4 +170,18 @@ static const ModbusInverterMap map_SIW500H_M3 PROGMEM = {
 
     }
 };
+
+ModbusInverterMap getMap_Weg(InverterModel model) {
+    ModbusInverterMap map;
+
+    switch (model) {
+        case SIW500H_ST030_M3:
+            memcpy_P(&map, &map_SIW500H_M3, sizeof(ModbusInverterMap));
+            return map;
+
+        default:
+            memset(&map, 0, sizeof(ModbusInverterMap)); // Retorna um mapa vazio para modelos não mapeados
+            return map;
+    }
+}
 

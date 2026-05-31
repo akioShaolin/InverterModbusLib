@@ -12,7 +12,9 @@
 
 // Foxess
 constexpr InverterDescriptor desc_S700_G2 PROGMEM = {
-    STRING, ON_GRID, SINGLE_PHASE,
+    STRING, 
+    ON_GRID, 
+    SINGLE_PHASE,
     700U,  
     &defaultModbusConfig,
     {1, 1,   {0}}, 
@@ -22,7 +24,9 @@ constexpr InverterDescriptor desc_S700_G2 PROGMEM = {
 };
 
 constexpr InverterDescriptor desc_S1000_G2 PROGMEM = {
-    STRING, ON_GRID, SINGLE_PHASE,
+    STRING, 
+    ON_GRID, 
+    SINGLE_PHASE,
     1000U,  
     &defaultModbusConfig,
     {1, 1,   {0}}, 
@@ -32,7 +36,9 @@ constexpr InverterDescriptor desc_S1000_G2 PROGMEM = {
 };
 
 constexpr InverterDescriptor desc_S1500_G2 PROGMEM = {
-    STRING, ON_GRID, SINGLE_PHASE,
+    STRING, 
+    ON_GRID, 
+    SINGLE_PHASE,
     1500U,  
     &defaultModbusConfig,
     {1, 1,   {0}}, 
@@ -42,7 +48,9 @@ constexpr InverterDescriptor desc_S1500_G2 PROGMEM = {
 };
 
 constexpr InverterDescriptor desc_S2000_G2 PROGMEM = {
-    STRING, ON_GRID, SINGLE_PHASE,
+    STRING, 
+    ON_GRID, 
+    SINGLE_PHASE,
     2000U, 
     &defaultModbusConfig,
     {1, 1,   {0}}, 
@@ -52,7 +60,9 @@ constexpr InverterDescriptor desc_S2000_G2 PROGMEM = {
 };
 
 constexpr InverterDescriptor desc_S2500_G2 PROGMEM = {
-    STRING, ON_GRID, SINGLE_PHASE,
+    STRING, 
+    ON_GRID, 
+    SINGLE_PHASE,
     2500U,  
     &defaultModbusConfig,
     {1, 1,   {0}}, 
@@ -62,7 +72,9 @@ constexpr InverterDescriptor desc_S2500_G2 PROGMEM = {
 };
 
 constexpr InverterDescriptor desc_S3000_G2 PROGMEM = {
-    STRING, ON_GRID, SINGLE_PHASE,
+    STRING, 
+    ON_GRID, 
+    SINGLE_PHASE,
     3000U,  
     &defaultModbusConfig,
     {1, 1,   {0}}, 
@@ -72,7 +84,9 @@ constexpr InverterDescriptor desc_S3000_G2 PROGMEM = {
 };
 
 constexpr InverterDescriptor desc_S3300_G2 PROGMEM = {
-    STRING, ON_GRID, SINGLE_PHASE,
+    STRING, 
+    ON_GRID, 
+    SINGLE_PHASE,
     3300U, 
     &defaultModbusConfig,
     {1, 1,   {0}}, 
@@ -82,7 +96,9 @@ constexpr InverterDescriptor desc_S3300_G2 PROGMEM = {
 };
 
 constexpr InverterDescriptor desc_F3000_G2 PROGMEM = {
-    STRING, ON_GRID, SINGLE_PHASE,
+    STRING, 
+    ON_GRID, 
+    SINGLE_PHASE,
     3000U,  
     &defaultModbusConfig,
     {2, 2,   {0, 1}}, 
@@ -92,7 +108,9 @@ constexpr InverterDescriptor desc_F3000_G2 PROGMEM = {
 };
 
 constexpr InverterDescriptor desc_F3600_G2 PROGMEM = {
-    STRING, ON_GRID, SINGLE_PHASE, 
+    STRING, 
+    ON_GRID, 
+    SINGLE_PHASE, 
     3600U,  
     &defaultModbusConfig, 
     {2, 2,   {0, 1}}, 
@@ -102,7 +120,9 @@ constexpr InverterDescriptor desc_F3600_G2 PROGMEM = {
 };
 
 constexpr InverterDescriptor desc_F4600_G2 PROGMEM = {
-    STRING, ON_GRID, SINGLE_PHASE, 
+    STRING, 
+    ON_GRID, 
+    SINGLE_PHASE, 
     4600U,  
     &defaultModbusConfig,
     {2, 2,   {0, 1}}, 
@@ -112,7 +132,9 @@ constexpr InverterDescriptor desc_F4600_G2 PROGMEM = {
 };
 
 constexpr InverterDescriptor desc_F5000_G2 PROGMEM = {
-    STRING, ON_GRID, SINGLE_PHASE,
+    STRING, 
+    ON_GRID, 
+    SINGLE_PHASE,
     5000U,  
     &defaultModbusConfig,
     {2, 2,   {0, 1}}, 
@@ -122,7 +144,9 @@ constexpr InverterDescriptor desc_F5000_G2 PROGMEM = {
 };
 
 constexpr InverterDescriptor desc_F5300_G2 PROGMEM = {
-    STRING, ON_GRID, SINGLE_PHASE,
+    STRING, 
+    ON_GRID, 
+    SINGLE_PHASE,
     5300U,  
     &defaultModbusConfig,
     {2, 2,   {0, 1}}, 
@@ -132,7 +156,9 @@ constexpr InverterDescriptor desc_F5300_G2 PROGMEM = {
 };
 
 constexpr InverterDescriptor desc_F6000_G2 PROGMEM = {
-    STRING, ON_GRID, SINGLE_PHASE,
+    STRING, 
+    ON_GRID, 
+    SINGLE_PHASE,
     6000U,  
     &defaultModbusConfig,
     {2, 2,   {0, 1}}, 
@@ -142,7 +168,9 @@ constexpr InverterDescriptor desc_F6000_G2 PROGMEM = {
 };
 
 constexpr InverterDescriptor desc_G7 PROGMEM = {
-    STRING, ON_GRID, SINGLE_PHASE, 
+    STRING, 
+    ON_GRID, 
+    SINGLE_PHASE, 
     7000U,  
     &defaultModbusConfig,
     {3, 3,   {0, 1, 2}}, 
@@ -152,7 +180,9 @@ constexpr InverterDescriptor desc_G7 PROGMEM = {
 };
 
 constexpr InverterDescriptor desc_G7_5 PROGMEM = {
-    STRING, ON_GRID, SINGLE_PHASE,
+    STRING, 
+    ON_GRID, 
+    SINGLE_PHASE,
     7500U,  
     &defaultModbusConfig, 
     {3, 3,   {0, 1, 2}}, 
@@ -162,7 +192,9 @@ constexpr InverterDescriptor desc_G7_5 PROGMEM = {
 };
 
 constexpr InverterDescriptor desc_G8 PROGMEM = {
-    STRING, ON_GRID, SINGLE_PHASE,
+    STRING, 
+    ON_GRID, 
+    SINGLE_PHASE,
     8000U,  
     &defaultModbusConfig,
     {3, 3,   {0, 1, 2}}, 
@@ -172,7 +204,9 @@ constexpr InverterDescriptor desc_G8 PROGMEM = {
 };
 
 constexpr InverterDescriptor desc_G9 PROGMEM = {
-    STRING, ON_GRID, SINGLE_PHASE,
+    STRING, 
+    ON_GRID, 
+    SINGLE_PHASE,
     9000U,  
     &defaultModbusConfig, 
     {3, 3,   {0, 1, 2}}, 
@@ -182,7 +216,9 @@ constexpr InverterDescriptor desc_G9 PROGMEM = {
 };
 
 constexpr InverterDescriptor desc_G10 PROGMEM = {
-    STRING, ON_GRID, SINGLE_PHASE,
+    STRING, 
+    ON_GRID, 
+    SINGLE_PHASE,
     10000U,  
     &defaultModbusConfig,
     {3, 3,   {0, 1, 2}}, 
@@ -192,7 +228,9 @@ constexpr InverterDescriptor desc_G10 PROGMEM = {
 };
 
 constexpr InverterDescriptor desc_G10_5 PROGMEM = {
-    STRING, ON_GRID, SINGLE_PHASE,
+    STRING, 
+    ON_GRID, 
+    SINGLE_PHASE,
     10500U,  
     &defaultModbusConfig,
     {3, 3,   {0, 1, 2}}, 
@@ -202,7 +240,9 @@ constexpr InverterDescriptor desc_G10_5 PROGMEM = {
 };
 
 constexpr InverterDescriptor desc_T3_G3 PROGMEM = {
-    STRING, ON_GRID, THREE_PHASE,
+    STRING, 
+    ON_GRID, 
+    THREE_PHASE,
     3000U,  
     &defaultModbusConfig,
     {2, 2,   {0, 1}}, 
@@ -222,7 +262,9 @@ constexpr InverterDescriptor desc_T4_G3 PROGMEM = {
 };
 
 constexpr InverterDescriptor desc_T5_G3 PROGMEM = {
-    STRING, ON_GRID, THREE_PHASE,
+    STRING, 
+    ON_GRID, 
+    THREE_PHASE,
     5000U,  
     &defaultModbusConfig,
     {2, 2,   {0, 1}}, 
@@ -232,7 +274,9 @@ constexpr InverterDescriptor desc_T5_G3 PROGMEM = {
 };
 
 constexpr InverterDescriptor desc_T6_G3 PROGMEM = {
-    STRING, ON_GRID, THREE_PHASE, 
+    STRING, 
+    ON_GRID, 
+    THREE_PHASE, 
     6000U,  
     &defaultModbusConfig,
     {2, 2,   {0, 1}}, 
@@ -242,7 +286,9 @@ constexpr InverterDescriptor desc_T6_G3 PROGMEM = {
 };
 
 constexpr InverterDescriptor desc_T8_G3 PROGMEM = {
-    STRING, ON_GRID, THREE_PHASE,
+    STRING, 
+    ON_GRID,
+    THREE_PHASE,
     8000U,  
     &defaultModbusConfig,
     {2, 2,   {0, 1}}, 
@@ -252,7 +298,9 @@ constexpr InverterDescriptor desc_T8_G3 PROGMEM = {
 };
 
 constexpr InverterDescriptor desc_T10_G3 PROGMEM = {
-    STRING, ON_GRID, THREE_PHASE,
+    STRING, 
+    ON_GRID, 
+    THREE_PHASE,
     10000U, 
     &defaultModbusConfig,
     {2, 2,   {0, 1}}, 
@@ -262,7 +310,9 @@ constexpr InverterDescriptor desc_T10_G3 PROGMEM = {
 };
 
 constexpr InverterDescriptor desc_T12_G3 PROGMEM = {
-    STRING, ON_GRID, THREE_PHASE,
+    STRING, 
+    ON_GRID,
+    THREE_PHASE,
     12000U,  
     &defaultModbusConfig,
     {2, 2,   {0, 1}}, 
@@ -272,7 +322,9 @@ constexpr InverterDescriptor desc_T12_G3 PROGMEM = {
 };
 
 constexpr InverterDescriptor desc_T15_G3 PROGMEM = {
-    STRING, ON_GRID, THREE_PHASE, 
+    STRING, 
+    ON_GRID, 
+    THREE_PHASE, 
     15000U,  
     &defaultModbusConfig,
     {4, 2,   {0, 0, 1, 1}}, 
@@ -282,7 +334,9 @@ constexpr InverterDescriptor desc_T15_G3 PROGMEM = {
 };
 
 constexpr InverterDescriptor desc_T17_G3 PROGMEM = {
-    STRING, ON_GRID, THREE_PHASE,
+    STRING, 
+    ON_GRID, 
+    THREE_PHASE,
     17000U,  
     &defaultModbusConfig,
     {4, 2,   {0, 0, 1, 1}}, 
@@ -292,7 +346,9 @@ constexpr InverterDescriptor desc_T17_G3 PROGMEM = {
 };
 
 constexpr InverterDescriptor desc_T20_G3 PROGMEM = {
-    STRING, ON_GRID, THREE_PHASE,
+    STRING, 
+    ON_GRID, 
+    THREE_PHASE,
     20000U,  
     &defaultModbusConfig,
     {4, 2,   {0, 0, 1, 1}}, 
@@ -302,7 +358,9 @@ constexpr InverterDescriptor desc_T20_G3 PROGMEM = {
 };
 
 constexpr InverterDescriptor desc_T23_G3 PROGMEM = {
-    STRING, ON_GRID, THREE_PHASE, 
+    STRING, 
+    ON_GRID, 
+    THREE_PHASE, 
     23000U,  
     &defaultModbusConfig,
     {4, 2,   {0, 0, 1, 1}}, 
@@ -312,7 +370,9 @@ constexpr InverterDescriptor desc_T23_G3 PROGMEM = {
 };
 
 constexpr InverterDescriptor desc_T25_G3 PROGMEM = {
-    STRING, ON_GRID, THREE_PHASE,
+    STRING, 
+    ON_GRID, 
+    THREE_PHASE,
     25000U,  
     &defaultModbusConfig,
     {4, 2,   {0, 0, 1, 1}}, 
@@ -322,7 +382,9 @@ constexpr InverterDescriptor desc_T25_G3 PROGMEM = {
 };
 
 constexpr InverterDescriptor desc_V30 PROGMEM = {
-    STRING, ON_GRID, THREE_PHASE, 
+    STRING, 
+    ON_GRID, 
+    THREE_PHASE, 
     30000U,  
     &defaultModbusConfig, 
     {8, 4,   {0, 0, 1, 1, 2, 2, 3, 3}}, 
@@ -332,7 +394,9 @@ constexpr InverterDescriptor desc_V30 PROGMEM = {
 };
 
 constexpr InverterDescriptor desc_V33 PROGMEM = {
-    STRING, ON_GRID, THREE_PHASE, 
+    STRING, 
+    ON_GRID, 
+    THREE_PHASE, 
     33000U,  
     &defaultModbusConfig,
     {8, 4,   {0, 0, 1, 1, 2, 2, 3, 3}}, 
@@ -342,7 +406,9 @@ constexpr InverterDescriptor desc_V33 PROGMEM = {
 };
 
 constexpr InverterDescriptor desc_V36 PROGMEM = {
-    STRING, ON_GRID, THREE_PHASE, 
+    STRING, 
+    ON_GRID, 
+    THREE_PHASE, 
     36000U,  
     &defaultModbusConfig,
     {8, 4,   {0, 0, 1, 1, 2, 2, 3, 3}}, 
@@ -352,7 +418,9 @@ constexpr InverterDescriptor desc_V36 PROGMEM = {
 };
 
 constexpr InverterDescriptor desc_V40 PROGMEM = {
-    STRING, ON_GRID, THREE_PHASE, 
+    STRING, 
+    ON_GRID, 
+    THREE_PHASE, 
     40000U,  
     &defaultModbusConfig,
     {8, 4,   {0, 0, 1, 1, 2, 2, 3, 3}}, 
@@ -362,7 +430,9 @@ constexpr InverterDescriptor desc_V40 PROGMEM = {
 };
 
 constexpr InverterDescriptor desc_V50 PROGMEM = {
-    STRING, ON_GRID, THREE_PHASE, 
+    STRING, 
+    ON_GRID, 
+    THREE_PHASE, 
     50000U,  
     &defaultModbusConfig,
     {8, 4,   {0, 0, 1, 1, 2, 2, 3, 3}}, 
@@ -372,7 +442,9 @@ constexpr InverterDescriptor desc_V50 PROGMEM = {
 };
 
 constexpr InverterDescriptor desc_V60 PROGMEM = {
-    STRING, ON_GRID, THREE_PHASE,
+    STRING, 
+    ON_GRID, 
+    THREE_PHASE,
     60000U,  
     &defaultModbusConfig,
     {12, 6,  {0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5}}, 
@@ -382,7 +454,9 @@ constexpr InverterDescriptor desc_V60 PROGMEM = {
 };
 
 constexpr InverterDescriptor desc_V75 PROGMEM = {
-    STRING, ON_GRID, THREE_PHASE,
+    STRING, 
+    ON_GRID, 
+    THREE_PHASE,
     75000U,  
     &defaultModbusConfig,
     {12, 6,  {0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5}}, 
@@ -392,7 +466,9 @@ constexpr InverterDescriptor desc_V75 PROGMEM = {
 };
 
 constexpr InverterDescriptor desc_VL15 PROGMEM = {
-    STRING, ON_GRID, THREE_PHASE,
+    STRING, 
+    ON_GRID, 
+    THREE_PHASE,
     15000U,  
     &defaultModbusConfig,
     {8, 4,   {0, 0, 1, 1, 2, 2, 3, 3}}, 
@@ -402,7 +478,9 @@ constexpr InverterDescriptor desc_VL15 PROGMEM = {
 };
 
 constexpr InverterDescriptor desc_VL20 PROGMEM = {
-    STRING, ON_GRID, THREE_PHASE,
+    STRING, 
+    ON_GRID, 
+    THREE_PHASE,
     20000U,  
     &defaultModbusConfig,
     {8, 4,   {0, 0, 1, 1, 2, 2, 3, 3}}, 
@@ -412,7 +490,9 @@ constexpr InverterDescriptor desc_VL20 PROGMEM = {
 };
 
 constexpr InverterDescriptor desc_VL25 PROGMEM = {
-    STRING, ON_GRID, THREE_PHASE, 
+    STRING, 
+    ON_GRID, 
+    THREE_PHASE, 
     25000U,  
     &defaultModbusConfig,
     {8, 4,   {0, 0, 1, 1, 2, 2, 3, 3}}, 
@@ -422,7 +502,9 @@ constexpr InverterDescriptor desc_VL25 PROGMEM = {
 };
 
 constexpr InverterDescriptor desc_VL30 PROGMEM = {
-    STRING, ON_GRID, THREE_PHASE,
+    STRING, 
+    ON_GRID, 
+    THREE_PHASE,
     30000U,  
     &defaultModbusConfig,
     {8, 4,   {0, 0, 1, 1, 2, 2, 3, 3}}, 
@@ -432,7 +514,9 @@ constexpr InverterDescriptor desc_VL30 PROGMEM = {
 };
 
 constexpr InverterDescriptor desc_VL37_5 PROGMEM = {
-    STRING, ON_GRID, THREE_PHASE,
+    STRING, 
+    ON_GRID, 
+    THREE_PHASE,
     37500U,  
     &defaultModbusConfig,
     {8, 4,   {0, 0, 1, 1, 2, 2, 3, 3}}, 
@@ -442,7 +526,9 @@ constexpr InverterDescriptor desc_VL37_5 PROGMEM = {
 };
 
 constexpr InverterDescriptor desc_R75 PROGMEM = {
-    STRING, ON_GRID, THREE_PHASE, 
+    STRING, 
+    ON_GRID, 
+    THREE_PHASE, 
     75000U,  
     &defaultModbusConfig,
     {18, 9,  {0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8}}, 
@@ -452,7 +538,9 @@ constexpr InverterDescriptor desc_R75 PROGMEM = {
 };
 
 constexpr InverterDescriptor desc_R100 PROGMEM = {
-    STRING, ON_GRID, THREE_PHASE,
+    STRING, 
+    ON_GRID, 
+    THREE_PHASE,
     100000U,  
     &defaultModbusConfig,
     {18, 9,  {0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8}}, 
@@ -462,7 +550,9 @@ constexpr InverterDescriptor desc_R100 PROGMEM = {
 };
 
 constexpr InverterDescriptor desc_R110 PROGMEM = {
-    STRING, ON_GRID, THREE_PHASE,
+    STRING, 
+    ON_GRID, 
+    THREE_PHASE,
     110000U,  
     &defaultModbusConfig,
     {18, 9,  {0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8}}, 

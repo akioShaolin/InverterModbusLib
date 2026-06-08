@@ -141,7 +141,7 @@ public:
     void attachSerial(HardwareSerial& serial);          //
     bool begin();                                       //
     void setSlaveId(uint8_t id);                        //
-
+    // Controle
     bool boot();                                        //
     bool shutdown();                                    //
     bool setBoot(bool enable);                          //   
@@ -154,7 +154,7 @@ public:
     bool setPowerLimitEnabled(bool enabled);            //
     bool setExportLimitEnabled(bool enabled);           //
     bool setPowerFactorEnabled(bool enabled);           //
-    bool setPowerFactor(float pf);                      //
+    bool setPowerFactorSetpoint(float pf);              //
     bool setPowerFactorExcitationMode(PfExcitationMode excitationMode); //
     // ------------------------------------------------------
   
@@ -194,18 +194,18 @@ public:
     bool getExportLimitPercent(float& percent);      //
     bool isPowerFactorEnabled(bool& enabled);        //
     bool getPowerFactorSetpoint(float& pf);          //
-    // Medições AC
+    // Potências    
     bool getActivePower(float& watts);               // 
+    bool getReactivePower(float& var); //
+    bool getApparentPower(float& va);         //
+    bool getPowerFactor(float &pf);                  //    
+    // Medições AC
     bool getGridVoltage(float& voltage);             //
     bool getGridPhaseVoltage(PhaseData& phase);      //
     bool getGridLineVoltage(PhaseData& phase);       //
     bool getGridCurrent(float& current);             //
     bool getGridCurrent(PhaseData& phase);           //
     bool getGridFrequency(float& freq);              //
-
-    bool getReactivePower(float& var); //
-    bool getApparentPower(float& va);         //
-    bool getPowerFactor(float &pf);                  //
     // Energia
     bool getTotalEnergy(float& kWh);                 //
     bool getDailyEnergy(float& kWh);                 //
@@ -219,8 +219,8 @@ public:
     bool getInsulationResistance(float& kohm);   //
     // ------------------------------------------------------
     // Status/Alarmes
-    bool getInverterStatus(uint32_t status);//InverterStatus& status);  //
-    bool getAlarm(uint32_t alarm);//Alarm& alarm);                     //
+    bool getInverterStatus(uint32_t& status);//InverterStatus& status);  //
+    bool getAlarm(uint32_t& alarm);//Alarm& alarm);                     //
     // Bateria
     bool getBatteryVoltage(BatteryValues& voltage);  //
     bool getBatteryCurrent(BatteryValues& current);  //
@@ -265,11 +265,6 @@ private:
     uint32_t datetimeToEpoch(const Datetime& dt);    //
     // ------------------------------------------------------
 
-    // ------------------------------------------------------
-    // Privates temporárias (em desenvolvimento)
-
-
-    
     // ------------------------------------------------------
     // Centro das operações Modbus
     // Arquivo InverterCore.cpp

@@ -47,7 +47,9 @@ Inverter::Inverter(InverterModel model)
     _serialPort(&Serial) {
 
     _descriptor = getDescriptor(model);
-    _map = getInverterMap(model);
+    
+    memset(&_map, 0, sizeof(ModbusInverterMap));
+    getInverterMap(model, _map);
 
     if (_descriptor.config != nullptr) {
         _cfg.id = pgm_read_byte(&_descriptor.config->id);
@@ -711,7 +713,7 @@ bool Inverter::setPowerFactorEnabled(bool enabled) {
     return false;
 }
 
-bool Inverter::setPowerFactor(float pf) {
+bool Inverter::setPowerFactorSetpoint(float pf) {
     if (!hasValidMap()) return false;
     if (pf <= -1.0f || pf > 1.0f || pf == 0.0f) return false;
     

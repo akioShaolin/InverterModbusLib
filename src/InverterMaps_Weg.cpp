@@ -171,17 +171,16 @@ static const ModbusInverterMap map_SIW500H_M3 PROGMEM = {
     }
 };
 
-ModbusInverterMap getMap_Weg(InverterModel model) {
-    ModbusInverterMap map;
-
+bool getMap_Weg(InverterModel model, ModbusInverterMap& out) {
+    
     switch (model) {
         case SIW500H_ST030_M3:
-            memcpy_P(&map, &map_SIW500H_M3, sizeof(ModbusInverterMap));
-            return map;
+            memcpy_P(&out, &map_SIW500H_M3, sizeof(ModbusInverterMap));
+            return true;
 
         default:
-            memset(&map, 0, sizeof(ModbusInverterMap)); // Retorna um mapa vazio para modelos não mapeados
-            return map;
+            memset(&out, 0, sizeof(ModbusInverterMap)); // Retorna um mapa vazio para modelos não mapeados
+            return false;
     }
 }
 

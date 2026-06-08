@@ -46,69 +46,10 @@ struct ModbusInverterMap {
     EpsFeature eps;
 
     DiagnosticFeature diagnostic;
-    StatusFeature status; // */
-
-    /*
-    // Identificação
-    ModbusField serialNumber;
-    // Controle
-    ModbusField boot;
-    ModbusField shutdown;    
-
-    ModbusField enablePowerLimit;
-    ModbusField PowerLimit;
-    ModbusField PowerLimitPercent;
-    ModbusField enableExportLimit;
-    ModbusField ExportLimit;
-    ModbusField ExportLimitPercent;
-    ModbusField enablePowerFactor;
-    ModbusField PowerFactorSetpoint;
-    ModbusField powerFactorExcitationMode;
-
-    // Tempo
-    ModbusField time_year;
-    ModbusField time_month;
-    ModbusField time_day;
-    ModbusField time_hour;
-    ModbusField time_minute;
-    ModbusField time_second;
-    ModbusField time_epoch;
-
-    // Status
-    ModbusField totalEnergy;
-    ModbusField dailyEnergy;
-
-    ModbusField activePower;
-    ModbusField reactivePower;
-    ModbusField apparentPower;
-    ModbusField powerFactor;
-
-    ModbusField gridVoltage;
-    ModbusField gridCurrent;
-    ModbusField gridFrequency;
-
-    ModbusField temperature;
-    ModbusField insulationResistance;
-    ModbusField inverterStatus;
-    ModbusField alarm;
-
-    ModbusField stringVoltage;
-    ModbusField stringCurrent;
-    ModbusField stringPower;
-
-    ModbusField batteryVoltage;
-    ModbusField batteryCurrent;
-    ModbusField batteryPower;
-    ModbusField batterySoC;
-    ModbusField batterySoH;
-
-    ModbusField epsVoltage;
-    ModbusField epsCurrent;
-    ModbusField epsActivePower;
-    */
+    StatusFeature status;
 };
 
-ModbusInverterMap getInverterMap(InverterModel model);
-ModbusInverterMap getMap_Weg(InverterModel model);
+bool getInverterMap(InverterModel model, ModbusInverterMap& out);
+bool getMap_Weg(InverterModel model, ModbusInverterMap& out);
 
 #endif

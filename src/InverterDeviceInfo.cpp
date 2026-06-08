@@ -1412,18 +1412,19 @@ bool Inverter::getInsulationResistance(float& kohm) {
 // ou códigos proprietários distintos.
 
 // #############################################################################################################
-bool Inverter::getInverterStatus(uint32_t status) {//InverterStatus& status) {
+bool Inverter::getInverterStatus(uint32_t& status) {//InverterStatus& status) {
     if (!hasValidMap()) return false;
 
     const ModbusField& field = _map.status.inverterStatus;
     
+    if (isInvalidField(field)) return false;
+    if (!field.readable) return false;
+    if (field.length != 1) return false;
+
     switch (field.mode) {
 
         case FIELD_SIMPLE:{
-            if (!field.readable) return false;
-
-            uint32_t raw;
-
+            uint32_t raw = 0;
             if (!readField(field, &raw)) return false;
 
             status = raw;//(InverterStatus)raw;
@@ -1435,20 +1436,22 @@ bool Inverter::getInverterStatus(uint32_t status) {//InverterStatus& status) {
     }
 }
 
-bool Inverter::getAlarm(uint32_t alarm) {//Alarm& alarm) {
+bool Inverter::getAlarm(uint32_t& alarm) {//Alarm& alarm) {
     if (!hasValidMap()) return false;
 
     const ModbusField& field = _map.status.alarm;
-    
+
+    if (isInvalidField(field)) return false;
+    if (!field.readable) return false;
+    if (field.length != 1) return false;
+
     switch (field.mode) {
 
         case FIELD_SIMPLE: {
-            if (!field.readable) return false;
-
-            uint16_t raw;
+            uint16_t raw = 0;
             if (!readField(field, &raw)) return false;
 
-            alarm = raw;//(Alarm)raw;
+            alarm = raw; //(Alarm)raw;
             return true;
         }
             

@@ -697,7 +697,7 @@ bool Inverter::getGridFrequency(float& freq) {
 
     const ModbusField& field = _map.grid.frequency;
 
-    if (!field.length != 1) return false;
+    if (field.length != 1) return false;
 
     switch (field.mode) {
         case FIELD_SIMPLE:

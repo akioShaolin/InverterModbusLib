@@ -64,7 +64,7 @@ static const ModbusInverterMap map_SIW500H_M3 PROGMEM = {
         { 0x7576, U16, 1, 1, 1.0f, true, false },       // Model ID
         { 0x7530, ASCII, 15, 1, 1.0f, true, false },    // Model Name
         INVALID_FIELD,                                  // O firmware é obtido pelo Model ID
-        { 0x7577, U32, 1, 2, 1.0f, true, false }        // Potência nominal
+        { 0x7579, U32, 1, 2, 1.0f, true, false }        // Potência nominal
     }, {
         { 0x9D08, U16, 1, 1, 1.0f, false, true },       // Boot. Write 1
         { 0x9D09, U16, 1, 1, 1.0f, false, true },       // Shutdown. Write 1
@@ -157,8 +157,8 @@ static const ModbusInverterMap map_SIW500H_M3 PROGMEM = {
         { 0x7D10, I16, 24, 2, 0.1f, true, false },      // String Voltage (V)
         { 0x7D11, I16, 24, 2, 0.01f, true, false},      // String Current (A)
         INVALID_FIELD,                                  // String Power (W) (não disponível nesse modelo)
-        { 0x7576, U16, 1, 1, 1.0f, true, false },       // Number of PV Strings
-        { 0x7577, U16, 1, 1, 1.0f, true, false },       // Number of MPP trackers
+        { 0x7577, U16, 1, 1, 1.0f, true, false },       // Number of PV Strings
+        { 0x7578, U16, 1, 1, 1.0f, true, false },       // Number of MPP trackers
     }, 
     noBattery,
     noEps, {

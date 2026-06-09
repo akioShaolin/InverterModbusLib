@@ -132,6 +132,17 @@ struct BatteryValues {
 
 class Inverter {
 public:
+
+    // setSlaveAddress
+    // getSlaveAddress
+    // getFirmwareVersion
+    // getModelName
+    // getModelID
+    // getMpptCount
+    // getFixedReactiveSetpoint
+    // setFixedReactiveSetpoint
+
+
     // Setters
     // Arquivo InverterControl.cpp
     // ------------------------------------------------------

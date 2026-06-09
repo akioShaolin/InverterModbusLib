@@ -487,7 +487,7 @@ void handleApiSet() {
   else if (fn == "shutdown") ok = inverter->shutdown();
   else if (fn == "setBoot") ok = inverter->setBoot(b);
 
-  else if (fn == "setPowerLimitEnabled") ok =  ;
+  else if (fn == "setPowerLimitEnabled") ok = inverter->setPowerLimitEnabled(b);
   else if (fn == "setPowerLimit") ok = inverter->setPowerLimit(f);
   else if (fn == "setPowerLimitPercent") ok = inverter->setPowerLimitPercent(f);
 

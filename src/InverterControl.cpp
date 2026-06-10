@@ -226,7 +226,7 @@ bool Inverter::setPowerLimit(float watts) {
 
     if (feature.requiresEnableBeforeWrite) {
         if (!setPowerLimitEnabled(true)) return false;
-    }    
+    }
     
     // 1) Tenta escrever diretamente em watts
     if (feature.supportsWatts) {
@@ -273,6 +273,7 @@ bool Inverter::setPowerLimit(float watts) {
         if (isInvalidField(field)) return false;
 
         switch (field.mode) {
+
             case FIELD_SIMPLE: {
                 if (!field.writable) return false;
                 if (field.scale == 0.0f)  return false;
@@ -381,7 +382,7 @@ bool Inverter::setPowerLimitPercent(float percent) {
                 }
 
                 float watts = percent * ((float)ratedPower) / 100.0f;
-
+        
                 return writeField(field, watts / field.scale);
             }
 
@@ -788,4 +789,106 @@ bool Inverter::setPowerFactorExcitationMode(PfExcitationMode excitationMode) {
         default:
             return false;
     }
+}
+
+bool Inverter::setFixedReactiveEnabled(bool enabled) {
+    if (!hasValidMap()) return false;
+
+    const ReactivePowerFeature& feature = _map.reactivePowerControl;   
+    
+    // Fallback cai em enable por enum ou por implicit enable
+    if (feature.supportsEnableFixedReactive) {
+
+        const ModbusField& field = feature.enableFixedReactive;
+
+        if (isInvalidField(field)) {
+            if (feature.implicitFixedReactiveSp == true) {
+                return enabled;
+            }
+
+            return false;
+        }
+
+        const uint16_t enableValue = feature.enableFixedReactiveValue;
+        const uint16_t disableValue = feature.disableFixedReactiveValue;
+
+        if (enableValue == FEATURE_VALUE_NONE || disableValue == FEATURE_VALUE_NONE) return false;
+
+        switch (field.mode) {
+
+            case FIELD_SIMPLE: {
+                if (!field.writable) return false;
+                uint16_t v = enabled
+                    ? enableValue
+                    : disableValue;
+
+                return writeField(field, v);
+            }
+
+            default:
+                return false;
+        }
+    }
+    // Fallback do Mode
+    if (feature.supportsControlModeFixedReactive) {
+        const ModbusField& field = feature.controlMode;
+
+        if (isInvalidField(field)) return false;
+
+        const uint16_t enableMode = feature.enableFixedReactiveValue;
+        const uint16_t disableMode = feature.disableFixedReactiveValue;
+
+        if (enableMode == FEATURE_VALUE_NONE || disableMode == FEATURE_VALUE_NONE) return false;
+
+        switch (field.mode) {
+
+            case FIELD_SIMPLE: {
+                if (!field.writable) return false;
+                uint16_t v = enabled
+                    ? enableMode
+                    : disableMode;
+
+                return writeField(field, v);
+            }
+
+            default:
+                return false;
+        }
+    }
+    // Fallback do implicit
+    if (feature.implicitFixedReactiveSp) {
+        return enabled;
+    }
+
+    return false;
+}
+
+bool Inverter::setFixedReactiveSetpoint(float var) {
+    if (!hasValidMap()) return false;
+    
+    const ReactivePowerFeature& feature = _map.reactivePowerControl;
+
+    if (!feature.supportsFixedReactiveSp) return false;
+
+    if (feature.requiresEnableBeforeWrite) {
+        if (!setFixedReactiveEnabled(true)) return false;
+    }
+    
+    const ModbusField& field = feature.fixedReactiveSp;
+
+    if (isInvalidField(field)) return false;
+
+    switch (field.mode) {
+        case FIELD_SIMPLE: {
+            if (!field.writable) return false;
+            if (field.scale == 0.0f)  return false;
+
+            return writeField(field, var / field.scale);  
+
+        }
+
+        default:
+            return false;
+    }
+
 }

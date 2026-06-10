@@ -133,40 +133,35 @@ struct BatteryValues {
 class Inverter {
 public:
 
-    // setSlaveAddress
-    // getSlaveAddress
-    // getFirmwareVersion
-    // getModelName
-    // getModelID
-    // getMpptCount
-    // getFixedReactiveSetpoint
-    // setFixedReactiveSetpoint
-
-
     // Setters
     // Arquivo InverterControl.cpp
     // ------------------------------------------------------
+    // Inicialização / configuração da biblioteca
     Inverter(InverterModel model);                      //
     void attachModbus(ModbusRTU& mb);                   //
     void attachConfig(const ModbusConfigData& config);  //  
     void attachSerial(HardwareSerial& serial);          //
     bool begin();                                       //
     void setSlaveId(uint8_t id);                        //
-    // Controle
+    // Controle do inversor
     bool boot();                                        //
     bool shutdown();                                    //
     bool setBoot(bool enable);                          //   
 
+    bool setPowerLimitEnabled(bool enabled);            //
     bool setPowerLimit(float watts);                    //
     bool setPowerLimitPercent(float percent);           //
+
+    bool setExportLimitEnabled(bool enabled);           //
     bool setExportLimit(float watts);                   //
     bool setExportLimitPercent(float percent);          //
 
-    bool setPowerLimitEnabled(bool enabled);            //
-    bool setExportLimitEnabled(bool enabled);           //
     bool setPowerFactorEnabled(bool enabled);           //
     bool setPowerFactorSetpoint(float pf);              //
     bool setPowerFactorExcitationMode(PfExcitationMode excitationMode); //
+
+    bool setFixedReactiveEnabled(bool enabled);         //
+    bool setFixedReactiveSetpoint(float var);
     // ------------------------------------------------------
   
     // Tempo
@@ -195,16 +190,26 @@ public:
     // ------------------------------------------------------
     // Identificação
     bool getSerialNumber(String& serialNumber);      //
-    bool getRatedPower(uint32_t& power);               //
+    bool getModelId(uint16_t& modelId);                   //
+    bool getModelName(String& modelName);               //
+    bool getFirmwareVersion(String& firmwareVersion);//
+    bool getRatedPower(uint32_t& power);             //
+    bool getPVStringCount(uint16_t& count);          //
+    bool getMpptCount(uint16_t& count);    
     // Comandos / Limites
     bool isPowerLimitEnabled(bool& enabled);         //
     bool getPowerLimit(float& watts);                //
     bool getPowerLimitPercent(float& percent);       //
+
     bool isExportLimitEnabled(bool& enabled);        //
     bool getExportLimit(float& watts);               //
     bool getExportLimitPercent(float& percent);      //
+
     bool isPowerFactorEnabled(bool& enabled);        //
     bool getPowerFactorSetpoint(float& pf);          //
+
+    bool isFixedReactiveEnabled(bool& enabled);      //
+    bool getFixedReactiveSetpoint(float& var);        //
     // Potências    
     bool getActivePower(float& watts);               // 
     bool getReactivePower(float& var); //
@@ -221,7 +226,6 @@ public:
     bool getTotalEnergy(float& kWh);                 //
     bool getDailyEnergy(float& kWh);                 //
     // Strings FV
-    bool getPVStringCount(uint16_t& count);          //
     bool getStringVoltage(StringValues& voltage);    //
     bool getStringCurrent(StringValues& current);    //  
     bool getStringPower(StringValues& power);        //

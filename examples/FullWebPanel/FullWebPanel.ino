@@ -410,7 +410,12 @@ void handleApiGet() {
   bool ok = false;
 
   if (fn == "getSerialNumber") { String v; ok = inverter->getSerialNumber(v); result = ok ? escapeHtml(v) : "Falha"; }
-  else if (fn == "getRatedPower") {uint32_t v; ok = inverter->getRatedPower(v); result = ok ? String(v) : "Falha"; }
+  else if (fn == "getModelId") {uint16_t v; ok = inverter->getModelId(v); result = ok ? String(v) : "Falha"; }
+  else if (fn == "getModelName") { String v; ok = inverter->getModelName(v); result = ok ? escapeHtml(v) : "Falha"; }
+  else if (fn == "getFirmwareVersion") { String v; ok = inverter->getFirmwareVersion(v); result = ok ? escapeHtml(v) : "Falha"; }
+  else if (fn == "getRatedPower") {uint32_t v; ok = inverter->getRatedPower(v); result = ok ? String(v) + " W" : "Falha"; }
+  else if (fn == "getPVStringCount") { uint16_t v; ok = inverter->getPVStringCount(v); result = ok ? String(v) : "Falha"; }
+  else if (fn == "getMpptCount") { uint16_t v; ok = inverter->getMpptCount(v); result = ok ? String(v) : "Falha"; }
 
   else if (fn == "getYear") { uint16_t v; ok = inverter->getYear(v); result = ok ? String(v) : "Falha"; }
   else if (fn == "getMonth") { uint16_t v; ok = inverter->getMonth(v); result = ok ? String(v) : "Falha"; }
@@ -421,32 +426,34 @@ void handleApiGet() {
   else if (fn == "getEpochTime") { uint32_t v; ok = inverter->getEpochTime(v); result = ok ? String(v) : "Falha"; }
 
   else if (fn == "isPowerLimitEnabled") { bool v; ok = inverter->isPowerLimitEnabled(v); result = ok ? boolText(v) : "Falha"; }
-  else if (fn == "getPowerLimit") { float v; ok = inverter->getPowerLimit(v); result = ok ? String(v, 2) + " W" : "Falha"; }
-  else if (fn == "getPowerLimitPercent") { float v; ok = inverter->getPowerLimitPercent(v); result = ok ? String(v, 2) + " %" : "Falha"; }
+  else if (fn == "getPowerLimit") { float v; ok = inverter->getPowerLimit(v); result = ok ? String(v) + " W" : "Falha"; }
+  else if (fn == "getPowerLimitPercent") { float v; ok = inverter->getPowerLimitPercent(v); result = ok ? String(v, 1) + " %" : "Falha"; }
 
   else if (fn == "isExportLimitEnabled") { bool v; ok = inverter->isExportLimitEnabled(v); result = ok ? boolText(v) : "Falha"; }
-  else if (fn == "getExportLimit") { float v; ok = inverter->getExportLimit(v); result = ok ? String(v, 2) + " W" : "Falha"; }
-  else if (fn == "getExportLimitPercent") { float v; ok = inverter->getExportLimitPercent(v); result = ok ? String(v, 2) + " %" : "Falha"; }
+  else if (fn == "getExportLimit") { float v; ok = inverter->getExportLimit(v); result = ok ? String(v) + " W" : "Falha"; }
+  else if (fn == "getExportLimitPercent") { float v; ok = inverter->getExportLimitPercent(v); result = ok ? String(v, 1) + " %" : "Falha"; }
 
   else if (fn == "isPowerFactorEnabled") { bool v; ok = inverter->isPowerFactorEnabled(v); result = ok ? boolText(v) : "Falha"; }
-  else if (fn == "getPowerFactorSetpoint") { float v; ok = inverter->getPowerFactorSetpoint(v); result = ok ? String(v, 2) + " W" : "Falha"; }
+  else if (fn == "getPowerFactorSetpoint") { float v; ok = inverter->getPowerFactorSetpoint(v); result = ok ? String(v, 3) : "Falha"; }
 
-  else if (fn == "getActivePower") { float v; ok = inverter->getActivePower(v); result = ok ? String(v, 2) + " W" : "Falha"; }
-  else if (fn == "getReactivePower") { float v; ok = inverter->getReactivePower(v); result = ok ? String(v, 2) + " VAr" : "Falha"; }
-  else if (fn == "getApparentPower") { float v; ok = inverter->getApparentPower(v); result = ok ? String(v, 2) + " VA" : "Falha"; }
-  else if (fn == "getPowerFactor") { float v; ok = inverter->getPowerFactor(v); result = ok ? String(v, 2) : "Falha"; }
-  else if (fn == "getGridVoltage") { float v; ok = inverter->getGridVoltage(v); result = ok ? String(v, 2) + " V" : "Falha"; }
-  else if (fn == "getGridPhaseVoltage") {PhaseData v; ok = inverter->getGridPhaseVoltage(v); result = ok ? phaseText(v, "V") : "Falha"; }
-  else if (fn == "getGridLineVoltage") {PhaseData v; ok = inverter->getGridLineVoltage(v); result = ok ? phaseText(v, "V") : "Falha"; }
-  else if (fn == "getGridCurrent" && descriptor.inverterPhaseType == SINGLE_PHASE) { float v; ok = inverter->getGridCurrent(v); result = ok ? String(v, 2) + "A" : "Falha"; }
-  else if (fn == "getGridCurrent" && descriptor.inverterPhaseType == THREE_PHASE) { PhaseData v; ok = inverter->getGridCurrent(v); result = ok ? phaseText(v, "A") : "Falha"; }
-  else if (fn == "getGridFrequency") { float v; ok = inverter->getGridFrequency(v); result = ok ? String(v, 2) + "Hz" : "Falha"; }
-  else if (fn == "getTotalEnergy") { float v; ok = inverter->getTotalEnergy(v); result = ok ? String(v, 2) + " kWh" : "Falha"; }
+  else if (fn == "isFixedReactiveEnabled") { bool v; ok = inverter->isFixedReactiveEnabled(v); result = ok ? boolText(v) : "Falha"; }
+  else if (fn == "getFixedReactiveSetpoint") { float v; ok = inverter->getFixedReactiveSetpoint(v); result = ok ? String(v) + " VAr" : "Falha"; }
+
+  else if (fn == "getActivePower") { float v; ok = inverter->getActivePower(v); result = ok ? String(v) + " W" : "Falha"; }
+  else if (fn == "getReactivePower") { float v; ok = inverter->getReactivePower(v); result = ok ? String(v) + " VAr" : "Falha"; }
+  else if (fn == "getApparentPower") { float v; ok = inverter->getApparentPower(v); result = ok ? String(v) + " VA" : "Falha"; }
+  else if (fn == "getPowerFactor") { float v; ok = inverter->getPowerFactor(v); result = ok ? String(v, 3) : "Falha"; }
+  else if (fn == "getGridVoltage") { float v; ok = inverter->getGridVoltage(v); result = ok ? String(v, 1) + " V" : "Falha"; }
+  else if (fn == "getGridPhaseVoltage") {PhaseData v; ok = inverter->getGridPhaseVoltage(v); result = ok ? phaseText(v, " V") : "Falha"; }
+  else if (fn == "getGridLineVoltage") {PhaseData v; ok = inverter->getGridLineVoltage(v); result = ok ? phaseText(v, " V") : "Falha"; }
+  else if (fn == "getGridCurrent" && descriptor.inverterPhaseType == SINGLE_PHASE) { float v; ok = inverter->getGridCurrent(v); result = ok ? String(v, 2) + " A" : "Falha"; }
+  else if (fn == "getGridCurrent" && descriptor.inverterPhaseType == THREE_PHASE) { PhaseData v; ok = inverter->getGridCurrent(v); result = ok ? phaseText(v, " A") : "Falha"; }
+  else if (fn == "getGridFrequency") { float v; ok = inverter->getGridFrequency(v); result = ok ? String(v, 2) + " Hz" : "Falha"; }
+  else if (fn == "getTotalEnergy") { float v; ok = inverter->getTotalEnergy(v); result = ok ? String(v) + " kWh" : "Falha"; }
   else if (fn == "getDailyEnergy") { float v; ok = inverter->getDailyEnergy(v); result = ok ? String(v, 2) + " kWh" : "Falha"; }
-  else if (fn == "getPVStringCount") { uint16_t v; ok = inverter->getPVStringCount(v); result = ok ? String(v) : "Falha"; }
   else if (fn == "getStringVoltage") { StringValues v; ok = inverter->getStringVoltage(v); result = ok ? stringValuesText(v, "V") : "Falha"; }
   else if (fn == "getStringCurrent") { StringValues v; ok = inverter->getStringCurrent(v); result = ok ? stringValuesText(v, "A") : "Falha"; }
-  else if (fn == "getStringPower") { StringValues v; ok = inverter->getStringPower(v); result = ok ? stringValuesText(v, "W") : "Falha"; }
+  else if (fn == "getStringPower") { StringValues v; ok = inverter->getStringPower(v); result = ok ? stringValuesText(v, " W") : "Falha"; }
 
   else if (fn == "getTemperature") { float v; ok = inverter->getTemperature(v); result = ok ? String(v, 2) + " °C" : "Falha"; }
   else if (fn == "getInsulationResistance") { float v; ok = inverter->getInsulationResistance(v); result = ok ? String(v, 2) + " kΩ" : "Falha"; }
@@ -497,7 +504,10 @@ void handleApiSet() {
 
   else if (fn == "setPowerFactorEnabled") ok = inverter->setPowerFactorEnabled(b);
   else if (fn == "setPowerFactorSetpoint") ok = inverter->setPowerFactorSetpoint(f);
-  else if (fn == "setPowerExcitationMode") ok = inverter->setPowerFactorExcitationMode((PfExcitationMode)b);
+  else if (fn == "setPowerFactorExcitationMode") ok = inverter->setPowerFactorExcitationMode((PfExcitationMode)b);
+
+  else if (fn == "setFixedReactiveEnabled") ok = inverter->setFixedReactiveEnabled(b);
+  else if (fn == "setFixedReactiveSetpoint") ok = inverter->setFixedReactiveSetpoint(f);
 
   else if (fn == "setYear") ok = inverter->setYear(u);
   else if (fn == "setMonth") ok = inverter->setMonth(u);

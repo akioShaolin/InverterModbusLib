@@ -175,9 +175,9 @@ const InverterDescriptor getDescriptor(InverterModel model) {
             return getDescriptor_Huawei(model);
             
         default:
-            memset(&desc, 0, sizeof(InverterDescriptor));
+            desc = InverterDescriptor{};
             return desc;
     }
-    memset(&desc, 0, sizeof(InverterDescriptor));
+    desc = InverterDescriptor{};
     return desc;
 }

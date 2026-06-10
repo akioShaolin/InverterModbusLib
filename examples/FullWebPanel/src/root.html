@@ -168,9 +168,24 @@
                 <form onsubmit="callGet(event, this)"><input type='hidden' name='fn' value='getSerialNumber'><button
                         type='submit'>getSerialNumber()</button></form>
                 <div id="getSerialNumber" class='display small'>Aguardando leitura.</div>
+                <form onsubmit="callGet(event, this)"><input type='hidden' name='fn' value='getModelId'><button
+                        type='submit'>getModelId()</button></form>
+                <div id="getModelId" class='display small'>Aguardando leitura.</div>
+                <form onsubmit="callGet(event, this)"><input type='hidden' name='fn' value='getModelName'><button
+                        type='submit'>getModelName()</button></form>
+                <div id="getModelName" class='display small'>Aguardando leitura.</div>
+                <form onsubmit="callGet(event, this)"><input type='hidden' name='fn' value='getFirmwareVersion'><button
+                        type='submit'>getFirmwareVersion()</button></form>
+                <div id="getFirmwareVersion" class='display small'>Aguardando leitura.</div>
                 <form onsubmit="callGet(event, this)"><input type='hidden' name='fn' value='getRatedPower'><button
                         type='submit'>getRatedPower()</button></form>
                 <div id="getRatedPower" class='display small'>Aguardando leitura.</div>
+                <form onsubmit="callGet(event, this)"><input type='hidden' name='fn' value='getPVStringCount'><button
+                        type='submit'>getPVStringCount()</button></form>
+                <div id="getPVStringCount" class='display small'>Aguardando leitura.</div>
+                <form onsubmit="callGet(event, this)"><input type='hidden' name='fn' value='getMpptCount'><button
+                        type='submit'>getMpptCount()</button></form>
+                <div id="getMpptCount" class='display small'>Aguardando leitura.</div>
                 <h2>Escritas - Controle</h2>
                 <form onsubmit="callSet(event, this)"><input type='hidden' name='fn' value='boot'><button
                         type='submit'>boot()</button></form>
@@ -242,7 +257,7 @@
                 <div id="getExportLimitPercent" class='display small'>Aguardando leitura.</div>
             </div>
             <div class="card">
-                <h2>Escritas - Fator de Potência</h2>
+                <h2>Escritas - Controle de Reativa</h2>
                 <form onsubmit="callSet(event, this)"><input type='hidden' name='fn'
                         value='setPowerFactorEnabled'><label>Estado</label><select name='value'>
                         <option value='1'>true / habilitar</option>
@@ -250,7 +265,7 @@
                     </select><button type='submit'>setPowerFactorEnabled()</button></form>
                 <div id="setPowerFactorEnabled" class="display small">Aguardando comando.</div>
                 <form onsubmit="callSet(event, this)"><input type='hidden' name='fn'
-                        value='setPowerFactorSetpoint'><label>Valor (%)</label><input type='number' step='0.01'
+                        value='setPowerFactorSetpoint'><label>Valor</label><input type='number' step='0.01'
                         name='value'><button type='submit'>setPowerFactorSetpoint()</button></form>
                 <div id="setPowerFactorSetpoint" class="display small">Aguardando comando.</div>
                 <form onsubmit="callSet(event, this)"><input type='hidden' name='fn'
@@ -258,14 +273,30 @@
                         <option value='1'>Capacitivo</option>
                         <option value='0'>Indutivo</option>
                     </select><button type='submit'>setPowerFactorExcitationMode()</button></form>
-                    <div id="setPowerFactorExcitationMode" class="display small">Aguardando comando.</div>
-                <h2>Leituras - Fator de Potência</h2>
+                <div id="setPowerFactorExcitationMode" class="display small">Aguardando comando.</div>
+                <form onsubmit="callSet(event, this)"><input type='hidden' name='fn'
+                        value='setFixedReactiveEnabled'><label>Estado</label><select name='value'>
+                        <option value='1'>true / habilitar</option>
+                        <option value='0'>false / desabilitar</option>
+                    </select><button type='submit'>setFixedReactiveEnabled()</button></form>
+                <div id="setFixedReactiveEnabled" class="display small">Aguardando comando.</div>
+                <form onsubmit="callSet(event, this)"><input type='hidden' name='fn'
+                        value='setFixedReactiveSetpoint'><label>Valor</label><input type='number' step='0.01'
+                        name='value'><button type='submit'>setFixedReactiveSetpoint()</button></form>
+                <div id="setFixedReactiveSetpoint" class="display small">Aguardando comando.</div>
+                <h2>Leituras - Controle de Reativa</h2>
                 <form onsubmit="callGet(event, this)"><input type='hidden' name='fn' value='isPowerFactorEnabled'><button
                         type='submit'>isPowerFactorEnabled()</button></form>
                 <div id="isPowerFactorEnabled" class='display small'>Aguardando leitura.</div>
                 <form onsubmit="callGet(event, this)"><input type='hidden' name='fn' value='getPowerFactorSetpoint'><button
                         type='submit'>getPowerFactorSetpoint()</button></form>
                 <div id="getPowerFactorSetpoint" class='display small'>Aguardando leitura.</div>
+                <form onsubmit="callGet(event, this)"><input type='hidden' name='fn' value='isFixedReactiveEnabled'><button
+                        type='submit'>isFixedReactiveEnabled()</button></form>
+                <div id="isFixedReactiveEnabled" class='display small'>Aguardando leitura.</div>
+                <form onsubmit="callGet(event, this)"><input type='hidden' name='fn' value='getFixedReactiveSetpoint'><button
+                        type='submit'>getFixedReactiveSetpoint()</button></form>
+                <div id="getFixedReactiveSetpoint" class='display small'>Aguardando leitura.</div>
             </div>
             <div class='card'>
                 
@@ -359,9 +390,6 @@
                         type='submit'>getDailyEnergy()</button></form>
                 <div id="getDailyEnergy" class='display small'>Aguardando leitura.</div>
                 <h2>Leituras - Strings FV</h2>
-                <form onsubmit="callGet(event, this)"><input type='hidden' name='fn' value='getPVStringCount'><button
-                        type='submit'>getPVStringCount()</button></form>
-                <div id="getPVStringCount" class='display small'>Aguardando leitura.</div>
                 <form onsubmit="callGet(event, this)"><input type='hidden' name='fn' value='getStringVoltage'><button
                         type='submit'>getStringVoltage()</button></form>
                 <div id="getStringVoltage" class='display small'>Aguardando leitura.</div>

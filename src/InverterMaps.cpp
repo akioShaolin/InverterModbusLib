@@ -2142,7 +2142,7 @@ bool getInverterMap(InverterModel model, ModbusInverterMap& out) {
             memset(&map, 0, sizeof(ModbusInverterMap)); // Retorna um mapa vazio para o modelo desconhecido
             return map;*/
         default:
-            memset(&out, 0, sizeof(ModbusInverterMap)); // Retorna um mapa vazio para modelos não mapeados
+            out = ModbusInverterMap{}; // Retorna um mapa vazio para modelos não mapeados
             return false;
     }
 }

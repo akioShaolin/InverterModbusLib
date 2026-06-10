@@ -21,6 +21,8 @@ struct IdentificationFeature {
     ModbusField modelName;
     ModbusField firmwareVersion;
     ModbusField ratedPower;
+    ModbusField stringCount;
+    ModbusField MpptCount;
 };
 
 struct ControlFeature {
@@ -159,9 +161,6 @@ struct PvStringFeature {
     ModbusField voltage;
     ModbusField current;
     ModbusField power;
-
-    ModbusField stringCount;
-    ModbusField MpptCount;
 };
 
 struct BatteryFeature {

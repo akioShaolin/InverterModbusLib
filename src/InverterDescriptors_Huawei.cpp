@@ -360,9 +360,9 @@ const InverterDescriptor getDescriptor_Huawei(InverterModel model){
             return desc;
 
         default:
-            memset(&desc, 0, sizeof(InverterDescriptor));
+            desc = InverterDescriptor{};
             return desc;
     }
-    memset(&desc, 0, sizeof(InverterDescriptor));
+    desc = InverterDescriptor{};
     return desc;
 }

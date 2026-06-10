@@ -63,19 +63,21 @@ static const ModbusInverterMap map_SIW500H_M3 PROGMEM = {
         { 0x753F, ASCII, 10, 1, 1.0f, true, false },    // Serial. Scale é ignorado para ASCII; usar 1.0f apenas como valor neutro
         { 0x7576, U16, 1, 1, 1.0f, true, false },       // Model ID
         { 0x7530, ASCII, 15, 1, 1.0f, true, false },    // Model Name
-        INVALID_FIELD,                                  // O firmware é obtido pelo Model ID
-        { 0x7579, U32, 1, 2, 1.0f, true, false }        // Potência nominal
+        INVALID_FIELD,                                  // O FirmwareVersion é obtido pelo Model ID
+        { 0x7579, U32, 1, 2, 1.0f, true, false },       // Potência nominal
+        { 0x7577, U16, 1, 1, 1.0f, true, false },       // Number of PV Strings
+        { 0x7578, U16, 1, 1, 1.0f, true, false },       // Number of MPP trackers
     }, {
-        { 0x9D08, U16, 1, 1, 1.0f, false, true },       // Boot. Write 1
-        { 0x9D09, U16, 1, 1, 1.0f, false, true },       // Shutdown. Write 1
+        { 0x9D08, U16, 1, 1, 1.0f, false, true },       // Boot. Write 0
+        { 0x9D09, U16, 1, 1, 1.0f, false, true },       // Shutdown. Write 0
         0x00,                                           // bootValue
         0x00,                                           // shutdownValue
         false                                           // sharedBootRegister
     }, {
         INVALID_FIELD,                                  // Enable Power Limit (É habilitado. Somente alterar o power limit)
         INVALID_FIELD,                                  // mode
-        { 0x9CB8, U16, 1, 1, 0.1f, true, true },        // Set Power Limit (W)
-        { 0x9CBD, U16, 1, 1, 0.1f, true, true },        // Set Power Limit Percent (%)
+        { 0x9CBE, U32, 1, 1, 1.0f, true, true },        // Power Limit (W)
+        { 0x9CBD, U16, 1, 1, 0.1f, true, true },        // Power Limit Percent (%)
         FEATURE_VALUE_NONE,                             // disableValue
         FEATURE_VALUE_NONE,                             // enableValue
         FEATURE_VALUE_NONE,                             // wattsModeValue
@@ -139,8 +141,8 @@ static const ModbusInverterMap map_SIW500H_M3 PROGMEM = {
         false,                                          // yearIsOffsetFrom2000
     }, {
         { 0x7D50, I32, 1, 2, 1.0f, true, false },       // Active Power (W)
-        INVALID_FIELD,                                  // Apparent Power (kVA) (não disponível nesse modelo)
         { 0x7D52, I32, 1, 2, 1.0f, true, false },       // Reactive Power (VAr)
+        INVALID_FIELD,                                  // Apparent Power (VA) (não disponível nesse modelo)
         { 0x7D54, I16, 1, 1, 0.001f, true, false },     // Power Factor
     }, {
         { 0x7D45, U16, 3, 1, 0.1f, true, false },       // PhaseVoltage R, S, T (V)
@@ -156,18 +158,15 @@ static const ModbusInverterMap map_SIW500H_M3 PROGMEM = {
     }, {
         { 0x7D10, I16, 24, 2, 0.1f, true, false },      // String Voltage (V)
         { 0x7D11, I16, 24, 2, 0.01f, true, false},      // String Current (A)
-        INVALID_FIELD,                                  // String Power (W) (não disponível nesse modelo)
-        { 0x7577, U16, 1, 1, 1.0f, true, false },       // Number of PV Strings
-        { 0x7578, U16, 1, 1, 1.0f, true, false },       // Number of MPP trackers
+        INVALID_FIELD                                   // String Power (W) (não disponível nesse modelo)
     }, 
     noBattery,
     noEps, {
         { 0x7D57, I16, 1, 1, 0.1f, true, false },       // Temperature (°C)
-        { 0x7D58, U16, 1, 1, 0.001f, true, false },     // Insulation Resistance (kΩ)
+        { 0x7D58, U16, 1, 1, 0.001f, true, false }     // Insulation Resistance (kΩ)
     }, {
         { 0x7D59, U16, 1, 1, 1.0f, true, false },       // Inverter Status
-        { 0x7D08, U16, 5, 1, 1.0f, true, false },       // Alarm
-
+        { 0x7D08, U16, 5, 1, 1.0f, true, false }       // Alarm
     }
 };
 
@@ -179,7 +178,7 @@ bool getMap_Weg(InverterModel model, ModbusInverterMap& out) {
             return true;
 
         default:
-            memset(&out, 0, sizeof(ModbusInverterMap)); // Retorna um mapa vazio para modelos não mapeados
+            out = ModbusInverterMap{}; // Retorna um mapa vazio para modelos não mapeados
             return false;
     }
 }

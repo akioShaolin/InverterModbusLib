@@ -128,17 +128,20 @@ bool Inverter::shutdown() {
     if (!hasValidMap()) return false;
 
     const ControlFeature& feature = _map.control;
-    const ModbusField& field = feature.shutdown;
-    const uint16_t shutdownValue = feature.shutdownValue;
+    if (feature.shutdownValue == FEATURE_VALUE_NONE) return false;
+    ModbusField field;
 
-    if (shutdownValue == FEATURE_VALUE_NONE) return false;
-    if (isInvalidField(field)) return false;
+    if(feature.sharedBootRegister) {
+        field = feature.boot;
+    } else field = feature.shutdown;
     
+    if (isInvalidField(field)) return false;
+
     switch (field.mode) {
 
         case FIELD_SIMPLE:
             if (!field.writable) return false;
-            return writeField(field, shutdownValue);
+            return writeField(field, feature.shutdownValue);
 
         default:
             return false;

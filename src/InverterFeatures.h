@@ -41,8 +41,8 @@ struct ActivePowerFeature {
     ModbusField watts;
     ModbusField percent;
 
-    uint16_t disableValue;
     uint16_t enableValue;
+    uint16_t disableValue;
     uint16_t wattsModeValue;
     uint16_t percentModeValue;
 
@@ -61,8 +61,8 @@ struct ExportLimitFeature {
     ModbusField watts;
     ModbusField percent;
 
-    uint16_t disableValue;
     uint16_t enableValue;
+    uint16_t disableValue;
     uint16_t wattsModeValue;
     uint16_t percentModeValue;
 
@@ -89,13 +89,13 @@ struct ReactivePowerFeature {
     ModbusField fixedReactiveSp;
 
     // Valores para PF
-    uint16_t disablePfValue;
     uint16_t enablePfValue;             // usado no enablePf ou no controlMode
+    uint16_t disablePfValue;
 
     // Valores para reativo fixo
-    uint16_t disableFixedReactiveValue;    
     uint16_t enableFixedReactiveValue;  // usado no enableFixedReactive ou no controlMode
-
+    uint16_t disableFixedReactiveValue;    
+    
     // Suporte a fator de potencia
     bool supportsEnablePf;
     bool supportsControlModePf;

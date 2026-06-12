@@ -539,7 +539,7 @@ bool Inverter::isPowerFactorEnabled(bool& enabled) {
 
     const ReactivePowerFeature& feature = _map.reactivePowerControl;
 
-    if (!feature.supportsEnablePf) {
+    if (feature.supportsEnablePf) {
         const ModbusField& field = feature.enablePf;
 
         switch (field.mode) {
@@ -616,7 +616,7 @@ bool Inverter::isFixedReactiveEnabled(bool& enabled) {
 
     const ReactivePowerFeature& feature = _map.reactivePowerControl;
 
-    if (!feature.supportsEnableFixedReactive) {
+    if (feature.supportsEnableFixedReactive) {
         const ModbusField& field = feature.enableFixedReactive;
 
         switch (field.mode) {

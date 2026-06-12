@@ -509,12 +509,12 @@ void handleApiSet() {
   else if (fn == "setFixedReactiveEnabled") ok = inverter->setFixedReactiveEnabled(b);
   else if (fn == "setFixedReactiveSetpoint") ok = inverter->setFixedReactiveSetpoint(f);
 
-  else if (fn == "setYear") ok = inverter->setYear(u);
-  else if (fn == "setMonth") ok = inverter->setMonth(u);
-  else if (fn == "setDay") ok = inverter->setDay(u);
-  else if (fn == "setHour") ok = inverter->setHour(u);
-  else if (fn == "setMinute") ok = inverter->setMinute(u);
-  else if (fn == "setSecond") ok = inverter->setSecond(u);
+  else if (fn == "setYear") ok = inverter->setYear((uint16_t)u);
+  else if (fn == "setMonth") ok = inverter->setMonth((uint16_t)u);
+  else if (fn == "setDay") ok = inverter->setDay((uint16_t)u);
+  else if (fn == "setHour") ok = inverter->setHour((uint16_t)u);
+  else if (fn == "setMinute") ok = inverter->setMinute((uint16_t)u);
+  else if (fn == "setSecond") ok = inverter->setSecond((uint16_t)u);
   else if (fn == "setEpochTime") ok = inverter->setEpochTime(u);
 
   else { server.send(400, "text/plain", "Unknown function"); return;}

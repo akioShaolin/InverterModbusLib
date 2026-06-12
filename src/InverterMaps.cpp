@@ -343,61 +343,6 @@ static const ModbusInverterMap map_SIW400G_T012_T025 PROGMEM = {
     INVALID_FIELD                                 // EPS Active Power (W) (não disponível nesse modelo)
 };
 
-static const ModbusInverterMap map_SIW400G_T050_T100 PROGMEM = {
-    // Identificação
-    { 0x9C74, ASCII, 16, 1, 1.0f, true, false }, // Serial. Scale é ignorado para ASCII; usar 1.0f apenas como valor neutro
-    // Controle
-    { 0xA716, U16, 1, 1, 1.0f, true, true },     // Boot. CE - Shutdown, CF - Boot
-    INVALID_FIELD,                               // Shutdown (Não disponível nesse modelo)
-    { 0x9D6B, U16, 1, 1, 1.0f, true, true },     // Enable Power Limit (0 - Disable, 1 - Enable)
-    INVALID_FIELD,                               // Set Power Limit (W) (não disponível nesse modelo)
-    { 0x9D6C, U16, 1, 1, 0.1f, true, true },     // Set Power Limit Percent (%)
-    { 0xA886, U16, 1, 1, 1.0f, true, true },     // Enable Export Limit (55 - Disable, AA - Enable)
-    INVALID_FIELD,                               // Set Export Limit (W) (não disponível nesse modelo)
-    { 0xA888, U16, 1, 1, 0.1f, true, true },     // Set Export Limit Percent(%)
-    { 0x9D6A, U16, 1, 1, 1.0f, true, true },     // Enable Power Factor (0 - Disable, 1 - Enable)
-    { 0x9D73, U16, 1, 1, 0.001f, true, true },   // Set Power Factor
-    { 0x9D74, U16, 1, 1, 1.0f, true, true },     // Power Factor Excitation Mode (0 - Inductive, 1 - Capacitive)
-    // Tempo
-    { 0xA710, U16, 1, 1, 1.0f, true, true },     // Time Year
-    { 0xA711, U16, 1, 1, 1.0f, true, true },     // Time Month
-    { 0xA712, U16, 1, 1, 1.0f, true, true },     // Time Day
-    { 0xA713, U16, 1, 1, 1.0f, true, true },     // Time Hour
-    { 0xA714, U16, 1, 1, 1.0f, true, true },     // Time Minute
-    { 0xA715, U16, 1, 1, 1.0f, true, true },     // Time Second
-    INVALID_FIELD,                               // Time Epoch (não disponível nesse modelo)
-    // Status
-    { 0xA2B6, U32, 1, 2, 0.1f, true, false },     // Total Energy (kWh)
-    { 0xA2B5, U16, 1, 1, 0.1f, true, false },     // Daily Energy (kWh)    
-
-    { 0x9C8E, I16, 1, 1, 100.0f, true, false },   // Active Power (kW)
-    { 0x9C8F, I16, 1, 1, 100.0f, true, false },   // Apparent Power (kVA)
-    { 0x9C90, I16, 1, 1, 100.0f, true, false },   // Reactive Power (kVAr)
-    { 0x9C91, I16, 1, 1, 0.001f, true, false },   // Power Factor
-
-    { 0x9C9A, U16, 3, 3, 0.1f, true, false },     // Grid Voltage R, S, T (V)
-    { 0x9C99, I16, 3, 3, 0.1f, true, false },     // Grid Current R, S, T (A)
-    { 0x9C92, U32, 1, 2, 0.01f, true, false },    // Frequency (Hz)
-
-    { 0x9C98, I16, 1, 1, 0.1f, true, false },     // Temperature (°C)
-    { 0xA00D, U16, 1, 1, 1.0f, true, false },     // Insulation Resistance (kΩ)
-    { 0x9C8A, U16, 1, 1, 1.0f, true, false },     // Inverter Status
-    { 0x9C8C, U32, 1, 2, 1.0f, true, false },     // Alarm
-
-    { 0xA018, U16, 24, 2, 0.1f, true, false },    // String Voltage (V)
-    { 0xA019, U16, 24, 2, 0.01f, true, false },   // String Current (A)
-    INVALID_FIELD,                                // String Power (W) (não disponível nesse modelo)
-
-    INVALID_FIELD,                                // Battery Voltage (V) (não disponível nesse modelo)
-    INVALID_FIELD,                                // Battery Current (A) (não disponível nesse modelo)
-    INVALID_FIELD,                                // Battery Power (W) (não disponível nesse modelo)
-    INVALID_FIELD,                                // Battery SoC (%) (não disponível nesse modelo)
-    INVALID_FIELD,                                // Battery SoH (%) (não disponível nesse modelo)
-    INVALID_FIELD,                                // EPS Voltage R, S, T (V) (não disponível nesse modelo)
-    INVALID_FIELD,                                // EPS Current R, S, T (A) (não disponível nesse modelo)
-    INVALID_FIELD                                 // EPS Active Power (W) (não disponível nesse modelo)
-};
-
 static const ModbusInverterMap map_SIW400H_W10 PROGMEM = {
     // Identificação
     { 0x9C74, ASCII, 16, 1, 1.0f, true, false }, // Serial. Scale é ignorado para ASCII; usar 1.0f apenas como valor neutro
@@ -558,171 +503,6 @@ static const ModbusInverterMap map_SIW500G PROGMEM = {
     INVALID_FIELD,                                // Battery Power (W)
     INVALID_FIELD,                                // Battery SoC (%)
     INVALID_FIELD,                                // Battery SoH (%) (não disponível nesse modelo)
-    INVALID_FIELD,                                // EPS Voltage R, S, T (V) (não disponível nesse modelo)
-    INVALID_FIELD,                                // EPS Current R, S, T (A) (não disponível nesse modelo)
-    INVALID_FIELD                                 // EPS Active Power (W) (não disponível nesse modelo)
-};
-
-static const ModbusInverterMap map_SIW500H PROGMEM = {
-    // Identificação
-    { 0x753F, ASCII, 10, 1, 1.0f, true, false },   // Serial. Scale é ignorado para ASCII; usar 1.0f apenas como valor neutro
-    // Controle
-    { 0x9D08, U16, 1, 1, 1.0f, false, true },     // Boot. Write 1
-    { 0x9D09, U16, 1, 1, 1.0f, false, true },     // Shutdown. Write 1
-    INVALID_FIELD,                                // Enable Power Limit (Não disponível nesse modelo)
-    { 0x9CB8, U16, 1, 1, 0.1f, true, true },      // Set Power Limit (W)
-    { 0x9CBD, U16, 1, 1, 0.1f, true, true },      // Set Power Limit Percent (%)
-    { 0xB937, U16, 1, 1, 1.0f, true, true },      // Enable Export Limit (0-Off, 1-DI, 5-Zero, 6-Power limited, 7-Power limited percent)
-    { 0xB938, U32, 1, 2, 1.0f, true, true },      // Set Export Limit (W)
-    { 0xB93A, U16, 1, 1, 0.1f, true, true },      // Set Export Limit Percent(%)
-    INVALID_FIELD,                                // Enable Power Factor
-    { 0x9CBA, U16, 1, 1, 0.001f, true, true },    // Set Power Factor
-    INVALID_FIELD,                                // Power Factor Excitation Mode (Não disponível nesse modelo)
-    // Tempo
-    INVALID_FIELD,                                // Time Year (não disponível nesse modelo)
-    INVALID_FIELD,                                // Time Month (não disponível nesse modelo)
-    INVALID_FIELD,                                // Time Day (não disponível nesse modelo)
-    INVALID_FIELD,                                // Time Hour (não disponível nesse modelo)
-    INVALID_FIELD,                                // Time Minute (não disponível nesse modelo)
-    INVALID_FIELD,                                // Time Second (não disponível nesse modelo)
-    { 0x9C40, U32, 1, 2, 1.0f, true, true },      // Time Epoch
-    // Status
-    { 0x7D6A, U32, 1, 2, 0.01f, true, false },    // Total Energy (kWh) - MSB em 0x0222 e LSB em 0x0223 
-    { 0x7D72, U32, 1, 2, 0.01f, true, false },    // Daily Energy (kWh)  
-
-    { 0x7D50, I32, 1, 2, 1.0f, true, false },     // Active Power (W)
-    INVALID_FIELD,                                // Apparent Power (kVA) (não disponível nesse modelo)
-    { 0x7D52, I32, 1, 2, 1.0f, true, false },     // Reactive Power (VAr)
-    { 0x7D54, I16, 1, 1, 0.001f, true, false },   // Power Factor
-
-    { 0x7D45, U16, 3, 1, 0.1f, true, false },     // Grid Voltage R, S, T (V)
-    { 0x7D48, I32, 3, 2, 0.001f, true, false },   // Grid Current R, S, T (A)
-    { 0x7D55, U16, 1, 1, 0.01f, true, false },    // Frequency (Hz)
-
-    { 0x7D57, I16, 1, 1, 0.1f, true, false },     // Temperature (°C)
-    { 0x7D58, U16, 1, 1, 0.001f, true, false },   // Insulation Resistance (kΩ)
-    { 0x7D59, U16, 1, 1, 1.0f, true, false },     // Inverter Status
-    { 0x7D08, U16, 5, 1, 1.0f, true, false },     // Alarm
-
-    { 0x7D10, I16, 8, 2, 0.1f, true, false },    // String Voltage (V)
-    { 0x7D11, I16, 8, 2, 0.01f, true, false},    // String Current (A)
-    INVALID_FIELD,                               // String Power (W) (não disponível nesse modelo)
-                             
-    { 0x908B, I16, 1, 1, 0.1f, true, false},      // Battery Voltage (V)                
-    { 0x909D, I16, 1, 1, 0.1f, true, false },     // Battery Current (A) (não disponível nesse modelo)
-    { 0x9089, I32, 1, 2, 1.0f, true, false},      // Battery Power (W)
-    { 0x908C, I16, 1, 1, 0.1f, true, false},      // Battery SoC (%)
-    { 0x9423, U16, 1, 1, 0.1f, true, false},                                // Battery SoH (%) (não disponível nesse modelo)
-    INVALID_FIELD,                                // EPS Voltage R, S, T (V) (não disponível nesse modelo)
-    INVALID_FIELD,                                // EPS Current R, S, T (A) (não disponível nesse modelo)
-    INVALID_FIELD                                 // EPS Active Power (W) (não disponível nesse modelo)
-};
-
-static const ModbusInverterMap map_SIW500H_M2 PROGMEM = {
-    // Identificação
-    { 0x753F, ASCII, 10, 1, 1.0f, true, false },   // Serial. Scale é ignorado para ASCII; usar 1.0f apenas como valor neutro
-    // Controle
-    { 0x9D08, U16, 1, 1, 1.0f, false, true },     // Boot. Write 1
-    { 0x9D09, U16, 1, 1, 1.0f, false, true },     // Shutdown. Write 1
-    INVALID_FIELD,                                // Enable Power Limit (Não disponível nesse modelo)
-    { 0x9CB8, U16, 1, 1, 0.1f, true, true },      // Set Power Limit (W)
-    { 0x9CBD, U16, 1, 1, 0.1f, true, true },      // Set Power Limit Percent (%)
-    { 0xB937, U16, 1, 1, 1.0f, true, true },      // Enable Export Limit (0-Off, 1-DI, 5-Zero, 6-Power limited, 7-Power limited percent)
-    { 0xB938, U32, 1, 2, 1.0f, true, true },      // Set Export Limit (W)
-    { 0xB93A, U16, 1, 1, 0.1f, true, true },      // Set Export Limit Percent(%)
-    INVALID_FIELD,                                // Enable Power Factor
-    { 0x9CBA, U16, 1, 1, 0.001f, true, true },    // Set Power Factor
-    INVALID_FIELD,                                // Power Factor Excitation Mode (Não disponível nesse modelo)
-    // Tempo
-    INVALID_FIELD,                                // Time Year (não disponível nesse modelo)
-    INVALID_FIELD,                                // Time Month (não disponível nesse modelo)
-    INVALID_FIELD,                                // Time Day (não disponível nesse modelo)
-    INVALID_FIELD,                                // Time Hour (não disponível nesse modelo)
-    INVALID_FIELD,                                // Time Minute (não disponível nesse modelo)
-    INVALID_FIELD,                                // Time Second (não disponível nesse modelo)
-    { 0x9C40, U32, 1, 2, 1.0f, true, true },      // Time Epoch
-    // Status
-    { 0x7D6A, U32, 1, 2, 0.01f, true, false },    // Total Energy (kWh) - MSB em 0x0222 e LSB em 0x0223 
-    { 0x7D72, U32, 1, 2, 0.01f, true, false },    // Daily Energy (kWh)  
-
-    { 0x7D50, I32, 1, 2, 1.0f, true, false },     // Active Power (W)
-    INVALID_FIELD,                                // Apparent Power (kVA) (não disponível nesse modelo)
-    { 0x7D52, I32, 1, 2, 1.0f, true, false },     // Reactive Power (VAr)
-    { 0x7D54, I16, 1, 1, 0.001f, true, false },   // Power Factor
-
-    { 0x7D45, U16, 3, 1, 0.1f, true, false },     // Grid Voltage R, S, T (V)
-    { 0x7D48, I32, 3, 2, 0.001f, true, false },   // Grid Current R, S, T (A)
-    { 0x7D55, U16, 1, 1, 0.01f, true, false },    // Frequency (Hz)
-
-    { 0x7D57, I16, 1, 1, 0.1f, true, false },     // Temperature (°C)
-    { 0x7D58, U16, 1, 1, 0.001f, true, false },   // Insulation Resistance (kΩ)
-    { 0x7D59, U16, 1, 1, 1.0f, true, false },     // Inverter Status
-    { 0x7D08, U16, 5, 1, 1.0f, true, false },     // Alarm
-
-    { 0x7D10, I16, 4, 2, 0.1f, true, false },    // String Voltage (V)
-    { 0x7D11, I16, 4, 2, 0.01f, true, false},    // String Current (A)
-    INVALID_FIELD,                               // String Power (W) (não disponível nesse modelo)
-                             
-    { 0x908B, I16, 1, 1, 0.1f, true, false},      // Battery Voltage (V)                
-    { 0x909D, I16, 1, 1, 0.1f, true, false },     // Battery Current (A) (não disponível nesse modelo)
-    { 0x9089, I32, 1, 2, 1.0f, true, false},      // Battery Power (W)
-    { 0x908C, I16, 1, 1, 0.1f, true, false},      // Battery SoC (%)
-    { 0x9423, U16, 1, 1, 0.1f, true, false},                                // Battery SoH (%) (não disponível nesse modelo)
-    INVALID_FIELD,                                // EPS Voltage R, S, T (V) (não disponível nesse modelo)
-    INVALID_FIELD,                                // EPS Current R, S, T (A) (não disponível nesse modelo)
-    INVALID_FIELD                                 // EPS Active Power (W) (não disponível nesse modelo)
-};
-
-static const ModbusInverterMap map_SIW500H_M3 PROGMEM = {
-    // Identificação
-    { 0x753F, ASCII, 10, 1, 1.0f, true, false },   // Serial. Scale é ignorado para ASCII; usar 1.0f apenas como valor neutro
-    // Controle
-    { 0x9D08, U16, 1, 1, 1.0f, false, true },     // Boot. Write 1
-    { 0x9D09, U16, 1, 1, 1.0f, false, true },     // Shutdown. Write 1
-    INVALID_FIELD,                                // Enable Power Limit (Não disponível nesse modelo)
-    { 0x9CB8, U16, 1, 1, 0.1f, true, true },      // Set Power Limit (W)
-    { 0x9CBD, U16, 1, 1, 0.1f, true, true },      // Set Power Limit Percent (%)
-    { 0xB937, U16, 1, 1, 1.0f, true, true },      // Enable Export Limit (0-Off, 1-DI, 5-Zero, 6-Power limited, 7-Power limited percent)
-    { 0xB938, U32, 1, 2, 1.0f, true, true },      // Set Export Limit (W)
-    { 0xB93A, U16, 1, 1, 0.1f, true, true },      // Set Export Limit Percent(%)
-    INVALID_FIELD,                                // Enable Power Factor
-    { 0x9CBA, U16, 1, 1, 0.001f, true, true },    // Set Power Factor
-    INVALID_FIELD,                                // Power Factor Excitation Mode (Não disponível nesse modelo)
-    // Tempo
-    INVALID_FIELD,                                // Time Year (não disponível nesse modelo)
-    INVALID_FIELD,                                // Time Month (não disponível nesse modelo)
-    INVALID_FIELD,                                // Time Day (não disponível nesse modelo)
-    INVALID_FIELD,                                // Time Hour (não disponível nesse modelo)
-    INVALID_FIELD,                                // Time Minute (não disponível nesse modelo)
-    INVALID_FIELD,                                // Time Second (não disponível nesse modelo)
-    { 0x9C40, U32, 1, 2, 1.0f, true, true },      // Time Epoch
-    // Status
-    { 0x7D6A, U32, 1, 2, 0.01f, true, false },    // Total Energy (kWh) - MSB em 0x0222 e LSB em 0x0223 
-    { 0x7D72, U32, 1, 2, 0.01f, true, false },    // Daily Energy (kWh)  
-
-    { 0x7D50, I32, 1, 2, 1.0f, true, false },     // Active Power (W)
-    INVALID_FIELD,                                // Apparent Power (kVA) (não disponível nesse modelo)
-    { 0x7D52, I32, 1, 2, 1.0f, true, false },     // Reactive Power (VAr)
-    { 0x7D54, I16, 1, 1, 0.001f, true, false },   // Power Factor
-
-    { 0x7D45, U16, 3, 1, 0.1f, true, false },     // Grid Voltage R, S, T (V)
-    { 0x7D48, I32, 3, 2, 0.001f, true, false },   // Grid Current R, S, T (A)
-    { 0x7D55, U16, 1, 1, 0.01f, true, false },    // Frequency (Hz)
-
-    { 0x7D57, I16, 1, 1, 0.1f, true, false },     // Temperature (°C)
-    { 0x7D58, U16, 1, 1, 0.001f, true, false },   // Insulation Resistance (kΩ)
-    { 0x7D59, U16, 1, 1, 1.0f, true, false },     // Inverter Status
-    { 0x7D08, U16, 5, 1, 1.0f, true, false },     // Alarm
-
-    { 0x7D10, I16, 8, 2, 0.1f, true, false },    // String Voltage (V)
-    { 0x7D11, I16, 8, 2, 0.01f, true, false},    // String Current (A)
-    INVALID_FIELD,                               // String Power (W) (não disponível nesse modelo)
-                             
-    { 0x908B, I16, 1, 1, 0.1f, true, false},      // Battery Voltage (V)                
-    { 0x909D, I16, 1, 1, 0.1f, true, false },     // Battery Current (A) (não disponível nesse modelo)
-    { 0x9089, I32, 1, 2, 1.0f, true, false},      // Battery Power (W)
-    { 0x908C, I16, 1, 1, 0.1f, true, false},      // Battery SoC (%)
-    { 0x9423, U16, 1, 1, 0.1f, true, false},                                // Battery SoH (%) (não disponível nesse modelo)
     INVALID_FIELD,                                // EPS Voltage R, S, T (V) (não disponível nesse modelo)
     INVALID_FIELD,                                // EPS Current R, S, T (A) (não disponível nesse modelo)
     INVALID_FIELD                                 // EPS Active Power (W) (não disponível nesse modelo)
@@ -1682,461 +1462,163 @@ static const ModbusInverterMap map_SUN2000_M3 PROGMEM = {
 bool getInverterMap(InverterModel model, ModbusInverterMap& out) {
     switch (model) {
         // Weg
-/*        case SIW200_M030:
-            memcpy_P(&map, &map_SIW200, sizeof(ModbusInverterMap));
-            return map;
+        case SIW200_M030:
         case SIW200_M050:
-            memcpy_P(&map, &map_SIW200, sizeof(ModbusInverterMap));
-            return map;
         case SIW200_M085:
-            memcpy_P(&map, &map_SIW200, sizeof(ModbusInverterMap));
-            return map;
         case SIW200_M100:
-            memcpy_P(&map, &map_SIW200, sizeof(ModbusInverterMap));
-            return map;
-// #
         case SIW200H_M050_W00:
-            memcpy_P(&map, &map_SIW200H, sizeof(ModbusInverterMap));
-            return map;
         case SIW200H_M075_W10:
-            memcpy_P(&map, &map_SIW200H, sizeof(ModbusInverterMap));
-            return map;
         case SIW200H_M105_W10:
-            memcpy_P(&map, &map_SIW200H, sizeof(ModbusInverterMap));
-            return map;
         case SIW200G_M030_W0:
-            memcpy_P(&map, &map_SIW200G, sizeof(ModbusInverterMap));
-            return map;
         case SIW200G_M030_W1:
-            memcpy_P(&map, &map_SIW200G, sizeof(ModbusInverterMap));
-            return map;
         case SIW200G_M050_W0:
-            memcpy_P(&map, &map_SIW200G, sizeof(ModbusInverterMap));
-            return map;
         case SIW200G_M050_W1:
-            memcpy_P(&map, &map_SIW200G, sizeof(ModbusInverterMap));
-            return map;
         case SIW200G_M060_W0:
-            memcpy_P(&map, &map_SIW200G, sizeof(ModbusInverterMap));
-            return map;
         case SIW200G_M060_W1:
-            memcpy_P(&map, &map_SIW200G, sizeof(ModbusInverterMap));
-            return map;
         case SIW200G_M070_W1:
-            memcpy_P(&map, &map_SIW200G, sizeof(ModbusInverterMap));
-            return map;
         case SIW200G_M075_W1:
-            memcpy_P(&map, &map_SIW200G, sizeof(ModbusInverterMap));
-            return map;
         case SIW200G_M080_W1:
-            memcpy_P(&map, &map_SIW200G, sizeof(ModbusInverterMap));
-            return map;
         case SIW200G_M090_W1:
-            memcpy_P(&map, &map_SIW200G, sizeof(ModbusInverterMap));
-            return map;
         case SIW200G_M105_W1:
-            memcpy_P(&map, &map_SIW200G, sizeof(ModbusInverterMap));
-            return map;
-// #
         case SIW300H_M030_W00:
-            memcpy_P(&map, &map_SIW300H, sizeof(ModbusInverterMap));
-            return map;
         case SIW300H_M050_W00:
-            memcpy_P(&map, &map_SIW300H, sizeof(ModbusInverterMap));
-            return map;
         case SIW300H_M060_W00:
-            memcpy_P(&map, &map_SIW300H, sizeof(ModbusInverterMap));
-            return map;
         case SIW300H_M075_W00:
-            memcpy_P(&map, &map_SIW300H, sizeof(ModbusInverterMap));
-            return map;
         case SIW300H_M080_W00:
-            memcpy_P(&map, &map_SIW300H, sizeof(ModbusInverterMap));
-            return map;
         case SIW300H_M100_W00:
-            memcpy_P(&map, &map_SIW300H, sizeof(ModbusInverterMap));
-            return map;
         case SIW400_ST075:
-            memcpy_P(&map, &map_SIW400, sizeof(ModbusInverterMap));
-            return map;
-// #
         case SIW400G_T012_W0:
-            memcpy_P(&map, &map_SIW400G_T012_T025, sizeof(ModbusInverterMap));
-            return map;
         case SIW400G_T012_W1:
-            memcpy_P(&map, &map_SIW400G_T012_T025, sizeof(ModbusInverterMap));
-            return map;
         case SIW400G_T015_W0:
-            memcpy_P(&map, &map_SIW400G_T012_T025, sizeof(ModbusInverterMap));
-            return map;
         case SIW400G_T015_W1:
-            memcpy_P(&map, &map_SIW400G_T012_T025, sizeof(ModbusInverterMap));
-            return map;
         case SIW400G_T020_W0:
-            memcpy_P(&map, &map_SIW400G_T012_T025, sizeof(ModbusInverterMap));
-            return map;
         case SIW400G_T020_W1:
-            memcpy_P(&map, &map_SIW400G_T012_T025, sizeof(ModbusInverterMap));
-            return map;
         case SIW400G_T025_W0:
-            memcpy_P(&map, &map_SIW400G_T012_T025, sizeof(ModbusInverterMap));
-            return map;
         case SIW400G_T025_W1:
-            memcpy_P(&map, &map_SIW400G_T012_T025, sizeof(ModbusInverterMap));
-            return map;
-// #
         case SIW400G_K015_W00:
-            memcpy_P(&map, &map_SIW400G_T050_T100, sizeof(ModbusInverterMap));
-            return map;
         case SIW400G_K020_W00:
-            memcpy_P(&map, &map_SIW400G_T050_T100, sizeof(ModbusInverterMap));
-            return map;
         case SIW400G_K025_W00:
-            memcpy_P(&map, &map_SIW400G_T050_T100, sizeof(ModbusInverterMap));
-            return map;
-        case SIW400G_K030_W00:
-            memcpy_P(&map, &map_SIW400G_T050_T100, sizeof(ModbusInverterMap));
-            return map;          
+        case SIW400G_K030_W00:       
         case SIW400G_K037_W00:
-            memcpy_P(&map, &map_SIW400G_T050_T100, sizeof(ModbusInverterMap));
-            return map;  
         case SIW400G_T050_W00:
-            memcpy_P(&map, &map_SIW400G_T050_T100, sizeof(ModbusInverterMap));
-            return map;
         case SIW400G_T060_W00:
-            memcpy_P(&map, &map_SIW400G_T050_T100, sizeof(ModbusInverterMap));
-            return map;
         case SIW400G_T075_W0:
-            memcpy_P(&map, &map_SIW400G_T050_T100, sizeof(ModbusInverterMap));
-            return map;
         case SIW400G_T075_W01:
-            memcpy_P(&map, &map_SIW400G_T050_T100, sizeof(ModbusInverterMap));
-            return map;
         case SIW400G_T100_W0:
-            memcpy_P(&map, &map_SIW400G_T050_T100, sizeof(ModbusInverterMap));
-            return map;
         case SIW400H_T015_W10:
-            memcpy_P(&map, &map_SIW400H_W10, sizeof(ModbusInverterMap));
-            return map;
         case SIW400H_T030_W10:
-            memcpy_P(&map, &map_SIW400H_W10, sizeof(ModbusInverterMap));
-            return map;
         case SIW420G_K025_W00:
-            memcpy_P(&map, &map_SIW420G, sizeof(ModbusInverterMap));
-            return map;
         case SIW420G_K075_W00:
-            memcpy_P(&map, &map_SIW420G, sizeof(ModbusInverterMap));
-            return map;
         case SIW500G_T100_W0:
-            memcpy_P(&map, &map_SIW500G, sizeof(ModbusInverterMap));
-            return map;
         case SIW500G_K050_W00:
-            memcpy_P(&map, &map_SIW500G, sizeof(ModbusInverterMap));
-            return map;
         case SIW500G_K075_W00:
-            memcpy_P(&map, &map_SIW500G, sizeof(ModbusInverterMap));
-            return map;
         case SIW500G_H250_W0:
-            memcpy_P(&map, &map_SIW500G, sizeof(ModbusInverterMap));
-            return map;
         case SIW500H_ST012_M2:
-            memcpy_P(&map, &map_SIW500H_M2, sizeof(ModbusInverterMap));
-            return map;
         case SIW500H_ST015_M2:
-            memcpy_P(&map, &map_SIW500H_M2, sizeof(ModbusInverterMap));
-            return map;
         case SIW500H_ST020_M2:
-            memcpy_P(&map, &map_SIW500H_M2, sizeof(ModbusInverterMap));
-            return map;                                                     */
         case SIW500H_ST030_M3:
-            return getMap_Weg(model, out);
-/*        case SIW500H_ST036_M3:
-            memcpy_P(&map, &map_SIW500H, sizeof(ModbusInverterMap));
-            return map;
+        case SIW500H_ST036_M3:
         case SIW500H_ST040_M3:
-            memcpy_P(&map, &map_SIW500H_M3, sizeof(ModbusInverterMap));
-            return map;
         case SIW500H_SK020:
-            memcpy_P(&map, &map_SIW500H_M3, sizeof(ModbusInverterMap));
-            return map;
         case SIW500H_ST030:
-            memcpy_P(&map, &map_SIW500H, sizeof(ModbusInverterMap));
-            return map;
         case SIW500H_ST036:
-            memcpy_P(&map, &map_SIW500H, sizeof(ModbusInverterMap));
-            return map;
         case SIW500H_ST040:
-            memcpy_P(&map, &map_SIW500H, sizeof(ModbusInverterMap));
-            return map;
         case SIW500H_ST060:
-            memcpy_P(&map, &map_SIW500H, sizeof(ModbusInverterMap));
-            return map;
         case SIW500H_ST100:
-            memcpy_P(&map, &map_SIW500H, sizeof(ModbusInverterMap));
-            return map;
         case SIW500H_ST060_HV:
-            memcpy_P(&map, &map_SIW500H, sizeof(ModbusInverterMap));
-            return map;
         case SIW500H_ST100_HV:
-            memcpy_P(&map, &map_SIW500H, sizeof(ModbusInverterMap));
-            return map;
         case SIW500H_ST200_H0:
-            memcpy_P(&map, &map_SIW500H, sizeof(ModbusInverterMap));
-            return map;
         case SIW500H_ST200_H3:
-            memcpy_P(&map, &map_SIW500H, sizeof(ModbusInverterMap));
-            return map;
         case SIW500H_T012_W00:
-            memcpy_P(&map, &map_SIW500H_W00, sizeof(ModbusInverterMap));
-            return map;
         case SIW500H_T015_W00:
-            memcpy_P(&map, &map_SIW500H_W00, sizeof(ModbusInverterMap));
-            return map;
         case SIW500H_T017_W00:
-            memcpy_P(&map, &map_SIW500H_W00, sizeof(ModbusInverterMap));
-            return map;
         case SIW500H_T020_W00:
-            memcpy_P(&map, &map_SIW500H_W00, sizeof(ModbusInverterMap));
-            return map;
-        case SIW500H_T025_W00:
-            memcpy_P(&map, &map_SIW500H_W00, sizeof(ModbusInverterMap));
-            return map;
+        case SIW500H_T025_W00: 
         case SIW600_T020_44:
-            memcpy_P(&map, &map_SIW600, sizeof(ModbusInverterMap));
-            return map;
         case SIW610_T018_W0:
-            memcpy_P(&map, &map_SIW610, sizeof(ModbusInverterMap));
-            return map;
         case SIW610_T075_W0:
-            memcpy_P(&map, &map_SIW610, sizeof(ModbusInverterMap));
-            return map;
-
+            return getMap_Weg(model, out);
+        /*
         // Goodwe
         case GW3000_XS:
-            memcpy_P(&map, &map_GOODWE_NON_MT, sizeof(ModbusInverterMap));
-            return map;
         case GW3300_XS_30:
-            memcpy_P(&map, &map_GOODWE_NON_MT, sizeof(ModbusInverterMap));
-            return map;
         case GW5000_DNS:
-            memcpy_P(&map, &map_GOODWE_NON_MT, sizeof(ModbusInverterMap));
-            return map;
         case GW5K_DNS_G40:
-            memcpy_P(&map, &map_GOODWE_NON_MT, sizeof(ModbusInverterMap));
-            return map;
 
         // Foxess
 // #
         case S700_G2:
-            memcpy_P(&map, &map_S_G2_series, sizeof(ModbusInverterMap));
-            return map;
         case S1000_G2:
-            memcpy_P(&map, &map_S_G2_series, sizeof(ModbusInverterMap));
-            return map;
         case S1500_G2:
-            memcpy_P(&map, &map_S_G2_series, sizeof(ModbusInverterMap));
-            return map;
         case S2000_G2:
-            memcpy_P(&map, &map_S_G2_series, sizeof(ModbusInverterMap));
-            return map;
         case S2500_G2:
-            memcpy_P(&map, &map_S_G2_series, sizeof(ModbusInverterMap));
-            return map;
         case S3000_G2:
-            memcpy_P(&map, &map_S_G2_series, sizeof(ModbusInverterMap));
-            return map;
         case S3300_G2:
-            memcpy_P(&map, &map_S_G2_series, sizeof(ModbusInverterMap));
-            return map;
         case F3000_G2:
-            memcpy_P(&map, &map_F_G2_series, sizeof(ModbusInverterMap));
-            return map;
         case F3600_G2:
-            memcpy_P(&map, &map_F_G2_series, sizeof(ModbusInverterMap));
-            return map;
         case F4600_G2:
-            memcpy_P(&map, &map_F_G2_series, sizeof(ModbusInverterMap));
-            return map;
         case F5000_G2:
-            memcpy_P(&map, &map_F_G2_series, sizeof(ModbusInverterMap));
-            return map;
         case F5300_G2:
-            memcpy_P(&map, &map_F_G2_series, sizeof(ModbusInverterMap));
-            return map;
         case F6000_G2:
-            memcpy_P(&map, &map_F_G2_series, sizeof(ModbusInverterMap));
-            return map;
         case G7:
-            memcpy_P(&map, &map_G_series, sizeof(ModbusInverterMap));
-            return map;
         case G7_5:
-            memcpy_P(&map, &map_G_series, sizeof(ModbusInverterMap));
-            return map;
         case G8_:
-            memcpy_P(&map, &map_G_series, sizeof(ModbusInverterMap));
-            return map;
         case G9:
-            memcpy_P(&map, &map_G_series, sizeof(ModbusInverterMap));
-            return map;
         case G10:
-            memcpy_P(&map, &map_G_series, sizeof(ModbusInverterMap));
-            return map;
         case G10_5:
-            memcpy_P(&map, &map_G_series, sizeof(ModbusInverterMap));
-            return map;
         case T3_G3:
-            memcpy_P(&map, &map_T_G3_series, sizeof(ModbusInverterMap));
-            return map;
         case T4_G3:
-            memcpy_P(&map, &map_T_G3_series, sizeof(ModbusInverterMap));
-            return map;
         case T5_G3:
-            memcpy_P(&map, &map_T_G3_series, sizeof(ModbusInverterMap));
-            return map;
         case T6_G3:
-            memcpy_P(&map, &map_T_G3_series, sizeof(ModbusInverterMap));
-            return map;
         case T8_G3:
-            memcpy_P(&map, &map_T_G3_series, sizeof(ModbusInverterMap));
-            return map;
         case T10_G3:
-            memcpy_P(&map, &map_T_G3_series, sizeof(ModbusInverterMap));
-            return map;
         case T12_G3:
-            memcpy_P(&map, &map_T_G3_series, sizeof(ModbusInverterMap));
-            return map;
         case T15_G3:
-            memcpy_P(&map, &map_T_G3_series, sizeof(ModbusInverterMap));
-            return map;
         case T17_G3:
-            memcpy_P(&map, &map_T_G3_series, sizeof(ModbusInverterMap));
-            return map;
         case T20_G3:
-            memcpy_P(&map, &map_T_G3_series, sizeof(ModbusInverterMap));
-            return map;
         case T23_G3:
-            memcpy_P(&map, &map_T_G3_series, sizeof(ModbusInverterMap));
-            return map;
         case T25_G3:
-            memcpy_P(&map, &map_T_G3_series, sizeof(ModbusInverterMap));
-            return map;
 // #
         case V30:
-            memcpy_P(&map, &map_V_series, sizeof(ModbusInverterMap));
-            return map;
         case V33:
-            memcpy_P(&map, &map_V_series, sizeof(ModbusInverterMap));
-            return map;
         case V36:
-            memcpy_P(&map, &map_V_series, sizeof(ModbusInverterMap));
-            return map;
         case V40:
-            memcpy_P(&map, &map_V_series, sizeof(ModbusInverterMap));
-            return map;
         case V50:
-            memcpy_P(&map, &map_V_series, sizeof(ModbusInverterMap));
-            return map;
         case V60:
-            memcpy_P(&map, &map_V_series, sizeof(ModbusInverterMap));
-            return map;
         case V75:
-            memcpy_P(&map, &map_V_series, sizeof(ModbusInverterMap));
-            return map;
         case VL15:
-            memcpy_P(&map, &map_V_series, sizeof(ModbusInverterMap));
-            return map;
         case VL20:
-            memcpy_P(&map, &map_V_series, sizeof(ModbusInverterMap));
-            return map;
         case VL25:
-            memcpy_P(&map, &map_V_series, sizeof(ModbusInverterMap));
-            return map;
         case VL30:
-            memcpy_P(&map, &map_V_series, sizeof(ModbusInverterMap));
-            return map;
         case VL37_5:
-            memcpy_P(&map, &map_V_series, sizeof(ModbusInverterMap));
-            return map;
         case R75:
-            memcpy_P(&map, &map_R_series, sizeof(ModbusInverterMap));
-            return map;
         case R100:
-            memcpy_P(&map, &map_R_series, sizeof(ModbusInverterMap));
-            return map;
         case R110:
-            memcpy_P(&map, &map_R_series, sizeof(ModbusInverterMap));
-            return map;
 
         // Huawei
         case SUN2000_2KTL:
-            memcpy_P(&map, &map_SUN2000_MONO, sizeof(ModbusInverterMap));
-            return map;
         case SUN2000_3KTL:
-            memcpy_P(&map, &map_SUN2000_MONO, sizeof(ModbusInverterMap));
-            return map;
         case SUN2000_4KTL:
-            memcpy_P(&map, &map_SUN2000_MONO, sizeof(ModbusInverterMap));
-            return map;
         case SUN2000_5KTL:
-            memcpy_P(&map, &map_SUN2000_MONO, sizeof(ModbusInverterMap));
-            return map;
         case SUN2000_6KTL:
-            memcpy_P(&map, &map_SUN2000_MONO, sizeof(ModbusInverterMap));
-            return map;
         case SUN2000_12KTL_M0:
-            memcpy_P(&map, &map_SUN2000_M0, sizeof(ModbusInverterMap));
-            return map;
         case SUN2000_12KTL_M2:
-            memcpy_P(&map, &map_SUN2000_M2, sizeof(ModbusInverterMap));
-            return map;
         case SUN2000_15KTL_M0:
-            memcpy_P(&map, &map_SUN2000_M0, sizeof(ModbusInverterMap));
-            return map;
         case SUN2000_15KTL_M2:
-            memcpy_P(&map, &map_SUN2000_M2, sizeof(ModbusInverterMap));
-            return map;
         case SUN2000_20KTL_M0:
-            memcpy_P(&map, &map_SUN2000_M0, sizeof(ModbusInverterMap));
-            return map;
         case SUN2000_20KTL_M2:
-            memcpy_P(&map, &map_SUN2000_M2, sizeof(ModbusInverterMap));
-            return map;
         case SUN2000_30KTL:
-            memcpy_P(&map, &map_SUN2000_TRIF, sizeof(ModbusInverterMap));
-            return map;
         case SUN2000_36KTL_A:
-            memcpy_P(&map, &map_SUN2000_TRIF, sizeof(ModbusInverterMap));
-            return map;
         case SUN2000_30KTL_M3:
-            memcpy_P(&map, &map_SUN2000_M3, sizeof(ModbusInverterMap));
-            return map;
         case SUN2000_36KTL_M3:
-            memcpy_P(&map, &map_SUN2000_M3, sizeof(ModbusInverterMap));
-            return map;
         case SUN2000_40KTL_M3:
-            memcpy_P(&map, &map_SUN2000_M3, sizeof(ModbusInverterMap));
-            return map;
         case SUN2000_60KTL_M0:
-            memcpy_P(&map, &map_SUN2000_TRIF, sizeof(ModbusInverterMap));
-            return map;
         case SUN2000_75KTL_M1:
-            memcpy_P(&map, &map_SUN2000_TRIF, sizeof(ModbusInverterMap));
-            return map;
         case SUN2000_100KTL_M2:
-            memcpy_P(&map, &map_SUN2000_TRIF, sizeof(ModbusInverterMap));
-            return map;
         case SUN2000_100KTL_H1:
-            memcpy_P(&map, &map_SUN2000_TRIF, sizeof(ModbusInverterMap));
-            return map;
         case SUN2000_215KTL_H0:
-            memcpy_P(&map, &map_SUN2000_TRIF, sizeof(ModbusInverterMap));
-            return map;
         case SUN2000_215KTL_H3:
-            memcpy_P(&map, &map_SUN2000_TRIF, sizeof(ModbusInverterMap));
-            return map;
         case SUN2000_250KTL_H1:
-            memcpy_P(&map, &map_SUN2000_TRIF, sizeof(ModbusInverterMap));
-            return map;
             
         case UNKNOWN_INVERTER:
             memset(&map, 0, sizeof(ModbusInverterMap)); // Retorna um mapa vazio para o modelo desconhecido

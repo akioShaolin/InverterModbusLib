@@ -51,5 +51,6 @@ struct ModbusInverterMap {
 
 bool getInverterMap(InverterModel model, ModbusInverterMap& out);
 bool getMap_Weg(InverterModel model, ModbusInverterMap& out);
+bool getMap_GoodWe(InverterModel model, ModbusInverterMap& out)
 
 #endif

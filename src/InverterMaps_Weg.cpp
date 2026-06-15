@@ -61,7 +61,7 @@ static const ModbusInverterMap map_SIW400G_T PROGMEM = {
     // identification
     {
         { 0x9C74, ASCII, 16, 1, 1.0f, true, false },    // Serial. Scale é ignorado para ASCII; usar 1.0f apenas como valor neutro
-        { 0x9C42, U16, 1, 1, 1.0f, true, false },          // Model ID
+        { 0x9C42, U16, 1, 1, 1.0f, true, false },       // Model ID
         { 0x9C54, ASCII, 16, 1, 1.0f, true, false },    // Model Name
         { 0x9C6C, ASCII, 8, 1, 1.0f, true, false },     // Firmware Version
         { 0x9D23, U16, 1, 1, 100.0f, true, false },     // Rated Power
@@ -283,6 +283,119 @@ static const ModbusInverterMap map_SIW500H_M3 PROGMEM = {
     }
 };
 
+static const ModbusInverterMap map_SIW200 PROGMEM = {
+    // identification
+    {
+        { 0x0200, ASCII, 8, 1, 1.0f, true, false },     // Serial. Scale é ignorado para ASCII; usar 1.0f apenas como valor neutro
+        INVALID_FIELD,                                  // Model ID
+        INVALID_FIELD,                                  // Model Name
+        INVALID_FIELD,                                  // Firmware Version
+        INVALID_FIELD,                                  // Rated Power
+        INVALID_FIELD,                                  // Number os PV Strings
+        INVALID_FIELD                                   // Number of MPP trackers
+    }, {
+        { 0x0120, U16, 1, 1, 1.0f, false, true },       // Boot
+        { 0x0121, U16, 1, 1, 1.0f, false, true },       // Shutdown (compartilhado com o Boot)
+        0x00,                                           // bootValue
+        0x00,                                           // shutdownValue
+        false                                           // sharedBootRegister
+    }, {
+        INVALID_FIELD,                                  // Enable Power Limit (0 - Disable, 1 - Enable)
+        INVALID_FIELD,                                  // Mode
+        INVALID_FIELD,                                  // PowerLimit (W)
+        { 0x0100, U16, 1, 1, 1.0f, true, true },        // Set Power Limit Percent (%)
+        FEATURE_VALUE_NONE,                             // enableValue
+        FEATURE_VALUE_NONE,                             // disableValue
+        FEATURE_VALUE_NONE,                             // wattsModeValue
+        FEATURE_VALUE_NONE,                             // percentModeValue
+        false,                                          // supportsEnable
+        false,                                          // supportsMode
+        true,                                           // implicitEnable
+        false,                                          // supportsWatts
+        true,                                           // supportsPercent
+        false,                                          // requiresEnableBeforeWrite
+        false                                           // requiresModeBeforeWrite
+    }, {
+        { 0x0123, U16, 1, 1, 1.0f, true, true },        // Enable Export Limit (55 - Disable, AA - Enable)
+        INVALID_FIELD,                                  // Mode
+        INVALID_FIELD,                                  // Set Export Limit (W) (não disponível nesse modelo)
+        { 0x0125, U16, 1, 1, 0.1f, true, true },        // Set Export Limit Percent(%)
+        0x01,                                           // enableValue
+        0x00,                                           // disableValue
+        FEATURE_VALUE_NONE,                             // wattsModeValue
+        FEATURE_VALUE_NONE,                             // percentModeValue
+        true,                                           // supportsEnable
+        false,                                          // supportsMode
+        false,                                          // implicitEnable
+        false,                                          // supportsWatts
+        true,                                           // supportsPercent
+        true,                                           // requiresEnableBeforeWrite
+        false                                           // requiresModeBeforeWrite
+    }, {
+        INVALID_FIELD,                                  // Enable Power Factor (0 - Disable, 1 - Enable)
+        INVALID_FIELD,                                  // Enable Fixed Reactive ()
+        INVALID_FIELD,                                  // Mode
+        { 0x0101, U16, 1, 1, 0.001f, true, true },      // powerFactorSetpoint
+        INVALID_FIELD,                                  // Power Factor Excitation Mode (0 - Inductive, 1 - Capacitive)
+        INVALID_FIELD,                                  // Fixed Reactive
+        FEATURE_VALUE_NONE,                             // enablePfValue
+        FEATURE_VALUE_NONE,                             // disablePfValue
+        FEATURE_VALUE_NONE,                             // enableFixedReactivePowerValue
+        FEATURE_VALUE_NONE,                             // disableFixedReactivePowerValue
+        false,                                          // supportsEnablePf
+        false,                                          // supportsControlModePf
+        true,                                           // supportPfSp
+        true,                                           // implicitPfSp
+        true,                                           // invertedRanges
+        false,                                          // supportsEnableFixedReactive
+        false,                                          // supportsControlModeFixedReactive
+        false,                                          // supportsFixedReactiveSetpoint
+        false,                                          // implicitFixedReactiveSetpoint
+        false,                                          // supportsExcitationMode
+        false,                                          // requiresEnableBeforeWrite
+        false                                           // requiresModeBeforeWrite
+    }, {
+        { 0x0010, U16, 1, 1, 1.0f, true, true },        // Time Year
+        { 0x0010, U16, 1, 1, 1.0f, true, true },        // Time Month
+        { 0x0011, U16, 1, 1, 1.0f, true, true },        // Time Day
+        { 0x0011, U16, 1, 1, 1.0f, true, true },        // Time Hour
+        { 0x0012, U16, 1, 1, 1.0f, true, true },        // Time Minute
+        { 0x0012, U16, 1, 1, 1.0f, true, true },        // Time Second
+        INVALID_FIELD,                                  // Time Epoch (não disponível nesse modelo)
+        true,                                           // usesSharedDateTimeRegisters
+        false,                                          // supportsEpoch
+        true                                            // yearIsOffsetFrom2000
+    }, {
+        { 0x0233, I16, 2, 1, 0.1f, true, false },       // Active Power (kW)
+        INVALID_FIELD,                                  // Reactive Power (kVAr)
+        INVALID_FIELD,                                  // Apparent Power (kVA)
+        INVALID_FIELD,                                  // Power Factor
+    }, {
+        { 0x022A, U16, 3, 1, 0.1f, true, false },       // Phase Voltage R, S, T (V)
+        INVALID_FIELD,                                  // Line Voltage R, S, T (V)
+        { 0x022D, I16, 3, 1, 0.1f, true, false },       // Grid Current R, S, T (A)
+        { 0x0230, U32, 1, 2, 0.01f, true, false },      // Frequency (Hz)
+        3,                                              // phaseCount
+        true,                                           // supportsPhaseVoltage
+        false                                           // supportsLineVoltage                                          
+    }, {
+        { 0x0222, U32, 1, 2, 0.1f, true, false },       // Total Energy (kWh)
+        { 0x0236, U16, 1, 1, 0.1f, true, false },       // Daily Energy (kWh)  
+    }, {
+        { 0x0226, U16, 2, 1, 0.1f, true, false },       // String Voltage (V)
+        { 0x0228, U16, 2, 1, 0.1f, true, false },       // String Current (A)
+        INVALID_FIELD,                                  // String Power (W) (não disponível nesse modelo)
+    }, 
+    noBattery,
+    noEps, {
+        { 0x0235, I16, 1, 1, 0.1f, true, false },       // Temperature (°C)
+        INVALID_FIELD,                                  // Insulation Resistance (kΩ)
+    }, {
+        { 0x0234, U16, 1, 1, 1.0f, true, false },       // Inverter Status
+        { 0x0220, U32, 1, 2, 1.0f, true, false },       // Alarm
+    }
+};
+
 bool getMap_Weg(InverterModel model, ModbusInverterMap& out) {
     
     switch (model) {
@@ -290,6 +403,7 @@ bool getMap_Weg(InverterModel model, ModbusInverterMap& out) {
         case SIW200_M050:
         case SIW200_M085:
         case SIW200_M100:
+            memcpy_P(&out, &map_SIW200, sizeof(ModbusInverterMap));
             return true;
         case SIW200H_M050_W00:
         case SIW200H_M075_W10:

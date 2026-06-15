@@ -9,3 +9,6 @@
 
 #include "InverterMaps.h"
 
+bool getMap_GoodWe(InverterModel model, ModbusInverterMap& out) {
+
+}

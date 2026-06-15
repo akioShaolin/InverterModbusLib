@@ -1538,12 +1538,13 @@ bool getInverterMap(InverterModel model, ModbusInverterMap& out) {
         case SIW610_T018_W0:
         case SIW610_T075_W0:
             return getMap_Weg(model, out);
-        /*
+        
         // Goodwe
         case GW3000_XS:
         case GW3300_XS_30:
         case GW5000_DNS:
         case GW5K_DNS_G40:
+            return getMap_GoodWe(model, out);/*
 
         // Foxess
 // #

@@ -440,6 +440,9 @@ bool Inverter::getEpochTime(uint32_t& epoch) {
     // Sem fallback
 }
 
+bool Inverter::getDateTime(Datetime& dt) {
+
+}
 // ======================================================
 // Date/Time Write
 // ======================================================
@@ -718,4 +721,8 @@ bool Inverter::setEpochTime(uint32_t epoch) {
 
     // Sem fallback
     return false;
+}
+
+bool Inverter::setDateTime(const Datetime& dt) {
+    
 }

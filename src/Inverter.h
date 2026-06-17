@@ -175,6 +175,7 @@ public:
     bool getMinute(uint16_t& minute);                //
     bool getSecond(uint16_t& second);                //
     bool getEpochTime(uint32_t& epoch);              //
+    bool getDateTime(Datetime& dt);                   //
     // ------------------------------------------------------
     // Escrita de data/hora
     bool setYear(uint16_t year);                     //
@@ -184,6 +185,7 @@ public:
     bool setMinute(uint16_t minute);                 //
     bool setSecond(uint16_t second);                 //
     bool setEpochTime(uint32_t epoch);               //
+    bool setDateTime(const Datetime& dt);               //
 
     // Getters
     // Arquivo InverterDeviceInfo.cpp

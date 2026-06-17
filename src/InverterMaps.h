@@ -22,6 +22,7 @@ struct Datetime {
     uint8_t hour;
     uint8_t minute;
     uint8_t second;
+    uint32_t epoch;
 };
 
 constexpr uint16_t FEATURE_VALUE_NONE = 0xFFFF;
@@ -51,6 +52,6 @@ struct ModbusInverterMap {
 
 bool getInverterMap(InverterModel model, ModbusInverterMap& out);
 bool getMap_Weg(InverterModel model, ModbusInverterMap& out);
-bool getMap_GoodWe(InverterModel model, ModbusInverterMap& out)
+bool getMap_GoodWe(InverterModel model, ModbusInverterMap& out);
 
 #endif

@@ -65,6 +65,75 @@ bool _mb_cb(Modbus::ResultCode event, uint16_t, void*) {
 }
 
 // ======================================================
+// Async
+// ======================================================
+
+void Inverter::task() {
+    if (_mb == nullptr) return;
+
+    _mb->task();
+
+    if (_modbusState == MODBUS_WAITING) {
+        if (millis() - _modbusStartMs > _modbusTimeoutMs) {
+            _modbusState = MODBUS_TIMEOUT;
+            _modbusResult = false;
+        }
+
+        if (!_mb->slave()) {
+            _modbusState = MODBUS_DONE;
+            _modbusResult = true;
+        }
+    }
+}
+
+bool Inverter::startReadField(const ModbusField& field, uint16_t* buffer) {
+    if (_modbusState == MODBUS_WAITING) return false;
+    if(_mb == nullptr) return false;
+
+    bool ok = _mb->readHreg(_cfg.id, field.address, buffer, field.length);
+
+    if (!ok) {
+        _modbusState = MODBUS_ERROR;
+        return false;
+    }
+
+    _modbusStartMs = millis();
+    _modbusState = MODBUS_WAITING;
+    return true;
+}
+
+bool Inverter::startWriteField(const ModbusField& field, uint32_t value) {
+    if (_modbusState == MODBUS_WAITING) return false;
+    if(_mb == nullptr) return false;
+
+    bool ok = _mb->writeHreg(_cfg.id, field.address, value);
+
+    if (!ok) {
+        _modbusState = MODBUS_ERROR;
+        return false;
+    }
+
+    _modbusStartMs = millis();
+    _modbusState = MODBUS_WAITING;
+    return true;
+}
+
+// Teste nivel core
+
+bool Inverter::requestGridFrequency() {
+    if (_mb == nullptr) return false;
+    if(!startReadField(_map.grid.frequency, _gridFrequencyBuffer)) return false;
+    return true;
+}
+
+bool Inverter::getGridFrequencyResult(uint32_t& freq) {
+    if (_mb == nullptr) return false;
+    if(_modbusState != MODBUS_DONE) return false;;
+    freq = ((uint32_t)_gridFrequencyBuffer[0] << 16) | _gridFrequencyBuffer[1];
+    return true;
+}
+
+// ======================================================
 // Scaled Conversion
 // ======================================================
 

@@ -130,6 +130,18 @@ struct BatteryValues {
     float values[MAX_BATTERIES];
 };
 
+// -------------------------------------------------------------------------------------------------------
+
+enum ModbusAsyncState {
+    MODBUS_IDLE,
+    MODBUS_WAITING,
+    MODBUS_DONE,
+    MODBUS_ERROR,
+    MODBUS_TIMEOUT
+};
+
+// -------------------------------------------------------------------------------------------------------
+
 class Inverter {
 public:
 
@@ -251,8 +263,32 @@ public:
     bool getEPSCurrent(PhaseData& phase);            //
     bool getEPSActivePower(float& power);            //    
     bool getEPSActivePower(PhaseData& phase);        // 
+
+    // Teste do Modbus nao bloquante (nível core)
+    bool requestGridFrequency();
+    bool getGridFrequencyResult(uint32_t& freq);
     
 private:
+
+// Variaveis de teste
+    uint16_t _gridFrequencyBuffer[2];
+
+// Variaveis da função
+
+    ModbusAsyncState _modbusState = MODBUS_IDLE;
+    
+    uint32_t _modbusStartMs = 0;
+    uint32_t _modbusTimeoutMs = 1000;
+
+    bool _modbusResult = false;
+
+    void task();
+    bool isBusy() const;
+    bool isDone() const;
+    bool hasError() const;
+
+    bool startReadField(const ModbusField& field, uint16_t* buffer);
+    bool startWriteField(const ModbusField& field, uint32_t value);
 
     // Variáveis privadas
     // ------------------------------------------------------

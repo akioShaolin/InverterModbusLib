@@ -68,6 +68,15 @@ bool _mb_cb(Modbus::ResultCode event, uint16_t, void*) {
 // Async
 // ======================================================
 
+bool Inverter::isDone() const {
+    return _modbusState == MODBUS_DONE;
+}
+
+bool Inverter::hasError() const {
+    return _modbusState == MODBUS_ERROR ||
+           _modbusState == MODBUS_TIMEOUT;
+}
+
 void Inverter::task() {
     if (_mb == nullptr) return;
 
@@ -122,14 +131,16 @@ bool Inverter::startWriteField(const ModbusField& field, uint32_t value) {
 
 bool Inverter::requestGridFrequency() {
     if (_mb == nullptr) return false;
-    if(!startReadField(_map.grid.frequency, _gridFrequencyBuffer)) return false;
-    return true;
+    if (_modbusState == MODBUS_WAITING) return false;
+    return startReadField(_map.grid.frequency, _gridFrequencyBuffer);
 }
 
-bool Inverter::getGridFrequencyResult(uint32_t& freq) {
-    if (_mb == nullptr) return false;
-    if(_modbusState != MODBUS_DONE) return false;;
-    freq = ((uint32_t)_gridFrequencyBuffer[0] << 16) | _gridFrequencyBuffer[1];
+bool Inverter::getGridFrequencyResult(uint32_t& raw) {
+    if (_modbusState != MODBUS_DONE) return false;
+
+    raw = ((uint32_t)_gridFrequencyBuffer[0] << 16) |
+          ((uint32_t)_gridFrequencyBuffer[1]);
+
     return true;
 }
 

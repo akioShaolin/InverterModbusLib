@@ -145,6 +145,12 @@ enum ModbusAsyncState {
 class Inverter {
 public:
 
+    void task();
+
+    bool isBusy() const;
+    bool isDone() const;
+    bool hasError() const;
+
     // Setters
     // Arquivo InverterControl.cpp
     // ------------------------------------------------------
@@ -266,7 +272,7 @@ public:
 
     // Teste do Modbus nao bloquante (nível core)
     bool requestGridFrequency();
-    bool getGridFrequencyResult(uint32_t& freq);
+    bool getGridFrequencyResult(uint32_t& raw);
     
 private:
 
@@ -281,11 +287,6 @@ private:
     uint32_t _modbusTimeoutMs = 1000;
 
     bool _modbusResult = false;
-
-    void task();
-    bool isBusy() const;
-    bool isDone() const;
-    bool hasError() const;
 
     bool startReadField(const ModbusField& field, uint16_t* buffer);
     bool startWriteField(const ModbusField& field, uint32_t value);

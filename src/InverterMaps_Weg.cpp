@@ -488,9 +488,10 @@ bool getMap_Weg(InverterModel model, ModbusInverterMap& out) {
         case SIW610_T075_W0:
             return true;
             
-        default:
+        default: {
             out = ModbusInverterMap{}; // Retorna um mapa vazio para modelos não mapeados
             return false;
+        }
     }
 }
 

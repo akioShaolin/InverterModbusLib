@@ -6,10 +6,11 @@
 // Configurações do teste
 // =======================
 
-#define LED_PIN LED_BUILTIN
+#define LED_PIN 2
 
 // Ajuste conforme seu hardware
 #define DE_RE_PIN 12
+#define PIN_RS485_SWITCH 13
 
 // Ajuste conforme seu inversor
 #define MODBUS_ID 1
@@ -103,10 +104,20 @@ void setup() {
     pinMode(LED_PIN, OUTPUT);
     digitalWrite(LED_PIN, HIGH); // LED_BUILTIN geralmente é invertido no ESP8266
 
+    pinMode(DE_RE_PIN, OUTPUT);
+    digitalWrite(DE_RE_PIN, LOW);
+
+    pinMode(PIN_RS485_SWITCH, OUTPUT);
+    digitalWrite(PIN_RS485_SWITCH, HIGH);
+
     Serial.begin(MODBUS_BAUD, SERIAL_8N1);
+
+    mb.begin(&Serial, DE_RE_PIN);
+    mb.master();
 
     inverter.attachModbus(mb);
     inverter.attachSerial(Serial);
+
     inverter.setSlaveId(MODBUS_ID);
 
     inverterReady = inverter.begin();

@@ -13,7 +13,7 @@
 
 static uint32_t _activeBaud = 0;
 static SerialConfig _activeSerialConfig = SERIAL_8N1;
-static int8_t _activeDeRePin = -2;
+static int8_t _activeDeRePin = -1;
 static bool _initialized = false;
 
 ModbusConfig::ModbusConfig(uint8_t id, uint32_t baud, SerialConfig config) 

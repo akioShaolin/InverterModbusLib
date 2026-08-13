@@ -138,6 +138,39 @@ bool InverterModbusBus::startRead(Inverter* owner, InverterRequestId request,
     return true;
 }
 
+bool InverterModbusBus::startWrite(Inverter* owner, InverterRequestId request,
+                                   uint8_t slaveId, uint16_t address,
+                                   const uint16_t* values, uint16_t registerCount) {
+    if (!_initialized || owner == nullptr || request == REQ_NONE || values == nullptr) return false;
+    if (_state != BUS_IDLE || _mb->slave() != 0) return false;
+    if (registerCount == 0 || registerCount > INV_ASYNC_BUFFER_REGS) return false;
+    if ((uint32_t)address + registerCount > 0x10000UL) return false;
+
+    cbTransaction cb = callback();
+    if (cb == nullptr) return false;
+
+    _owner = owner;
+    _activeRequest = request;
+    _registerCount = registerCount;
+    _resultCode = Modbus::EX_SUCCESS;
+    _status = INV_MB_NONE;
+    _callbackDone = false;
+    memcpy(_buffer, values, registerCount * sizeof(uint16_t));
+
+    const bool accepted = registerCount == 1
+        ? _mb->writeHreg(slaveId, address, _buffer[0], cb)
+        : _mb->writeHreg(slaveId, address, _buffer, registerCount, cb);
+    if (!accepted) {
+        _state = BUS_ERROR;
+        _status = INV_MB_GENERAL_FAILURE;
+        return false;
+    }
+
+    _startedAt = millis();
+    _state = BUS_WAITING;
+    return true;
+}
+
 void InverterModbusBus::release() {
     _owner = nullptr;
     _activeRequest = REQ_NONE;

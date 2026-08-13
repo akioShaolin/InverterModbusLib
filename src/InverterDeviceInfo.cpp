@@ -109,6 +109,68 @@ bool Inverter::getSerialNumber(String& serialNumber) {
     }
 }
 
+InverterRequestStatus Inverter::getSerialNumber(char* output, size_t outputSize) {
+    if (output == nullptr || outputSize == 0) return INV_ERROR;
+    output[0] = '\0';
+    if (_bus == nullptr || !hasValidMap()) return INV_ERROR;
+
+    const ModbusField& field = _map.identification.serialNumber;
+    if (isInvalidField(field) || !field.readable || field.mode != FIELD_SIMPLE || field.length == 0) {
+        return INV_ERROR;
+    }
+    uint16_t registerCount = field.length;
+    if (field.type == U32 || field.type == I32) registerCount *= 2;
+    else if (field.type == U64 || field.type == I64) registerCount *= 4;
+    else if (field.type != ASCII && field.type != U16 && field.type != I16) return INV_ERROR;
+    const size_t requiredSize = field.type == ASCII ? (size_t)registerCount * 2U + 1U : 24U;
+    if (outputSize < requiredSize || registerCount > INV_ASYNC_BUFFER_REGS) return INV_ERROR;
+
+    if (_bus->isCompletedFor(this, REQ_SERIAL_NUMBER)) {
+        const uint16_t* regs = _bus->buffer();
+        size_t used = 0;
+        if (field.type == ASCII) {
+            for (uint16_t i = 0; i < registerCount; ++i) {
+                const char high = (char)(regs[i] >> 8);
+                const char low = (char)(regs[i] & 0xFF);
+                if (high >= 32 && high <= 126) output[used++] = high;
+                if (low >= 32 && low <= 126) output[used++] = low;
+            }
+            while (used > 0 && output[used - 1] == ' ') --used;
+            output[used] = '\0';
+        } else {
+            uint64_t raw = 0;
+            for (uint16_t i = 0; i < registerCount; ++i) raw = (raw << 16) | regs[i];
+            if (field.type == I16) snprintf(output, outputSize, "%d", (int16_t)raw);
+            else if (field.type == I32) snprintf(output, outputSize, "%ld", (long)(int32_t)raw);
+            else if (field.type == I64) snprintf(output, outputSize, "%lld", (long long)(int64_t)raw);
+            else snprintf(output, outputSize, "%llu", (unsigned long long)raw);
+            used = strlen(output);
+        }
+        _lastModbusStatus = _bus->transactionStatus();
+        _bus->release();
+        if (used == 0) {
+            _lastModbusStatus = INV_MB_UNEXPECTED_RESPONSE;
+            return INV_ERROR;
+        }
+        return INV_DONE;
+    }
+    if (_bus->isFailedFor(this, REQ_SERIAL_NUMBER)) {
+        _lastModbusStatus = _bus->transactionStatus();
+        _bus->release();
+        return INV_ERROR;
+    }
+    if (_bus->belongsTo(this, REQ_SERIAL_NUMBER)) return INV_BUSY;
+    if (_bus->isBusy()) return INV_REJECTED;
+    if (!_bus->startRead(this, REQ_SERIAL_NUMBER, _cfg.id, field.address, registerCount)) {
+        if (_bus->belongsTo(this, REQ_SERIAL_NUMBER)) {
+            _lastModbusStatus = _bus->transactionStatus();
+            _bus->release();
+        }
+        return INV_ERROR;
+    }
+    return INV_BUSY;
+}
+
 bool Inverter::getModelId(uint16_t& modelId) {
     if (!hasValidMap()) return false;
 
@@ -212,6 +274,73 @@ bool Inverter::getRatedPower(uint32_t& power) {
     } 
     
     return false;
+}
+
+bool Inverter::getRatedPowerSpec(float& ratedPower) const {
+    if (_descriptor.ratedPowerW == 0) return false;
+    ratedPower = (float)_descriptor.ratedPowerW;
+    return true;
+}
+
+bool Inverter::wasLastRatedPowerFallback() const {
+    return _ratedPowerFromSpec;
+}
+
+InverterRequestStatus Inverter::getRatedPower(float& power) {
+    if (!hasValidMap()) return INV_ERROR;
+    const ModbusField& field = _map.identification.ratedPower;
+
+    if (isInvalidField(field) || !field.readable || field.mode != FIELD_SIMPLE) {
+        if (!getRatedPowerSpec(power)) return INV_ERROR;
+        _ratedPowerCache = power;
+        _hasRatedPowerCache = true;
+        _ratedPowerFromSpec = true;
+        return INV_DONE;
+    }
+    if (_bus == nullptr || field.length != 1 || field.scale == 0.0f) return INV_ERROR;
+
+    if (_bus->isCompletedFor(this, REQ_RATED_POWER)) {
+        const uint16_t* regs = _bus->buffer();
+        const uint32_t raw32 = ((uint32_t)regs[0] << 16) | regs[1];
+        switch (field.type) {
+            case U16: power = (float)regs[0] * field.scale; break;
+            case I16: power = (float)(int16_t)regs[0] * field.scale; break;
+            case U32: power = (float)raw32 * field.scale; break;
+            case I32: power = (float)(int32_t)raw32 * field.scale; break;
+            case FLOAT32: memcpy(&power, &raw32, sizeof(power)); power *= field.scale; break;
+            default:
+                _lastModbusStatus = INV_MB_GENERAL_FAILURE;
+                _bus->release();
+                return INV_ERROR;
+        }
+        _lastModbusStatus = _bus->transactionStatus();
+        _bus->release();
+        _ratedPowerCache = power;
+        _hasRatedPowerCache = true;
+        _ratedPowerFromSpec = false;
+        return INV_DONE;
+    }
+    if (_bus->isFailedFor(this, REQ_RATED_POWER)) {
+        _lastModbusStatus = _bus->transactionStatus();
+        _bus->release();
+        return INV_ERROR;
+    }
+    if (_bus->belongsTo(this, REQ_RATED_POWER)) return INV_BUSY;
+    if (_bus->isBusy()) return INV_REJECTED;
+
+    uint16_t count = 0;
+    if (field.type == U16 || field.type == I16) count = 1;
+    else if (field.type == U32 || field.type == I32 || field.type == FLOAT32) count = 2;
+    else return INV_ERROR;
+
+    if (!_bus->startRead(this, REQ_RATED_POWER, _cfg.id, field.address, count)) {
+        if (_bus->belongsTo(this, REQ_RATED_POWER)) {
+            _lastModbusStatus = _bus->transactionStatus();
+            _bus->release();
+        }
+        return INV_ERROR;
+    }
+    return INV_BUSY;
 }
 
 bool Inverter::getPVStringCount(uint16_t& count) {

@@ -160,8 +160,8 @@ public:
     bool setBoot(bool enable);                          //   
 
     bool setPowerLimitEnabled(bool enabled);            //
-    bool setPowerLimit(float watts);                    //
-    bool setPowerLimitPercent(float percent);           //
+    InverterRequestStatus setPowerLimit(float watts);   //
+    InverterRequestStatus setPowerLimitPercent(float percent); //
 
     bool setExportLimitEnabled(bool enabled);           //
     bool setExportLimit(float watts);                   //
@@ -202,11 +202,15 @@ public:
     // Arquivo InverterDeviceInfo.cpp
     // ------------------------------------------------------
     // Identificação
-    bool getSerialNumber(String& serialNumber);      //
+    bool getSerialNumber(String& serialNumber);      // API bloqueante legada
+    InverterRequestStatus getSerialNumber(char* buffer, size_t bufferSize);
     bool getModelId(uint16_t& modelId);                   //
     bool getModelName(String& modelName);               //
     bool getFirmwareVersion(String& firmwareVersion);//
-    bool getRatedPower(uint32_t& power);             //
+    bool getRatedPower(uint32_t& power);             // API bloqueante legada
+    InverterRequestStatus getRatedPower(float& power);
+    bool getRatedPowerSpec(float& ratedPower) const;
+    bool wasLastRatedPowerFallback() const;
     bool getPVStringCount(uint16_t& count);          //
     bool getMpptCount(uint16_t& count);    
     // Comandos / Limites
@@ -277,6 +281,15 @@ private:
     InverterDescriptor _descriptor;                  //
     ModbusInverterMap _map;                          //
     String _serialNumber;                            //
+    float _ratedPowerCache = 0.0f;
+    bool _hasRatedPowerCache = false;
+    bool _ratedPowerFromSpec = false;
+    InverterRequestId _powerLimitRequest = REQ_NONE;
+    uint8_t _powerLimitStep = 0;
+    uint8_t _powerLimitStepCount = 0;
+    uint16_t _powerLimitAddresses[3] = {0, 0, 0};
+    uint16_t _powerLimitValues[3][2] = {{0, 0}, {0, 0}, {0, 0}};
+    uint8_t _powerLimitRegisterCounts[3] = {0, 0, 0};
     // ------------------------------------------------------
 
     // Arquivo InverterControl.cpp
@@ -284,6 +297,10 @@ private:
     // Helpers internos
     bool isInvalidField(const ModbusField& field);   //
     bool hasValidMap() const;                           //
+    bool prepareAsyncPowerLimit(InverterRequestId request, float value);
+    InverterRequestStatus runAsyncPowerLimit(InverterRequestId request);
+    bool setPowerLimitBlockingLegacy(float watts);
+    bool setPowerLimitPercentBlockingLegacy(float percent);
     // ------------------------------------------------------
 
     // Arquivo InverterTime.cpp

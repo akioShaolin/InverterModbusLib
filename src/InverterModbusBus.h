@@ -4,7 +4,7 @@
 #include <ModbusRTU.h>
 
 #ifndef INV_ASYNC_BUFFER_REGS
-#define INV_ASYNC_BUFFER_REGS 8
+#define INV_ASYNC_BUFFER_REGS 16
 #endif
 
 #ifndef INV_MAX_MODBUS_BUSES
@@ -24,7 +24,11 @@ enum InverterRequestStatus : uint8_t {
 enum InverterRequestId : uint8_t {
     REQ_NONE = 0,
     REQ_GRID_FREQUENCY,
-    REQ_ACTIVE_POWER
+    REQ_ACTIVE_POWER,
+    REQ_RATED_POWER,
+    REQ_SERIAL_NUMBER,
+    REQ_SET_POWER_LIMIT,
+    REQ_SET_POWER_LIMIT_PERCENT
 };
 
 enum InverterModbusStatus : uint8_t {
@@ -68,6 +72,8 @@ private:
 
     bool startRead(Inverter* owner, InverterRequestId request, uint8_t slaveId,
                    uint16_t address, uint16_t registerCount);
+    bool startWrite(Inverter* owner, InverterRequestId request, uint8_t slaveId,
+                    uint16_t address, const uint16_t* values, uint16_t registerCount);
     void release();
     bool complete(Modbus::ResultCode result);
 

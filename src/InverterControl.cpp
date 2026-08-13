@@ -225,7 +225,170 @@ bool Inverter::setPowerLimitEnabled(bool enabled) {
     return false;
 }
 
-bool Inverter::setPowerLimit(float watts) {
+static bool encodeAsyncFieldValue(const ModbusField& field, float humanValue,
+                                  uint16_t* regs, uint8_t& registerCount) {
+    if (!field.writable || field.mode != FIELD_SIMPLE || field.length != 1 ||
+        field.address == 0xFFFF || field.scale == 0.0f || regs == nullptr) return false;
+
+    const float scaled = humanValue / field.scale;
+    const float rounded = roundf(scaled);
+    uint32_t raw32 = 0;
+    switch (field.type) {
+        case U16:
+            if (rounded < 0.0f || rounded > UINT16_MAX) return false;
+            regs[0] = (uint16_t)rounded;
+            registerCount = 1;
+            return true;
+        case I16:
+            if (rounded < INT16_MIN || rounded > INT16_MAX) return false;
+            regs[0] = (uint16_t)(int16_t)rounded;
+            registerCount = 1;
+            return true;
+        case U32:
+            if (rounded < 0.0f || rounded > UINT32_MAX) return false;
+            raw32 = (uint32_t)rounded;
+            break;
+        case I32:
+            if (rounded < INT32_MIN || rounded > INT32_MAX) return false;
+            raw32 = (uint32_t)(int32_t)rounded;
+            break;
+        case FLOAT32: {
+            const float rawFloat = scaled;
+            memcpy(&raw32, &rawFloat, sizeof(raw32));
+            break;
+        }
+        default:
+            return false;
+    }
+    regs[0] = (uint16_t)(raw32 >> 16);
+    regs[1] = (uint16_t)(raw32 & 0xFFFF);
+    registerCount = 2;
+    return true;
+}
+
+bool Inverter::prepareAsyncPowerLimit(InverterRequestId request, float requestedValue) {
+    if (!hasValidMap() || _bus == nullptr ||
+        (request != REQ_SET_POWER_LIMIT && request != REQ_SET_POWER_LIMIT_PERCENT)) return false;
+
+    const ActivePowerFeature& feature = _map.activePower;
+    const bool wantsPercent = request == REQ_SET_POWER_LIMIT_PERCENT;
+    if (requestedValue < 0.0f || (wantsPercent && requestedValue > 100.0f)) return false;
+
+    float ratedPower = _ratedPowerCache;
+    if (!_hasRatedPowerCache) {
+        if (getRatedPowerSpec(ratedPower)) {
+            _ratedPowerCache = ratedPower;
+            _hasRatedPowerCache = true;
+            _ratedPowerFromSpec = true;
+        }
+    }
+
+    const ModbusField* target = nullptr;
+    float targetValue = requestedValue;
+    uint16_t modeValue = FEATURE_VALUE_NONE;
+    if (!wantsPercent && feature.supportsWatts && !isInvalidField(feature.watts)) {
+        target = &feature.watts;
+        modeValue = feature.wattsModeValue;
+    } else if (!wantsPercent && feature.supportsPercent && !isInvalidField(feature.percent)) {
+        if (!_hasRatedPowerCache || ratedPower <= 0.0f) return false;
+        target = &feature.percent;
+        targetValue = requestedValue * 100.0f / ratedPower;
+        modeValue = feature.percentModeValue;
+    } else if (wantsPercent && feature.supportsPercent && !isInvalidField(feature.percent)) {
+        target = &feature.percent;
+        modeValue = feature.percentModeValue;
+    } else if (wantsPercent && feature.supportsWatts && !isInvalidField(feature.watts)) {
+        if (!_hasRatedPowerCache || ratedPower <= 0.0f) return false;
+        target = &feature.watts;
+        targetValue = requestedValue * ratedPower / 100.0f;
+        modeValue = feature.wattsModeValue;
+    } else {
+        return false;
+    }
+    if (targetValue < 0.0f || (target == &feature.percent && targetValue > 100.0f)) return false;
+    if (target == &feature.watts && _hasRatedPowerCache && targetValue > ratedPower) return false;
+
+    _powerLimitStep = 0;
+    _powerLimitStepCount = 0;
+    if (feature.requiresEnableBeforeWrite) {
+        if (isInvalidField(feature.enable) || feature.enableValue == FEATURE_VALUE_NONE) return false;
+        uint8_t count = 0;
+        if (!encodeAsyncFieldValue(feature.enable, (float)feature.enableValue,
+                                   _powerLimitValues[_powerLimitStepCount], count)) return false;
+        _powerLimitAddresses[_powerLimitStepCount] = feature.enable.address;
+        _powerLimitRegisterCounts[_powerLimitStepCount++] = count;
+    }
+    if (feature.requiresModeBeforeWrite) {
+        if (isInvalidField(feature.mode) || modeValue == FEATURE_VALUE_NONE) return false;
+        uint8_t count = 0;
+        if (!encodeAsyncFieldValue(feature.mode, (float)modeValue,
+                                   _powerLimitValues[_powerLimitStepCount], count)) return false;
+        _powerLimitAddresses[_powerLimitStepCount] = feature.mode.address;
+        _powerLimitRegisterCounts[_powerLimitStepCount++] = count;
+    }
+    uint8_t count = 0;
+    if (!encodeAsyncFieldValue(*target, targetValue,
+                               _powerLimitValues[_powerLimitStepCount], count)) return false;
+    _powerLimitAddresses[_powerLimitStepCount] = target->address;
+    _powerLimitRegisterCounts[_powerLimitStepCount++] = count;
+    _powerLimitRequest = request;
+    return true;
+}
+
+InverterRequestStatus Inverter::runAsyncPowerLimit(InverterRequestId request) {
+    if (_powerLimitRequest != request || _powerLimitStep >= _powerLimitStepCount) return INV_ERROR;
+
+    if (_bus->isCompletedFor(this, request)) {
+        _lastModbusStatus = _bus->transactionStatus();
+        _bus->release();
+        if (++_powerLimitStep >= _powerLimitStepCount) {
+            _powerLimitRequest = REQ_NONE;
+            _powerLimitStep = _powerLimitStepCount = 0;
+            return INV_DONE;
+        }
+    } else if (_bus->isFailedFor(this, request)) {
+        _lastModbusStatus = _bus->transactionStatus();
+        _bus->release();
+        _powerLimitRequest = REQ_NONE;
+        _powerLimitStep = _powerLimitStepCount = 0;
+        return INV_ERROR;
+    } else if (_bus->belongsTo(this, request)) {
+        return INV_BUSY;
+    }
+
+    if (_bus->isBusy()) return INV_REJECTED;
+    if (!_bus->startWrite(this, request, _cfg.id,
+                          _powerLimitAddresses[_powerLimitStep],
+                          _powerLimitValues[_powerLimitStep],
+                          _powerLimitRegisterCounts[_powerLimitStep])) {
+        if (_bus->belongsTo(this, request)) {
+            _lastModbusStatus = _bus->transactionStatus();
+            _bus->release();
+        }
+        _powerLimitRequest = REQ_NONE;
+        _powerLimitStep = _powerLimitStepCount = 0;
+        return INV_ERROR;
+    }
+    return INV_BUSY;
+}
+
+InverterRequestStatus Inverter::setPowerLimit(float watts) {
+    if (_powerLimitRequest == REQ_NONE && !prepareAsyncPowerLimit(REQ_SET_POWER_LIMIT, watts)) {
+        return INV_ERROR;
+    }
+    if (_powerLimitRequest != REQ_SET_POWER_LIMIT) return INV_REJECTED;
+    return runAsyncPowerLimit(REQ_SET_POWER_LIMIT);
+}
+
+InverterRequestStatus Inverter::setPowerLimitPercent(float percent) {
+    if (_powerLimitRequest == REQ_NONE && !prepareAsyncPowerLimit(REQ_SET_POWER_LIMIT_PERCENT, percent)) {
+        return INV_ERROR;
+    }
+    if (_powerLimitRequest != REQ_SET_POWER_LIMIT_PERCENT) return INV_REJECTED;
+    return runAsyncPowerLimit(REQ_SET_POWER_LIMIT_PERCENT);
+}
+
+bool Inverter::setPowerLimitBlockingLegacy(float watts) {
     if (!hasValidMap()) return false;
     
     const ActivePowerFeature& feature = _map.activePower;
@@ -314,7 +477,7 @@ bool Inverter::setPowerLimit(float watts) {
     return false;
 }
 
-bool Inverter::setPowerLimitPercent(float percent) {
+bool Inverter::setPowerLimitPercentBlockingLegacy(float percent) {
     if (!hasValidMap()) return false;
     
     const ActivePowerFeature& feature = _map.activePower;

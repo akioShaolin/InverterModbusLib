@@ -692,20 +692,90 @@ bool Inverter::getFixedReactiveSetpoint(float& var) {
 // AC Measurements
 // ======================================================
 
-bool Inverter::getActivePower(float& watts) {
-    if (!hasValidMap()) return false;
+InverterRequestStatus Inverter::getActivePower(float& watts) {
+    if (_bus == nullptr || !hasValidMap()) return INV_ERROR;
 
     const ModbusField& field = _map.power.activePower;
-    
-    switch (field.mode) {
 
-        case FIELD_SIMPLE:
-            if (!field.readable) return false;
-            return readScaledFloat(field, watts);
-            
-        default:
-            return false;
+    if (isInvalidField(field) || !field.readable || field.length == 0 || field.mode != FIELD_SIMPLE) {
+        return INV_ERROR;
     }
+
+    if (_bus->isCompletedFor(this, REQ_ACTIVE_POWER)) {
+        const uint16_t* buffer = _bus->buffer();
+        uint32_t raw = 0;
+
+        switch (field.type) {
+            case U16:
+                watts = (float)buffer[0] * field.scale;
+                break;
+
+            case I16:
+                watts = (float)(int16_t)buffer[0] * field.scale;
+                break;
+
+            case U32:
+                raw = ((uint32_t)buffer[0] << 16) | buffer[1];
+                watts = (float)raw * field.scale;
+                break;
+
+            case I32:
+                raw = ((uint32_t)buffer[0] << 16) | buffer[1];
+                watts = (float)(int32_t)raw * field.scale;
+                break;
+
+            case FLOAT32:
+                raw = ((uint32_t)buffer[0] << 16) | buffer[1];
+                memcpy(&watts, &raw, sizeof(watts));
+                watts *= field.scale;
+                break;
+
+            default:
+                _lastModbusStatus = INV_MB_GENERAL_FAILURE;
+                _bus->release();
+                return INV_ERROR;
+        }
+
+        _lastModbusStatus = _bus->transactionStatus();
+        _bus->release();
+        return INV_DONE;
+    }
+
+    if (_bus->isFailedFor(this, REQ_ACTIVE_POWER)) {
+        _lastModbusStatus = _bus->transactionStatus();
+        _bus->release();
+        return INV_ERROR;
+    }
+
+    if (_bus->belongsTo(this, REQ_ACTIVE_POWER)) return INV_BUSY;
+    if (_bus->isBusy()) return INV_REJECTED;
+
+    uint16_t registerCount = field.length;
+    switch (field.type) {
+        case U16:
+        case I16:
+            break;
+
+        case U32:
+        case I32:
+        case FLOAT32:
+            registerCount *= 2;
+            break;
+
+        default:
+            return INV_ERROR;
+    }
+
+    if (!_bus->startRead(this, REQ_ACTIVE_POWER, _cfg.id,
+                         field.address, registerCount)) {
+        if (_bus->belongsTo(this, REQ_ACTIVE_POWER)) {
+            _lastModbusStatus = _bus->transactionStatus();
+            _bus->release();
+        }
+        return INV_ERROR;
+    }
+
+    return INV_BUSY;
 }
    
 bool Inverter::getReactivePower(float& var) {

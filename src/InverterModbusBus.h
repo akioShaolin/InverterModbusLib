@@ -23,7 +23,8 @@ enum InverterRequestStatus : uint8_t {
 
 enum InverterRequestId : uint8_t {
     REQ_NONE = 0,
-    REQ_GRID_FREQUENCY
+    REQ_GRID_FREQUENCY,
+    REQ_ACTIVE_POWER
 };
 
 enum InverterModbusStatus : uint8_t {

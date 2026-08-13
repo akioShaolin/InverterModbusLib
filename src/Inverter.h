@@ -224,7 +224,7 @@ public:
     bool isFixedReactiveEnabled(bool& enabled);      //
     bool getFixedReactiveSetpoint(float& var);        //
     // Potências    
-    bool getActivePower(float& watts);               // 
+    InverterRequestStatus getActivePower(float& watts); //
     bool getReactivePower(float& var); //
     bool getApparentPower(float& va);         //
     bool getPowerFactor(float &pf);                  //    

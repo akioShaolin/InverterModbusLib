@@ -55,12 +55,12 @@ InverterCore.cpp
 // quando necessário. Esses métodos vão usar as informações do ModbusField para fazer a
 // leitura/escrita correta.
 
-static bool _mb_done = false;
-static bool _mb_success = false;
+static bool _blockingMbDone = false;
+static bool _blockingMbSuccess = false;
 
-bool _mb_cb(Modbus::ResultCode event, uint16_t, void*) {
-    _mb_done = true;
-    _mb_success = (event == Modbus::EX_SUCCESS);
+bool blockingMbCallback(Modbus::ResultCode event, uint16_t, void*) {
+    _blockingMbDone = true;
+    _blockingMbSuccess = (event == Modbus::EX_SUCCESS);
     return true;
 }
 
@@ -68,88 +68,24 @@ bool _mb_cb(Modbus::ResultCode event, uint16_t, void*) {
 // Async
 // ======================================================
 
+bool Inverter::isBusy() const {
+    return _bus != nullptr && _bus->_owner == this && _bus->_state == BUS_WAITING;
+}
+
 bool Inverter::isDone() const {
-    return _modbusState == MODBUS_DONE;
+    return _bus != nullptr && _bus->_owner == this && _bus->_state == BUS_DONE;
 }
 
 bool Inverter::hasError() const {
-    return _modbusState == MODBUS_ERROR ||
-           _modbusState == MODBUS_TIMEOUT;
+    return _bus != nullptr && _bus->_owner == this && _bus->_state == BUS_ERROR;
 }
 
 void Inverter::task() {
-    if (_mb == nullptr) return;
-
-    _mb->task();
-
-    if (_modbusState == MODBUS_WAITING && _mb_done) {
-        _modbusResult = _mb_success;
-        _modbusState = _mb_success ? MODBUS_DONE : MODBUS_ERROR;
+    if (_bus != nullptr) {
+        _bus->task();
+    } else if (_mb != nullptr) {
+        _mb->task();
     }
-}
-
-bool Inverter::startReadField(const ModbusField& field, uint16_t* buffer) {
-    if (_modbusState == MODBUS_WAITING) return false;
-    if(_mb == nullptr) return false;
-    if (_serialPort == nullptr) return false;
-    if (!field.readable || field.length == 0) return false;
-
-    uint16_t registerCount = field.length;
-    if (field.type == U32 || field.type == I32 || field.type == FLOAT32) {
-        registerCount *= 2;
-    } else if (field.type == U64 || field.type == I64) {
-        registerCount *= 4;
-    }
-
-    if (registerCount > 8) return false;
-    if (!_modbus.ensureApplied(*_mb, *_serialPort)) return false;
-
-    _mb_done = false;
-    _mb_success = false;
-
-    bool ok = _mb->readHreg(_modbus.getId(), field.address, buffer, registerCount, _mb_cb);
-
-    if (!ok) {
-        _modbusState = MODBUS_ERROR;
-        return false;
-    }
-
-    _modbusStartMs = millis();
-    _modbusState = MODBUS_WAITING;
-    return true;
-}
-
-bool Inverter::startWriteField(const ModbusField& field, uint32_t value) {
-    if (_modbusState == MODBUS_WAITING) return false;
-    if(_mb == nullptr) return false;
-
-    bool ok = _mb->writeHreg(_cfg.id, field.address, value);
-
-    if (!ok) {
-        _modbusState = MODBUS_ERROR;
-        return false;
-    }
-
-    _modbusStartMs = millis();
-    _modbusState = MODBUS_WAITING;
-    return true;
-}
-
-// Teste nivel core
-
-bool Inverter::requestGridFrequency() {
-    if (_mb == nullptr) return false;
-    if (_modbusState == MODBUS_WAITING) return false;
-    return startReadField(_map.grid.frequency, _asyncBuffer);
-}
-
-bool Inverter::getGridFrequencyResult(uint32_t& raw) {
-    if (_modbusState != MODBUS_DONE) return false;
-
-    raw = ((uint32_t)_asyncBuffer[0] << 16) |
-          ((uint32_t)_asyncBuffer[1]);
-
-    return true;
 }
 
 // ======================================================
@@ -631,10 +567,10 @@ bool Inverter::readHoldingRegister(uint16_t startReg, uint16_t* buffer, uint16_t
     if (!_modbus.ensureApplied(*_mb, *_serialPort)) return false;
     // TODO: Implementar EventCode para essa função
 
-    _mb_done = false;
-    _mb_success = false;
+    _blockingMbDone = false;
+    _blockingMbSuccess = false;
 
-    bool requestAccepted = _mb->readHreg(_modbus.getId(), startReg, buffer, count, _mb_cb);
+    bool requestAccepted = _mb->readHreg(_modbus.getId(), startReg, buffer, count, blockingMbCallback);
 
     if (!requestAccepted) {
         return false; // Não conseguiu enviar
@@ -642,16 +578,16 @@ bool Inverter::readHoldingRegister(uint16_t startReg, uint16_t* buffer, uint16_t
 
     uint32_t start = millis();
 
-    while(!_mb_done && millis() - start < 1000) {
+    while(!_blockingMbDone && millis() - start < 1000) {
         _mb->task();
         yield();
     }
 
-    if (!_mb_done) {
+    if (!_blockingMbDone) {
         return false; // Timeout
     }
 
-    if (!_mb_success) {
+    if (!_blockingMbSuccess) {
         return false; // Erro na resposta
     }
 
@@ -668,15 +604,15 @@ bool Inverter::writeHoldingRegister(uint16_t startReg, uint16_t* buffer, uint16_
     if (!_modbus.ensureApplied(*_mb, *_serialPort)) return false;
     // TODO: Implementar EventCode para essa função
 
-    _mb_done = false;
-    _mb_success = false;
+    _blockingMbDone = false;
+    _blockingMbSuccess = false;
 
     bool requestAccepted;
 
     if (count == 1) {
-        requestAccepted = _mb->writeHreg(_modbus.getId(), startReg, buffer[0], _mb_cb);
+        requestAccepted = _mb->writeHreg(_modbus.getId(), startReg, buffer[0], blockingMbCallback);
     } else {
-        requestAccepted = _mb->writeHreg(_modbus.getId(), startReg, buffer, count, _mb_cb);
+        requestAccepted = _mb->writeHreg(_modbus.getId(), startReg, buffer, count, blockingMbCallback);
     }
 
     if (!requestAccepted) {
@@ -685,16 +621,16 @@ bool Inverter::writeHoldingRegister(uint16_t startReg, uint16_t* buffer, uint16_
 
     uint32_t start = millis();
 
-    while (!_mb_done && millis() - start < 1000) {
+    while (!_blockingMbDone && millis() - start < 1000) {
         _mb->task();
         yield();
     }
 
-    if (!_mb_done) {
+    if (!_blockingMbDone) {
         return false; // Timeout
     }
 
-    if (!_mb_success) {
+    if (!_blockingMbSuccess) {
         return false; // Erro na resposta
     }
 

@@ -923,7 +923,7 @@ bool Inverter::getGridCurrent(PhaseData& phase) {
 }
 
 InverterRequestStatus Inverter::getGridFrequency(float& freq) {
-    if (_mb == nullptr || !hasValidMap()) return INV_ERROR;
+    if (_bus == nullptr || !hasValidMap()) return INV_ERROR;
 
     const ModbusField& field = _map.grid.frequency;
 
@@ -931,67 +931,69 @@ InverterRequestStatus Inverter::getGridFrequency(float& freq) {
         return INV_ERROR;
     }
 
-    const bool busBusy = _mb->slave() != 0;
+    if (_bus->isCompletedFor(this, REQ_GRID_FREQUENCY)) {
+        const uint16_t* buffer = _bus->buffer();
+        uint32_t raw = 0;
 
-    if (busBusy) {
-        return _activeRequest == REQ_GRID_FREQUENCY ? INV_BUSY : INV_REJECTED;
-    }
+        switch (field.type) {
+            case U16:
+                freq = (float)buffer[0] * field.scale;
+                break;
 
-    if (_activeRequest == REQ_GRID_FREQUENCY) {
-        if (_modbusState == MODBUS_DONE && _modbusResult) {
-            uint32_t raw = 0;
+            case I16:
+                freq = (float)(int16_t)buffer[0] * field.scale;
+                break;
 
-            switch (field.type) {
-                case U16:
-                    raw = _asyncBuffer[0];
-                    freq = (float)raw * field.scale;
-                    break;
+            case U32:
+                raw = ((uint32_t)buffer[0] << 16) | buffer[1];
+                freq = (float)raw * field.scale;
+                break;
 
-                case I16:
-                    freq = (float)(int16_t)_asyncBuffer[0] * field.scale;
-                    break;
+            case I32:
+                raw = ((uint32_t)buffer[0] << 16) | buffer[1];
+                freq = (float)(int32_t)raw * field.scale;
+                break;
 
-                case U32:
-                    raw = ((uint32_t)_asyncBuffer[0] << 16) | _asyncBuffer[1];
-                    freq = (float)raw * field.scale;
-                    break;
+            case FLOAT32:
+                raw = ((uint32_t)buffer[0] << 16) | buffer[1];
+                memcpy(&freq, &raw, sizeof(freq));
+                freq *= field.scale;
+                break;
 
-                case I32:
-                    raw = ((uint32_t)_asyncBuffer[0] << 16) | _asyncBuffer[1];
-                    freq = (float)(int32_t)raw * field.scale;
-                    break;
-
-                case FLOAT32:
-                    raw = ((uint32_t)_asyncBuffer[0] << 16) | _asyncBuffer[1];
-                    memcpy(&freq, &raw, sizeof(freq));
-                    freq *= field.scale;
-                    break;
-
-                default:
-                    _activeRequest = REQ_NONE;
-                    _modbusState = MODBUS_IDLE;
-                    return INV_ERROR;
-            }
-
-            _activeRequest = REQ_NONE;
-            _modbusState = MODBUS_IDLE;
-            return INV_DONE;
+            default:
+                _lastModbusStatus = INV_MB_GENERAL_FAILURE;
+                _bus->release();
+                return INV_ERROR;
         }
 
-        if (_modbusState == MODBUS_WAITING) return INV_BUSY;
+        _lastModbusStatus = _bus->transactionStatus();
+        _bus->release();
+        return INV_DONE;
+    }
 
-        _activeRequest = REQ_NONE;
-        _modbusState = MODBUS_IDLE;
+    if (_bus->isFailedFor(this, REQ_GRID_FREQUENCY)) {
+        _lastModbusStatus = _bus->transactionStatus();
+        _bus->release();
         return INV_ERROR;
     }
 
-    if (_activeRequest != REQ_NONE) return INV_REJECTED;
+    if (_bus->belongsTo(this, REQ_GRID_FREQUENCY)) return INV_BUSY;
+    if (_bus->isBusy()) return INV_REJECTED;
 
-    if (!startReadField(field, _asyncBuffer)) {
-        return _mb->slave() ? INV_REJECTED : INV_ERROR;
+    uint16_t registerCount = field.length;
+    if (field.type == U32 || field.type == I32 || field.type == FLOAT32) {
+        registerCount *= 2;
     }
 
-    _activeRequest = REQ_GRID_FREQUENCY;
+    if (!_bus->startRead(this, REQ_GRID_FREQUENCY, _cfg.id,
+                         field.address, registerCount)) {
+        if (_bus->belongsTo(this, REQ_GRID_FREQUENCY)) {
+            _lastModbusStatus = _bus->transactionStatus();
+            _bus->release();
+        }
+        return INV_ERROR;
+    }
+
     return INV_BUSY;
 }
 

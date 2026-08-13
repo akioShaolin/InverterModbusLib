@@ -65,6 +65,10 @@ void Inverter::attachModbus(ModbusRTU& mb) {
     _mb = &mb;
 }
 
+void Inverter::attachBus(InverterModbusBus& bus) {
+    _bus = &bus;
+}
+
 void Inverter::attachConfig(const ModbusConfigData& config) {
     memcpy(&_cfg, &config, sizeof(ModbusConfigData));
 }
@@ -74,7 +78,8 @@ void Inverter::attachSerial(HardwareSerial& serial) {
 }
 
 bool Inverter::begin() {
-    if (_mb == nullptr) return false;
+    if (_mb == nullptr && _bus == nullptr) return false;
+    if (_bus != nullptr && !_bus->_initialized) return false;
     if (!hasValidMap()) return false;
     if (_descriptor.ratedPowerW == 0) return false;  //São campos obrigatórios. A falta deles invalida a struct
 
@@ -894,4 +899,8 @@ bool Inverter::setFixedReactiveSetpoint(float var) {
             return false;
     }
 
+}
+
+InverterModbusStatus Inverter::getLastModbusStatus() const {
+    return _lastModbusStatus;
 }

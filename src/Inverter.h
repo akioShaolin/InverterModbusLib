@@ -15,6 +15,7 @@
 #include "InverterMaps.h"
 #include "InverterDescriptor.h"
 #include "InverterModels.h"
+#include "InverterModbusBus.h"
 
 constexpr uint8_t INV_MAX_U16_VALUES =   28;
 constexpr uint8_t INV_MAX_U32_VALUES =   3;
@@ -132,29 +133,6 @@ struct BatteryValues {
 
 // -------------------------------------------------------------------------------------------------------
 
-enum ModbusAsyncState {
-    MODBUS_IDLE,
-    MODBUS_WAITING,
-    MODBUS_DONE,
-    MODBUS_ERROR,
-    MODBUS_TIMEOUT
-};
-
-enum InverterRequestStatus : uint8_t {
-    INV_DONE     = 0x00,
-    INV_BUSY     = 0x01,
-    INV_REJECTED = 0x02,
-    INV_ERROR    = 0x03,
-    INV_IDLE     = 0x04
-};
-
-enum InverterRequestId : uint8_t {
-    REQ_NONE = 0,
-    REQ_GRID_FREQUENCY
-};
-
-// -------------------------------------------------------------------------------------------------------
-
 class Inverter {
 public:
 
@@ -169,11 +147,13 @@ public:
     // ------------------------------------------------------
     // Inicialização / configuração da biblioteca
     Inverter(InverterModel model);                      //
+    void attachBus(InverterModbusBus& bus);
     void attachModbus(ModbusRTU& mb);                   //
     void attachConfig(const ModbusConfigData& config);  //  
     void attachSerial(HardwareSerial& serial);          //
     bool begin();                                       //
     void setSlaveId(uint8_t id);                        //
+    InverterModbusStatus getLastModbusStatus() const;
     // Controle do inversor
     bool boot();                                        //
     bool shutdown();                                    //
@@ -283,31 +263,13 @@ public:
     bool getEPSActivePower(float& power);            //    
     bool getEPSActivePower(PhaseData& phase);        // 
 
-    // Teste do Modbus nao bloquante (nível core)
-    bool requestGridFrequency();
-    bool getGridFrequencyResult(uint32_t& raw);
-    
 private:
-
-// Variaveis de teste
-    uint16_t _asyncBuffer[8] = {0};
-
-// Variaveis da função
-
-    ModbusAsyncState _modbusState = MODBUS_IDLE;
-    InverterRequestId _activeRequest = REQ_NONE;
-    
-    uint32_t _modbusStartMs = 0;
-    uint32_t _modbusTimeoutMs = 1000;
-
-    bool _modbusResult = false;
-
-    bool startReadField(const ModbusField& field, uint16_t* buffer);
-    bool startWriteField(const ModbusField& field, uint32_t value);
 
     // Variáveis privadas
     // ------------------------------------------------------
     ModbusRTU* _mb = nullptr;                        //
+    InverterModbusBus* _bus = nullptr;
+    InverterModbusStatus _lastModbusStatus = INV_MB_NONE;
     ModbusConfigData _cfg;                           //
     ModbusConfig _modbus;                            //
     HardwareSerial* _serialPort;                     //

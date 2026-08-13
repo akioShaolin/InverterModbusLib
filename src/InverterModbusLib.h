@@ -10,6 +10,7 @@
 #pragma once
 
 #include "Inverter.h"
+#include "InverterModbusBus.h"
 #include "ModbusConfig.h"
 #include "InverterMaps.h"
 #include "InverterModels.h"

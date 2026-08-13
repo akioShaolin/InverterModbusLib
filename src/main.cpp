@@ -20,6 +20,12 @@
 Inverter inverter(SIW500H_ST030_M3);   // troque pelo enum correto do seu modelo
 
 ModbusRTU mb;
+const ModbusConfigData modbusConfig = {
+    MODBUS_ID,
+    MODBUS_BAUD,
+    SERIAL_8N1,
+    DE_RE_PIN
+};
 
 // =======================
 // Estados do teste
@@ -30,15 +36,15 @@ bool waitingFrequency = false;
 
 uint32_t lastRequestMs = 0;
 uint32_t lastBlinkMs = 0;
-uint32_t lastStatusPulseMs = 0;
 
 bool ledState = false;
+float gridFrequency = 0.0f;
 
 // Contadores sem Serial
 uint32_t requestCount = 0;
 uint32_t successCount = 0;
 uint32_t failCount = 0;
-uint32_t timeoutCount = 0;
+uint32_t rejectedCount = 0;
 
 // =======================
 // Blink base: prova de vida
@@ -61,38 +67,44 @@ void blinkAliveTask() {
 void asyncFrequencyTask() {
     if (!inverterReady) return;
 
-    // Inicia uma leitura a cada 3 segundos
-    if (!waitingFrequency && millis() - lastRequestMs >= 3000) {
-        lastRequestMs = millis();
-
-        if (inverter.requestGridFrequency()) {
-            waitingFrequency = true;
-            requestCount++;
-        } else {
-            failCount++;
-        }
-    }
-
     // A task da lib precisa rodar sempre
     inverter.task();
 
-    // Verifica se terminou
-    if (waitingFrequency && inverter.isDone()) {
-        uint32_t raw = 0;
+    // Inicia uma nova leitura a cada 3 segundos e continua
+    // consultando a mesma requisição até ela terminar.
+    if (!waitingFrequency && millis() - lastRequestMs < 3000) return;
 
-        if (inverter.getGridFrequencyResult(raw)) {
-            successCount++;
-        } else {
-            failCount++;
-        }
-
-        waitingFrequency = false;
+    if (!waitingFrequency) {
+        lastRequestMs = millis();
     }
 
-    // Verifica erro/timeout
-    if (waitingFrequency && inverter.hasError()) {
-        timeoutCount++;
-        waitingFrequency = false;
+    InverterRequestStatus status = inverter.getGridFrequency(gridFrequency);
+
+    switch (status) {
+        case INV_BUSY:
+            if (!waitingFrequency) {
+                waitingFrequency = true;
+                requestCount++;
+            }
+            break;
+
+        case INV_DONE:
+            successCount++;
+            waitingFrequency = false;
+            break;
+
+        case INV_REJECTED:
+            rejectedCount++;
+            waitingFrequency = false;
+            break;
+
+        case INV_ERROR:
+            failCount++;
+            waitingFrequency = false;
+            break;
+
+        case INV_IDLE:
+            break;
     }
 }
 
@@ -108,7 +120,7 @@ void setup() {
     digitalWrite(DE_RE_PIN, LOW);
 
     pinMode(PIN_RS485_SWITCH, OUTPUT);
-    digitalWrite(PIN_RS485_SWITCH, HIGH);
+    digitalWrite(PIN_RS485_SWITCH, LOW); // Half Duplex
 
     Serial.begin(MODBUS_BAUD, SERIAL_8N1);
 
@@ -117,6 +129,7 @@ void setup() {
 
     inverter.attachModbus(mb);
     inverter.attachSerial(Serial);
+    inverter.attachConfig(modbusConfig);
 
     inverter.setSlaveId(MODBUS_ID);
 

@@ -140,6 +140,19 @@ enum ModbusAsyncState {
     MODBUS_TIMEOUT
 };
 
+enum InverterRequestStatus : uint8_t {
+    INV_DONE     = 0x00,
+    INV_BUSY     = 0x01,
+    INV_REJECTED = 0x02,
+    INV_ERROR    = 0x03,
+    INV_IDLE     = 0x04
+};
+
+enum InverterRequestId : uint8_t {
+    REQ_NONE = 0,
+    REQ_GRID_FREQUENCY
+};
+
 // -------------------------------------------------------------------------------------------------------
 
 class Inverter {
@@ -241,7 +254,7 @@ public:
     bool getGridLineVoltage(PhaseData& phase);       //
     bool getGridCurrent(float& current);             //
     bool getGridCurrent(PhaseData& phase);           //
-    bool getGridFrequency(float& freq);              //
+    InverterRequestStatus getGridFrequency(float& freq); //
     // Energia
     bool getTotalEnergy(float& kWh);                 //
     bool getDailyEnergy(float& kWh);                 //
@@ -277,11 +290,12 @@ public:
 private:
 
 // Variaveis de teste
-    uint16_t _gridFrequencyBuffer[2];
+    uint16_t _asyncBuffer[8] = {0};
 
 // Variaveis da função
 
     ModbusAsyncState _modbusState = MODBUS_IDLE;
+    InverterRequestId _activeRequest = REQ_NONE;
     
     uint32_t _modbusStartMs = 0;
     uint32_t _modbusTimeoutMs = 1000;
@@ -358,5 +372,4 @@ private:
     bool writeHoldingRegister(uint16_t reg, uint16_t* value, uint16_t count = 1);       //
     // ------------------------------------------------------
 };
-
 #endif

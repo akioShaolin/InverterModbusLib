@@ -922,21 +922,77 @@ bool Inverter::getGridCurrent(PhaseData& phase) {
     }
 }
 
-bool Inverter::getGridFrequency(float& freq) {
-    if (!hasValidMap()) return false;
+InverterRequestStatus Inverter::getGridFrequency(float& freq) {
+    if (_mb == nullptr || !hasValidMap()) return INV_ERROR;
 
     const ModbusField& field = _map.grid.frequency;
 
-    if (field.length != 1) return false;
-
-    switch (field.mode) {
-        case FIELD_SIMPLE:
-            if (!field.readable) return false;
-            return readScaledFloat(field, freq);
-
-        default:
-            return false;
+    if (isInvalidField(field) || !field.readable || field.length != 1 || field.mode != FIELD_SIMPLE) {
+        return INV_ERROR;
     }
+
+    const bool busBusy = _mb->slave() != 0;
+
+    if (busBusy) {
+        return _activeRequest == REQ_GRID_FREQUENCY ? INV_BUSY : INV_REJECTED;
+    }
+
+    if (_activeRequest == REQ_GRID_FREQUENCY) {
+        if (_modbusState == MODBUS_DONE && _modbusResult) {
+            uint32_t raw = 0;
+
+            switch (field.type) {
+                case U16:
+                    raw = _asyncBuffer[0];
+                    freq = (float)raw * field.scale;
+                    break;
+
+                case I16:
+                    freq = (float)(int16_t)_asyncBuffer[0] * field.scale;
+                    break;
+
+                case U32:
+                    raw = ((uint32_t)_asyncBuffer[0] << 16) | _asyncBuffer[1];
+                    freq = (float)raw * field.scale;
+                    break;
+
+                case I32:
+                    raw = ((uint32_t)_asyncBuffer[0] << 16) | _asyncBuffer[1];
+                    freq = (float)(int32_t)raw * field.scale;
+                    break;
+
+                case FLOAT32:
+                    raw = ((uint32_t)_asyncBuffer[0] << 16) | _asyncBuffer[1];
+                    memcpy(&freq, &raw, sizeof(freq));
+                    freq *= field.scale;
+                    break;
+
+                default:
+                    _activeRequest = REQ_NONE;
+                    _modbusState = MODBUS_IDLE;
+                    return INV_ERROR;
+            }
+
+            _activeRequest = REQ_NONE;
+            _modbusState = MODBUS_IDLE;
+            return INV_DONE;
+        }
+
+        if (_modbusState == MODBUS_WAITING) return INV_BUSY;
+
+        _activeRequest = REQ_NONE;
+        _modbusState = MODBUS_IDLE;
+        return INV_ERROR;
+    }
+
+    if (_activeRequest != REQ_NONE) return INV_REJECTED;
+
+    if (!startReadField(field, _asyncBuffer)) {
+        return _mb->slave() ? INV_REJECTED : INV_ERROR;
+    }
+
+    _activeRequest = REQ_GRID_FREQUENCY;
+    return INV_BUSY;
 }
 
 // ======================================================

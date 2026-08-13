@@ -82,24 +82,32 @@ void Inverter::task() {
 
     _mb->task();
 
-    if (_modbusState == MODBUS_WAITING) {
-        if (millis() - _modbusStartMs > _modbusTimeoutMs) {
-            _modbusState = MODBUS_TIMEOUT;
-            _modbusResult = false;
-        }
-
-        if (!_mb->slave()) {
-            _modbusState = MODBUS_DONE;
-            _modbusResult = true;
-        }
+    if (_modbusState == MODBUS_WAITING && _mb_done) {
+        _modbusResult = _mb_success;
+        _modbusState = _mb_success ? MODBUS_DONE : MODBUS_ERROR;
     }
 }
 
 bool Inverter::startReadField(const ModbusField& field, uint16_t* buffer) {
     if (_modbusState == MODBUS_WAITING) return false;
     if(_mb == nullptr) return false;
+    if (_serialPort == nullptr) return false;
+    if (!field.readable || field.length == 0) return false;
 
-    bool ok = _mb->readHreg(_cfg.id, field.address, buffer, field.length);
+    uint16_t registerCount = field.length;
+    if (field.type == U32 || field.type == I32 || field.type == FLOAT32) {
+        registerCount *= 2;
+    } else if (field.type == U64 || field.type == I64) {
+        registerCount *= 4;
+    }
+
+    if (registerCount > 8) return false;
+    if (!_modbus.ensureApplied(*_mb, *_serialPort)) return false;
+
+    _mb_done = false;
+    _mb_success = false;
+
+    bool ok = _mb->readHreg(_modbus.getId(), field.address, buffer, registerCount, _mb_cb);
 
     if (!ok) {
         _modbusState = MODBUS_ERROR;
@@ -132,14 +140,14 @@ bool Inverter::startWriteField(const ModbusField& field, uint32_t value) {
 bool Inverter::requestGridFrequency() {
     if (_mb == nullptr) return false;
     if (_modbusState == MODBUS_WAITING) return false;
-    return startReadField(_map.grid.frequency, _gridFrequencyBuffer);
+    return startReadField(_map.grid.frequency, _asyncBuffer);
 }
 
 bool Inverter::getGridFrequencyResult(uint32_t& raw) {
     if (_modbusState != MODBUS_DONE) return false;
 
-    raw = ((uint32_t)_gridFrequencyBuffer[0] << 16) |
-          ((uint32_t)_gridFrequencyBuffer[1]);
+    raw = ((uint32_t)_asyncBuffer[0] << 16) |
+          ((uint32_t)_asyncBuffer[1]);
 
     return true;
 }

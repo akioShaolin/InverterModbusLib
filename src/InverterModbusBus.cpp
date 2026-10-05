@@ -33,7 +33,12 @@ InverterModbusBus::InverterModbusBus(ModbusRTU& mb)
       _timeoutMs(1000),
       _baud(0),
       _serialConfig(SERIAL_8N1),
-      _deRePin(-1) {
+      _deRePin(-1),
+      _traceCallback(nullptr),
+      _traceContext(nullptr),
+      _slaveId(0),
+      _functionCode(0),
+      _address(0) {
     memset(_buffer, 0, sizeof(_buffer));
 
     for (uint8_t i = 0; i < INV_MAX_MODBUS_BUSES; ++i) {
@@ -78,7 +83,13 @@ void InverterModbusBus::task() {
     _mb->task();
     if (_state == BUS_WAITING && _callbackDone) {
         _state = _resultCode == Modbus::EX_SUCCESS ? BUS_DONE : BUS_ERROR;
+        emitTrace(true);
     }
+}
+
+void InverterModbusBus::setTraceCallback(InverterTraceCallback callback, void* context) {
+    _traceCallback = callback;
+    _traceContext = context;
 }
 
 bool InverterModbusBus::isBusy() const {
@@ -126,10 +137,15 @@ bool InverterModbusBus::startRead(Inverter* owner, InverterRequestId request,
     _status = INV_MB_NONE;
     _callbackDone = false;
     memset(_buffer, 0, sizeof(_buffer));
+    _slaveId = slaveId;
+    _functionCode = 3;
+    _address = address;
+    _startedAt = millis();
 
     if (!_mb->readHreg(slaveId, address, _buffer, registerCount, cb)) {
         _state = BUS_ERROR;
         _status = INV_MB_GENERAL_FAILURE;
+        emitTrace(false);
         return false;
     }
 
@@ -156,6 +172,10 @@ bool InverterModbusBus::startWrite(Inverter* owner, InverterRequestId request,
     _status = INV_MB_NONE;
     _callbackDone = false;
     memcpy(_buffer, values, registerCount * sizeof(uint16_t));
+    _slaveId = slaveId;
+    _functionCode = registerCount == 1 ? 6 : 16;
+    _address = address;
+    _startedAt = millis();
 
     const bool accepted = registerCount == 1
         ? _mb->writeHreg(slaveId, address, _buffer[0], cb)
@@ -163,6 +183,7 @@ bool InverterModbusBus::startWrite(Inverter* owner, InverterRequestId request,
     if (!accepted) {
         _state = BUS_ERROR;
         _status = INV_MB_GENERAL_FAILURE;
+        emitTrace(false);
         return false;
     }
 
@@ -185,6 +206,28 @@ bool InverterModbusBus::complete(Modbus::ResultCode result) {
     _status = convertResultCode(result);
     _callbackDone = true;
     return true;
+}
+
+void InverterModbusBus::emitTrace(bool accepted) {
+    if (_traceCallback == nullptr) return;
+
+    InverterTransactionTrace trace = {};
+    trace.requestId = _activeRequest;
+    trace.slaveId = _slaveId;
+    trace.functionCode = _functionCode;
+    trace.address = _address;
+    trace.registerCount = _registerCount;
+    trace.status = _status;
+    trace.resultCode = accepted ? static_cast<uint16_t>(_resultCode) : 0;
+    trace.startedMs = _startedAt;
+    trace.durationMs = static_cast<uint32_t>(millis() - _startedAt);
+    trace.accepted = accepted;
+    trace.resultCodeValid = accepted;
+    trace.payloadValid = _functionCode != 3 || (accepted && _status == INV_MB_SUCCESS);
+    if (trace.payloadValid) {
+        memcpy(trace.words, _buffer, _registerCount * sizeof(uint16_t));
+    }
+    _traceCallback(trace, _traceContext);
 }
 
 bool InverterModbusBus::callback0(Modbus::ResultCode result, uint16_t, void*) {

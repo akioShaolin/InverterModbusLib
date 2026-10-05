@@ -50,6 +50,28 @@ enum BusTransactionState : uint8_t {
     BUS_ERROR
 };
 
+// A terminal transaction diagnostic, not a capture of the UART frame or CRC.
+// words contains write values (including failed writes), or successful read data.
+// Failed read data is zeroed and marked invalid. An enqueue refusal has no
+// Modbus response code: accepted and resultCodeValid are both false.
+struct InverterTransactionTrace {
+    InverterRequestId requestId;
+    uint8_t slaveId;
+    uint8_t functionCode;
+    uint16_t address;
+    uint16_t registerCount;
+    uint16_t words[INV_ASYNC_BUFFER_REGS];
+    InverterModbusStatus status;
+    uint16_t resultCode;
+    uint32_t startedMs;
+    uint32_t durationMs;
+    bool accepted;
+    bool resultCodeValid;
+    bool payloadValid;
+};
+
+typedef void (*InverterTraceCallback)(const InverterTransactionTrace&, void*);
+
 class InverterModbusBus {
 public:
     explicit InverterModbusBus(ModbusRTU& mb);
@@ -57,6 +79,12 @@ public:
 
     bool begin(HardwareSerial& serial, uint32_t baud, SerialConfig serialConfig, int8_t deRePin);
     void task();
+
+    // Optional, disabled by default. Called synchronously from task(), or from
+    // startRead/startWrite when Modbus refuses to enqueue a valid request.
+    // Copy to RAM only: no flash/network I/O, no bus re-entry, and do not retain
+    // the reference. The owner/request remain held until normal consumption.
+    void setTraceCallback(InverterTraceCallback callback, void* context = nullptr);
 
     bool isBusy() const;
     bool belongsTo(const Inverter* owner, InverterRequestId request) const;
@@ -76,6 +104,7 @@ private:
                     uint16_t address, const uint16_t* values, uint16_t registerCount);
     void release();
     bool complete(Modbus::ResultCode result);
+    void emitTrace(bool accepted);
 
     static bool callback0(Modbus::ResultCode result, uint16_t transactionId, void* data);
     static bool callback1(Modbus::ResultCode result, uint16_t transactionId, void* data);
@@ -101,4 +130,9 @@ private:
     uint32_t _baud;
     SerialConfig _serialConfig;
     int8_t _deRePin;
+    InverterTraceCallback _traceCallback;
+    void* _traceContext;
+    uint8_t _slaveId;
+    uint8_t _functionCode;
+    uint16_t _address;
 };

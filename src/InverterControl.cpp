@@ -35,6 +35,7 @@ InverterControl.cpp
 */
 
 #include "Inverter.h"
+#include <math.h>
 
 // ======================================================
 // Begin and Setup
@@ -228,10 +229,13 @@ bool Inverter::setPowerLimitEnabled(bool enabled) {
 static bool encodeAsyncFieldValue(const ModbusField& field, float humanValue,
                                   uint16_t* regs, uint8_t& registerCount) {
     if (!field.writable || field.mode != FIELD_SIMPLE || field.length != 1 ||
-        field.address == 0xFFFF || field.scale == 0.0f || regs == nullptr) return false;
+        field.address == 0xFFFF || !isfinite(field.scale) || field.scale <= 0.0f ||
+        !isfinite(humanValue) || regs == nullptr) return false;
 
-    const float scaled = humanValue / field.scale;
-    const float rounded = roundf(scaled);
+    // Double preserves the integer limits: UINT32_MAX rounds up to 2^32 in float.
+    const double scaled = (double)humanValue / (double)field.scale;
+    if (!isfinite(scaled)) return false;
+    const double rounded = round(scaled);
     uint32_t raw32 = 0;
     switch (field.type) {
         case U16:
@@ -254,6 +258,7 @@ static bool encodeAsyncFieldValue(const ModbusField& field, float humanValue,
             break;
         case FLOAT32: {
             const float rawFloat = scaled;
+            if (!isfinite(rawFloat)) return false;
             memcpy(&raw32, &rawFloat, sizeof(raw32));
             break;
         }
@@ -272,7 +277,8 @@ bool Inverter::prepareAsyncPowerLimit(InverterRequestId request, float requested
 
     const ActivePowerFeature& feature = _map.activePower;
     const bool wantsPercent = request == REQ_SET_POWER_LIMIT_PERCENT;
-    if (requestedValue < 0.0f || (wantsPercent && requestedValue > 100.0f)) return false;
+    if (!isfinite(requestedValue) || requestedValue < 0.0f ||
+        (wantsPercent && requestedValue > 100.0f)) return false;
 
     float ratedPower = _ratedPowerCache;
     if (!_hasRatedPowerCache) {
@@ -290,7 +296,7 @@ bool Inverter::prepareAsyncPowerLimit(InverterRequestId request, float requested
         target = &feature.watts;
         modeValue = feature.wattsModeValue;
     } else if (!wantsPercent && feature.supportsPercent && !isInvalidField(feature.percent)) {
-        if (!_hasRatedPowerCache || ratedPower <= 0.0f) return false;
+        if (!_hasRatedPowerCache || !isfinite(ratedPower) || ratedPower <= 0.0f) return false;
         target = &feature.percent;
         targetValue = requestedValue * 100.0f / ratedPower;
         modeValue = feature.percentModeValue;
@@ -298,15 +304,17 @@ bool Inverter::prepareAsyncPowerLimit(InverterRequestId request, float requested
         target = &feature.percent;
         modeValue = feature.percentModeValue;
     } else if (wantsPercent && feature.supportsWatts && !isInvalidField(feature.watts)) {
-        if (!_hasRatedPowerCache || ratedPower <= 0.0f) return false;
+        if (!_hasRatedPowerCache || !isfinite(ratedPower) || ratedPower <= 0.0f) return false;
         target = &feature.watts;
         targetValue = requestedValue * ratedPower / 100.0f;
         modeValue = feature.wattsModeValue;
     } else {
         return false;
     }
-    if (targetValue < 0.0f || (target == &feature.percent && targetValue > 100.0f)) return false;
-    if (target == &feature.watts && _hasRatedPowerCache && targetValue > ratedPower) return false;
+    if (!isfinite(targetValue) || targetValue < 0.0f ||
+        (target == &feature.percent && targetValue > 100.0f)) return false;
+    if (target == &feature.watts && _hasRatedPowerCache &&
+        (!isfinite(ratedPower) || ratedPower <= 0.0f || targetValue > ratedPower)) return false;
 
     _powerLimitStep = 0;
     _powerLimitStepCount = 0;
@@ -357,6 +365,7 @@ InverterRequestStatus Inverter::runAsyncPowerLimit(InverterRequestId request) {
     }
 
     if (_bus->isBusy()) return INV_REJECTED;
+    _lastModbusStatus = INV_MB_NONE;
     if (!_bus->startWrite(this, request, _cfg.id,
                           _powerLimitAddresses[_powerLimitStep],
                           _powerLimitValues[_powerLimitStep],
@@ -373,16 +382,28 @@ InverterRequestStatus Inverter::runAsyncPowerLimit(InverterRequestId request) {
 }
 
 InverterRequestStatus Inverter::setPowerLimit(float watts) {
-    if (_powerLimitRequest == REQ_NONE && !prepareAsyncPowerLimit(REQ_SET_POWER_LIMIT, watts)) {
-        return INV_ERROR;
+    if (_powerLimitRequest == REQ_NONE) {
+        _lastModbusStatus = INV_MB_NONE;
+        // A rejected request must not reserve steps or retain its old value.
+        if (_bus != nullptr && _bus->isBusy()) return INV_REJECTED;
+        if (!prepareAsyncPowerLimit(REQ_SET_POWER_LIMIT, watts)) {
+            _powerLimitStep = _powerLimitStepCount = 0;
+            return INV_ERROR;
+        }
     }
     if (_powerLimitRequest != REQ_SET_POWER_LIMIT) return INV_REJECTED;
     return runAsyncPowerLimit(REQ_SET_POWER_LIMIT);
 }
 
 InverterRequestStatus Inverter::setPowerLimitPercent(float percent) {
-    if (_powerLimitRequest == REQ_NONE && !prepareAsyncPowerLimit(REQ_SET_POWER_LIMIT_PERCENT, percent)) {
-        return INV_ERROR;
+    if (_powerLimitRequest == REQ_NONE) {
+        _lastModbusStatus = INV_MB_NONE;
+        // A rejected request must not reserve steps or retain its old value.
+        if (_bus != nullptr && _bus->isBusy()) return INV_REJECTED;
+        if (!prepareAsyncPowerLimit(REQ_SET_POWER_LIMIT_PERCENT, percent)) {
+            _powerLimitStep = _powerLimitStepCount = 0;
+            return INV_ERROR;
+        }
     }
     if (_powerLimitRequest != REQ_SET_POWER_LIMIT_PERCENT) return INV_REJECTED;
     return runAsyncPowerLimit(REQ_SET_POWER_LIMIT_PERCENT);

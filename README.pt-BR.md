@@ -1,5 +1,10 @@
 # InverterModbusLib
 
+> **Branch não bloqueante / ensaio SolarView 01:**
+> [firmware, roteiro e download dos logs](documentation/testing/SOLARVIEW_TEST_01.md).
+> O `src/main.cpp` atual registra ensaios manuais de limite de potência.
+> Os exemplos e parte da documentação antiga ainda usam a API bloqueante.
+
 [English](README.md)
 
 Biblioteca Arduino para comunicação Modbus RTU com inversores fotovoltaicos utilizando ESP8266 e ESP32

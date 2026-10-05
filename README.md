@@ -4,6 +4,11 @@
 
 Arduino library for Modbus RTU communication with photovoltaic inverters using ESP8266 and ESP32.
 
+> **Nonblocking branch / SolarView field test 01:** see the
+> [test firmware and download instructions](documentation/testing/SOLARVIEW_TEST_01.md).
+> The current `src/main.cpp` logs manual power-limit trials. Legacy examples and
+> API documentation below do not yet reflect every asynchronous signature.
+
 ## About the Project
 
 Parts of the architecture, documentation and examples of this library were developed with the assistance of artificial intelligence tools to speed up prototyping, review and code organization.

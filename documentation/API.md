@@ -1,5 +1,10 @@
 # API
 
+> On `refactor/nonblocking-modbus` and its test branches, this document contains
+> legacy signatures. Use the [complete current API inventory](testing/REVIEW_AND_NEXT_STEPS.md)
+> and [SolarView field-test guide](testing/SOLARVIEW_TEST_01.md).
+> Never convert `InverterRequestStatus` to `bool`: BUSY and ERROR are nonzero too.
+
 This document describes the public API of InverterModbusLib for the current alpha release.
 
 Some functions may exist internally in the library but are not considered stable yet.
